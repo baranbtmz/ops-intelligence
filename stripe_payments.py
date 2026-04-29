@@ -12,18 +12,27 @@ import os
 from datetime import datetime
 
 # ─────────────────────────────────────────────
-# STRIPE KONFİGÜRASYON
+# STRIPE KONFİGÜRASYON — Secrets'tan oku
 # ─────────────────────────────────────────────
 
-STRIPE_SECRET_KEY      = "sk_test_51RiMMlG1DLQ2LxkR8gDp01nUmPKfmLnLWhs26z0R3aw8EAZjA0k9XDkRRfDU25FSPQgXez66BEWPfXs7dyzy3peD00nZ3Bswds"
-STRIPE_PUBLISHABLE_KEY = "pk_test_51RiMMlG1DLQ2LxkR5WfGAs3LGZaJTR8s8yThz7XAd42RxNlqw5T2qYJCS2y28bqu05xHqXSi0hsO8U9DynvaxEvA00WxsFmjS0"
+def _get_secret(key: str, default: str = "") -> str:
+    """Streamlit secrets veya environment variable'dan oku"""
+    try:
+        import streamlit as st
+        return st.secrets.get(key, os.environ.get(key, default))
+    except Exception:
+        return os.environ.get(key, default)
+
+STRIPE_SECRET_KEY      = _get_secret("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = _get_secret("STRIPE_PUBLISHABLE_KEY")
 
 PRICE_IDS = {
-    "starter": "price_1TReKOG1DLQ2LxkRY8aXYaxW",
-    "pro":     "price_1TReKgG1DLQ2LxkRjnV6kC9Y",
+    "starter": _get_secret("STRIPE_PRICE_STARTER", "price_1TRf3JG1DLQ2LxkRn0eLrytf"),
+    "pro":     _get_secret("STRIPE_PRICE_PRO",     "price_1TRf3aG1DLQ2LxkRqDhmI9jg"),
 }
 
-stripe.api_key = STRIPE_SECRET_KEY
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
 
 
 # ─────────────────────────────────────────────
