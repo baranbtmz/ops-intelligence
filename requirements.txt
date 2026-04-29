@@ -1,0 +1,13 @@
+pandas
+numpy
+requests
+python-dateutil
+faker
+rich
+openai
+streamlit
+plotly
+reportlab
+bcrypt
+pyyaml
+stripe
