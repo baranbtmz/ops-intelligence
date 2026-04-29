@@ -6,6 +6,7 @@ Kurulum:
 pip3 install supabase
 """
 
+import os
 import bcrypt
 from datetime import datetime
 from typing import Optional
@@ -15,8 +16,8 @@ from supabase import create_client, Client
 # SUPABASE BAĞLANTI
 # ─────────────────────────────────────────────
 
-SUPABASE_URL = "https://zyygkcknlcnoabwqbfij.supabase.co"
-SUPABASE_KEY = "sb_secret_4qIdVT61d1laGr_XZeyeMA_Y2nyBpQS"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 _client: Optional[Client] = None
 
