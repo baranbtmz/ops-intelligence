@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-jose[cryptography]
+bcrypt
+supabase
+openai
+pandas
+numpy
+faker
+python-dateutil
+stripe
+reportlab
+requests
+pyyaml
