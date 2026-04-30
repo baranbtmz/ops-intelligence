@@ -368,15 +368,25 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "last_analysis": datetime.now().isoformat(),
     }).eq("email", email).execute()
 
-    # Mail gönder (arka planda)
-    import asyncio
+    # Analiz sonucu
     result_data = {
         "analysis": ai_result.get("analysis", {}),
         "shop_name": req.shopify_domain or "Demo Mağaza",
+        "metrics": {
+            "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
+            "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
+            "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": report["inventory"]["details"].to_dict("records")},
+        },
     }
-    user_name = db.table("users").select("name").eq("email", email).execute()
-    name = user_name.data[0]["name"] if user_name.data else email
-    asyncio.create_task(send_analysis_email(email, name, result_data))
+
+    # Mail gönder
+    user_info = db.table("users").select("name").eq("email", email).execute()
+    user_name = user_info.data[0]["name"] if user_info.data else email
+    try:
+        mail_sent = await send_analysis_email(email, user_name, result_data)
+        print(f"📧 Mail {'gönderildi' if mail_sent else 'gönderilemedi'}: {email}")
+    except Exception as e:
+        print(f"📧 Mail hatası: {e}")
 
     # Metrikleri hazırla
     ft  = report["fulfillment_time"]
