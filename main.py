@@ -30,6 +30,80 @@ from pdf_report import generate_pdf_report
 
 app = FastAPI(title="OPS Intelligence API", version="1.0.0")
 
+# ── Mail gönderme (Resend)
+async def send_email(to: str, subject: str, html: str):
+    resend_key = os.environ.get("RESEND_API_KEY", "")
+    if not resend_key:
+        print("⚠️ RESEND_API_KEY eksik")
+        return False
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                json={"from": "OPS Intelligence <onboarding@resend.dev>", "to": [to], "subject": subject, "html": html},
+                timeout=10
+            )
+            return r.status_code == 200
+    except Exception as e:
+        print(f"Mail hatası: {e}")
+        return False
+
+async def send_analysis_email(user_email: str, user_name: str, analysis_data: dict, pdf_bytes: bytes = None):
+    score = analysis_data.get("analysis", {}).get("overall_health_score", 0)
+    shop = analysis_data.get("shop_name", "Mağazanız")
+    findings = analysis_data.get("analysis", {}).get("findings", [])[:3]
+    quick_wins = analysis_data.get("analysis", {}).get("quick_wins", [])[:3]
+    sc = "#1a7a4a" if score >= 75 else "#d4ac0d" if score >= 50 else "#c0392b"
+
+    findings_html = "".join([f"""
+        <div style="padding:12px 16px;background:#f8f7f4;border-left:3px solid {'#c0392b' if f.get('severity')=='critical' else '#d4ac0d' if f.get('severity')=='warning' else '#c9963a'};border-radius:4px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:600;color:{'#c0392b' if f.get('severity')=='critical' else '#d4ac0d' if f.get('severity')=='warning' else '#c9963a'};margin-bottom:4px">{f.get('severity','').upper()}</div>
+            <div style="font-size:14px;font-weight:500;color:#0d0c0a">{f.get('title','')}</div>
+            <div style="font-size:13px;color:#8a8070;margin-top:4px">{f.get('description','')[:150]}...</div>
+        </div>""" for f in findings])
+
+    wins_html = "".join([f"""
+        <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #e0d8cc">
+            <div style="font-size:18px;font-weight:400;color:#c9963a;min-width:28px;font-family:Georgia,serif">{str(i+1).zfill(2)}</div>
+            <div style="font-size:13px;color:#2c2a25;line-height:1.6">{qw}</div>
+        </div>""" for i, qw in enumerate(quick_wins)])
+
+    html = f"""
+    <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
+        <div style="background:#0d0c0a;padding:28px 32px;text-align:center">
+            <div style="font-size:24px;font-weight:600;color:#ffffff;letter-spacing:-0.02em">OPS<span style="color:#c9963a">.</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;letter-spacing:0.1em;text-transform:uppercase">Analiz Raporu Hazır</div>
+        </div>
+
+        <div style="padding:32px">
+            <p style="font-size:15px;color:#2c2a25;margin-bottom:24px">Merhaba {user_name.split()[0]},</p>
+            <p style="font-size:14px;color:#8a8070;margin-bottom:24px"><strong>{shop}</strong> mağazanız için operasyonel analiz tamamlandı.</p>
+
+            <div style="background:#f8f7f4;border:1px solid #e0d8cc;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px">
+                <div style="font-size:56px;font-weight:400;color:{sc};font-family:Georgia,serif;line-height:1">{score}</div>
+                <div style="font-size:11px;color:#8a8070;text-transform:uppercase;letter-spacing:0.12em;margin-top:6px">Mağaza Sağlık Skoru / 100</div>
+            </div>
+
+            <h3 style="font-size:16px;color:#0d0c0a;margin-bottom:12px;font-family:Georgia,serif">Öne Çıkan Bulgular</h3>
+            {findings_html}
+
+            <h3 style="font-size:16px;color:#0d0c0a;margin:20px 0 12px;font-family:Georgia,serif">Bu Hafta Yapılacaklar</h3>
+            {wins_html}
+
+            <div style="margin-top:28px;text-align:center">
+                <a href="https://opswebsitedot.netlify.app/app.html" style="display:inline-block;padding:12px 28px;background:#0d0c0a;color:#ffffff;text-decoration:none;border-radius:100px;font-size:14px;font-weight:500">Dashboard'a Git →</a>
+            </div>
+        </div>
+
+        <div style="padding:20px 32px;border-top:1px solid #e0d8cc;text-align:center">
+            <p style="font-size:11px;color:#8a8070">OPS Intelligence · E-Ticaret Operasyonel Analiz Platformu</p>
+        </div>
+    </div>"""
+
+    return await send_email(user_email, f"📊 {shop} Analiz Raporu — Sağlık Skoru: {score}/100", html)
+
 # ── Startup: DejaVu fontlarını indir (Türkçe PDF desteği)
 @app.on_event("startup")
 async def download_fonts():
@@ -293,6 +367,16 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "analyses_this_month": used + 1,
         "last_analysis": datetime.now().isoformat(),
     }).eq("email", email).execute()
+
+    # Mail gönder (arka planda)
+    import asyncio
+    result_data = {
+        "analysis": ai_result.get("analysis", {}),
+        "shop_name": req.shopify_domain or "Demo Mağaza",
+    }
+    user_name = db.table("users").select("name").eq("email", email).execute()
+    name = user_name.data[0]["name"] if user_name.data else email
+    asyncio.create_task(send_analysis_email(email, name, result_data))
 
     # Metrikleri hazırla
     ft  = report["fulfillment_time"]
