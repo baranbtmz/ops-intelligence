@@ -39,53 +39,74 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 
-/* ── Pazarlama sitesiyle birebir aynı değişkenler ── */
-:root {
-    --white:   #ffffff;
-    --bg:      #f8f7f4;
-    --surface: #f0ede6;
-    --black:   #0d0c0a;
-    --dark:    #1a1916;
-    --gold:    #c9963a;
-    --gold-l:  #e8b84b;
-    --text:    #2c2a25;
-    --muted:   #8a8070;
-    --border:  #e0d8cc;
-    --danger:  #c0392b;
-    --warn:    #d4ac0d;
-    --success: #1a7a4a;
+/* ── Koyu modu tamamen kapat ── */
+[data-theme="dark"] { filter: none !important; }
+
+:root, [data-theme="light"], [data-theme="dark"] {
+    --white:   #ffffff !important;
+    --bg:      #f8f7f4 !important;
+    --surface: #f0ede6 !important;
+    --black:   #0d0c0a !important;
+    --dark:    #1a1916 !important;
+    --gold:    #c9963a !important;
+    --gold-l:  #e8b84b !important;
+    --text:    #2c2a25 !important;
+    --muted:   #8a8070 !important;
+    --border:  #e0d8cc !important;
+    --danger:  #c0392b !important;
+    --warn:    #d4ac0d !important;
+    --success: #1a7a4a !important;
+    color-scheme: light !important;
 }
 
-/* ── Temel ── */
-html, body, [class*="css"] {
+/* ── Tüm arkaplanları zorla beyaz/krem yap ── */
+html, body, [class*="css"],
+.main, .main > div,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] > section,
+[data-testid="block-container"],
+.block-container,
+[data-testid="stVerticalBlock"],
+[data-testid="stHorizontalBlock"] {
+    background-color: #ffffff !important;
+    color: #2c2a25 !important;
     font-family: 'DM Sans', sans-serif !important;
-    background-color: var(--white) !important;
-    color: var(--text) !important;
+    color-scheme: light !important;
 }
+
 h1, h2, h3 {
     font-family: 'Instrument Serif', serif !important;
-    color: var(--black) !important;
+    color: #0d0c0a !important;
     letter-spacing: -0.02em !important;
 }
-hr { border-color: var(--border) !important; }
+p, span, div, label { color: #2c2a25; }
+hr { border-color: #e0d8cc !important; }
 .block-container { padding-top: 2rem !important; max-width: 1200px; }
 
 /* ── Sidebar ── */
-section[data-testid="stSidebar"] {
-    background: var(--bg) !important;
-    border-right: 1px solid var(--border) !important;
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"] > div {
+    background-color: #f8f7f4 !important;
+    border-right: 1px solid #e0d8cc !important;
+}
+
+/* ── Tüm kartları ve div'leri beyaz yap ── */
+[data-testid="stMarkdownContainer"] > div,
+[data-testid="element-container"] > div {
+    background: transparent !important;
 }
 
 /* ── Input ── */
 .stTextInput > div > div {
     border: none !important;
     box-shadow: none !important;
+    background: transparent !important;
 }
 .stTextInput > div > div > input {
-    background: var(--white) !important;
-    border: 1px solid var(--border) !important;
+    background: #ffffff !important;
+    border: 1px solid #e0d8cc !important;
     border-radius: 100px !important;
-    color: var(--text) !important;
+    color: #2c2a25 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 14px !important;
     padding: 12px 18px !important;
@@ -93,20 +114,20 @@ section[data-testid="stSidebar"] {
     box-shadow: none !important;
 }
 .stTextInput > div > div > input:focus {
-    border-color: var(--gold) !important;
+    border-color: #c9963a !important;
     box-shadow: 0 0 0 2px rgba(201,150,58,0.12) !important;
     outline: none !important;
 }
 .stTextInput > label {
-    color: var(--muted) !important;
-    font-size: 12px !important;
+    color: #8a8070 !important;
+    font-size: 13px !important;
     font-family: 'DM Sans', sans-serif !important;
 }
 
-/* ── Buton — pazarlama sitesindeki siyah yuvarlak buton ── */
+/* ── Buton ── */
 .stButton > button {
-    background: var(--black) !important;
-    color: var(--white) !important;
+    background: #0d0c0a !important;
+    color: #ffffff !important;
     border: none !important;
     border-radius: 100px !important;
     font-family: 'DM Sans', sans-serif !important;
@@ -119,7 +140,7 @@ section[data-testid="stSidebar"] {
     width: 100%;
 }
 .stButton > button:hover {
-    background: var(--dark) !important;
+    background: #1a1916 !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
 }
@@ -131,7 +152,7 @@ section[data-testid="stSidebar"] {
 /* ── Tab ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
-    border-bottom: 1px solid var(--border) !important;
+    border-bottom: 1px solid #e0d8cc !important;
     gap: 0 !important;
 }
 .stTabs [data-baseweb="tab"] {
@@ -139,184 +160,188 @@ section[data-testid="stSidebar"] {
     font-size: 12px !important;
     letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
-    color: var(--muted) !important;
+    color: #8a8070 !important;
     background: transparent !important;
     border: none !important;
     padding: 12px 20px !important;
 }
 .stTabs [aria-selected="true"] {
-    color: var(--black) !important;
-    border-bottom: 2px solid var(--gold) !important;
+    color: #0d0c0a !important;
+    border-bottom: 2px solid #c9963a !important;
     background: transparent !important;
 }
-.stTabs [data-baseweb="tab-highlight"] { background-color: var(--gold) !important; }
-.stTabs [data-baseweb="tab-border"] { background-color: var(--border) !important; }
+.stTabs [data-baseweb="tab-highlight"] { background-color: #c9963a !important; }
+.stTabs [data-baseweb="tab-border"] { background-color: #e0d8cc !important; }
 
 /* ── Metrik kartları ── */
 [data-testid="stMetric"] {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px 24px;
-    position: relative;
-    overflow: hidden;
+    background: #f8f7f4 !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 16px !important;
+    padding: 20px 24px !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 [data-testid="stMetric"]::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 2px; height: 100%;
-    background: linear-gradient(180deg, var(--gold), var(--gold-l));
+    content: '' !important;
+    position: absolute !important;
+    top: 0; left: 0 !important;
+    width: 2px !important; height: 100% !important;
+    background: linear-gradient(180deg, #c9963a, #e8b84b) !important;
 }
 [data-testid="stMetricLabel"] {
-    color: var(--muted) !important;
+    color: #8a8070 !important;
     font-size: 11px !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
-    font-family: 'DM Sans', sans-serif !important;
 }
 [data-testid="stMetricValue"] {
-    color: var(--black) !important;
+    color: #0d0c0a !important;
     font-family: 'Instrument Serif', serif !important;
     font-size: 28px !important;
 }
 
 /* ── Özel kartlar ── */
 .auth-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 48px 52px;
-    max-width: 460px;
-    margin: 0 auto;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    background: #ffffff !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 16px !important;
+    padding: 48px 52px !important;
+    max-width: 460px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important;
 }
 
 .plan-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px 28px;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: #ffffff !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 16px !important;
+    padding: 32px 28px !important;
+    text-align: center !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
 }
-.plan-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
-.plan-card.featured { background: var(--black); border-color: var(--black); }
+.plan-card:hover { transform: translateY(-4px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.08) !important; }
+.plan-card.featured { background: #0d0c0a !important; border-color: #0d0c0a !important; }
+
+/* Ana sayfa kartları (dark background sorunu) */
+.home-card {
+    background: #f8f7f4 !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 16px !important;
+    padding: 28px 24px !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+    color: #2c2a25 !important;
+}
+.home-card:hover { transform: translateY(-3px) !important; box-shadow: 0 16px 48px rgba(0,0,0,0.08) !important; }
+.home-card-icon { font-size: 28px !important; margin-bottom: 12px !important; }
+.home-card-title { font-family: 'Instrument Serif', serif !important; font-size: 18px !important; font-weight: 400 !important; color: #0d0c0a !important; margin-bottom: 8px !important; }
+.home-card-desc { font-size: 13px !important; color: #8a8070 !important; line-height: 1.6 !important; }
 
 /* ── Bulgu kartları ── */
 .finding-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 10px;
-    border-left: 3px solid;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: #f8f7f4 !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 12px !important;
+    padding: 20px 24px !important;
+    margin-bottom: 10px !important;
+    border-left: 3px solid !important;
+    transition: transform 0.2s !important;
 }
-.finding-card:hover { transform: translateX(4px); box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
-.finding-critical { border-left-color: var(--danger); }
-.finding-warning  { border-left-color: var(--warn); }
-.finding-ok       { border-left-color: var(--gold); }
+.finding-card:hover { transform: translateX(4px) !important; }
+.finding-critical { border-left-color: #c0392b !important; }
+.finding-warning  { border-left-color: #d4ac0d !important; }
+.finding-ok       { border-left-color: #c9963a !important; }
 
-.tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
-.tag-critical { background: rgba(192,57,43,0.08); color: var(--danger); border: 1px solid rgba(192,57,43,0.2); }
-.tag-warning  { background: rgba(212,172,13,0.08); color: #a07c00; border: 1px solid rgba(212,172,13,0.2); }
-.tag-ok       { background: rgba(201,150,58,0.08); color: var(--gold); border: 1px solid rgba(201,150,58,0.2); }
+.tag { display: inline-block !important; padding: 3px 10px !important; border-radius: 100px !important; font-size: 10px !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; font-weight: 500 !important; }
+.tag-critical { background: rgba(192,57,43,0.08) !important; color: #c0392b !important; border: 1px solid rgba(192,57,43,0.2) !important; }
+.tag-warning  { background: rgba(212,172,13,0.08) !important; color: #a07c00 !important; border: 1px solid rgba(212,172,13,0.2) !important; }
+.tag-ok       { background: rgba(201,150,58,0.08) !important; color: #c9963a !important; border: 1px solid rgba(201,150,58,0.2) !important; }
 
 .finding-rec {
-    font-size: 13px;
-    margin-top: 12px;
-    padding: 10px 16px;
-    background: rgba(201,150,58,0.05);
-    border-radius: 8px;
-    border-left: 2px solid var(--gold);
-    color: var(--text);
-    line-height: 1.6;
+    font-size: 13px !important;
+    margin-top: 12px !important;
+    padding: 10px 16px !important;
+    background: rgba(201,150,58,0.05) !important;
+    border-radius: 8px !important;
+    border-left: 2px solid #c9963a !important;
+    color: #2c2a25 !important;
+    line-height: 1.6 !important;
 }
 
 /* ── Quick wins ── */
 .qw-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 20px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text);
-    transition: transform 0.2s;
+    background: #f8f7f4 !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 12px !important;
+    padding: 14px 20px !important;
+    margin-bottom: 10px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #2c2a25 !important;
 }
-.qw-item:hover { transform: translateX(4px); }
 .qw-num {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    font-weight: 400;
-    color: var(--gold);
-    min-width: 32px;
-    line-height: 1;
+    font-family: 'Instrument Serif', serif !important;
+    font-size: 22px !important;
+    font-weight: 400 !important;
+    color: #c9963a !important;
+    min-width: 32px !important;
+    line-height: 1 !important;
 }
 
 /* ── Sağlık skoru ── */
 .health-box {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 32px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    background: #f8f7f4 !important;
+    border: 1px solid #e0d8cc !important;
+    border-radius: 16px !important;
+    padding: 28px 32px !important;
+    text-align: center !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 .health-box::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0; left: 0; right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, #c9963a, transparent) !important;
 }
 .score-num {
-    font-family: 'Instrument Serif', serif;
-    font-size: 68px;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -2px;
+    font-family: 'Instrument Serif', serif !important;
+    font-size: 68px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    letter-spacing: -2px !important;
 }
 
-/* ── Kilitli özellik ── */
+/* ── Kilitli ── */
 .locked-feature {
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
+    background: #f8f7f4 !important;
+    border: 1px dashed #e0d8cc !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    text-align: center !important;
+    color: #8a8070 !important;
+    font-size: 13px !important;
 }
-
-/* ── Genel overrides ── */
-div[data-testid="stForm"] { border: none !important; }
-.stSelectbox > div > div {
-    background: var(--white) !important;
-    border-color: var(--border) !important;
-    border-radius: 100px !important;
-}
-.stRadio > div { gap: 8px !important; }
-p { color: var(--text) !important; }
-.stMarkdown { color: var(--text) !important; }
 
 /* ── Dataframe ── */
-.stDataFrame { border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden; }
+.stDataFrame { border: 1px solid #e0d8cc !important; border-radius: 12px !important; overflow: hidden !important; }
+.stDataFrame th { background: #f8f7f4 !important; color: #8a8070 !important; }
+.stDataFrame td { color: #2c2a25 !important; }
 
-/* ── Toggle ── */
-.stToggle > label { color: var(--text) !important; }
+/* ── Toggle & Radio ── */
+div[data-testid="stForm"] { border: none !important; }
+.stSelectbox > div > div { background: #ffffff !important; border-color: #e0d8cc !important; border-radius: 100px !important; }
+.stRadio > div { gap: 8px !important; }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar-track { background: #f8f7f4; }
+::-webkit-scrollbar-thumb { background: #e0d8cc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c9963a; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -512,7 +537,7 @@ def render_sidebar():
         <div style="font-size:10px;color:#6b7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">
             Bu Ay Kullanım
         </div>
-        <div style="font-size:13px;color:#e8eaf0;margin-bottom:6px">{used} / {limit} analiz</div>
+        <div style="font-size:13px;color:#2c2a25;margin-bottom:6px">{used} / {limit} analiz</div>
         <div style="background:#1e2128;border-radius:4px;height:4px">
             <div style="width:{pct}%;background:{bar_color};height:4px;border-radius:4px"></div>
         </div>
@@ -538,10 +563,10 @@ def page_home():
 
     st.markdown(f"""
     <div style="margin-bottom:24px">
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px">
+        <div style="font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;letter-spacing:-0.02em;color:#0d0c0a">
             Hoş geldin, {user['name'].split()[0]}! 👋
         </div>
-        <div style="font-size:13px;color:#6b7280;margin-top:4px">
+        <div style="font-size:14px;color:#8a8070;margin-top:4px">
             {plan.name} Plan &nbsp;·&nbsp; €{plan.price_eur}/ay
         </div>
     </div>
@@ -552,12 +577,12 @@ def page_home():
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("""
-            <div style="background:#111318;border:1px solid #1e2128;border-radius:10px;padding:28px 24px">
+            <div style="background:#f8f7f4;border:1px solid #e0d8cc;border-radius:16px;padding:28px 24px">
                 <div style="font-size:28px;margin-bottom:12px">🔗</div>
-                <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px">
+                <div style="font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#0d0c0a;margin-bottom:8px">
                     Mağazanı Bağla
                 </div>
-                <div style="font-size:13px;color:#6b7280;line-height:1.6">
+                <div style="font-size:13px;color:#8a8070;line-height:1.6">
                     Shopify mağazanı bağla ve AI destekli operasyonel analize başla.
                 </div>
             </div>
@@ -568,12 +593,12 @@ def page_home():
 
         with c2:
             st.markdown("""
-            <div style="background:#111318;border:1px solid #1e2128;border-radius:10px;padding:28px 24px">
+            <div style="background:#f8f7f4;border:1px solid #e0d8cc;border-radius:16px;padding:28px 24px">
                 <div style="font-size:28px;margin-bottom:12px">📊</div>
-                <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px">
+                <div style="font-family:'Instrument Serif',serif;font-size:18px;font-weight:400;color:#0d0c0a;margin-bottom:8px">
                     Demo Analizi Dene
                 </div>
-                <div style="font-size:13px;color:#6b7280;line-height:1.6">
+                <div style="font-size:13px;color:#8a8070;line-height:1.6">
                     Gerçek bağlantı olmadan, örnek verilerle sistemi keşfet.
                 </div>
             </div>
@@ -603,9 +628,9 @@ def page_home():
             color = "#e8eaf0" if active else "#3a3f4a"
             st.markdown(f"""
             <div style="display:flex;justify-content:space-between;padding:10px 0;
-                        border-bottom:1px solid #1e2128;color:{color}">
+                        border-bottom:1px solid #e0d8cc;color:{color}">
                 <span>{icon} {feat}</span>
-                <span style="color:#6b7280;font-size:12px">{detail}</span>
+                <span style="color:#8a8070;font-size:12px">{detail}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -852,7 +877,7 @@ def page_analysis():
         st.markdown(f"""
         <div style="background:#111318;border:1px solid #1e2128;border-radius:8px;
                     padding:16px 20px;margin-bottom:20px;font-size:13px;line-height:1.7;color:#9ca3b0">
-            <span style="font-family:'Syne',sans-serif;color:#e8eaf0;font-weight:600">
+            <span style="font-family:'Syne',sans-serif;color:#2c2a25;font-weight:600">
             Yönetici Özeti —</span> {analysis['executive_summary']}
         </div>""", unsafe_allow_html=True)
 
@@ -1049,7 +1074,7 @@ def page_pricing():
                         st.markdown(f"""
                         <div style="background:rgba(0,229,176,0.05);border:1px solid rgba(0,229,176,0.3);
                                     border-radius:8px;padding:16px 20px;margin-top:12px;text-align:center">
-                            <div style="font-size:13px;color:#e8eaf0;margin-bottom:10px">
+                            <div style="font-size:13px;color:#2c2a25;margin-bottom:10px">
                                 Ödeme sayfası hazır!<br>
                                 <span style="font-size:11px;color:#6b7280">
                                     Test kartı: 4242 4242 4242 4242
