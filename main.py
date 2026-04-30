@@ -111,12 +111,16 @@ async def download_fonts():
     font_dir = "/app/fonts"
     os.makedirs(font_dir, exist_ok=True)
     fonts = {
-        "DejaVuSans.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
-        "DejaVuSans-Bold.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf",
-        "DejaVuSans-Oblique.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Oblique.ttf",
-        "DejaVuSansMono.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf",
+        "DejaVuSans.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2",
     }
-    for fname, url in fonts.items():
+    # Direkt TTF indirme
+    ttf_urls = {
+        "DejaVuSans.ttf":        "https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSans.ttf",
+        "DejaVuSans-Bold.ttf":   "https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSans-Bold.ttf",
+        "DejaVuSans-Oblique.ttf":"https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSans-Oblique.ttf",
+        "DejaVuSansMono.ttf":    "https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSansMono.ttf",
+    }
+    for fname, url in ttf_urls.items():
         fpath = os.path.join(font_dir, fname)
         if not os.path.exists(fpath):
             try:
