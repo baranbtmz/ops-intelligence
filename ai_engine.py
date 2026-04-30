@@ -29,6 +29,25 @@ class AIConfig:
     language: str = "tr"              # "tr" = Türkçe, "en" = İngilizce
     use_mock_ai: bool = True          # True = gerçek API çağrısı yapma, demo yanıtı döndür
 
+    def __post_init__(self):
+        """Streamlit Secrets veya env variable'dan key'i otomatik oku"""
+        if not self.api_key:
+            # Streamlit Secrets'tan dene
+            try:
+                import streamlit as st
+                key = st.secrets.get("OPENAI_API_KEY", "")
+                if key:
+                    self.api_key = key
+                    self.use_mock_ai = False
+            except Exception:
+                pass
+        # Environment variable'dan dene
+        if not self.api_key:
+            key = os.environ.get("OPENAI_API_KEY", "")
+            if key:
+                self.api_key = key
+                self.use_mock_ai = False
+
 
 # ─────────────────────────────────────────────
 # PROMPT ŞABLONLARI
