@@ -826,10 +826,22 @@ def page_analysis():
 
     # Güvenlik kontrolü — analiz başarısız olduysa
     if not result.get("success") or "analysis" not in result:
-        st.error("Analiz tamamlanamadı. Lütfen tekrar deneyin.")
-        if st.button("Tekrar Dene"):
-            st.session_state.result = None
+        error_msg = result.get("error", "Bilinmeyen hata")
+        st.error(f"Analiz tamamlanamadı: {error_msg}")
+        st.info("Mock AI ile tekrar deneniyor...")
+        # Mock AI ile zorla çalıştır
+        from ai_engine import AIConfig, run_full_analysis
+        mock_result = run_full_analysis(
+            st.session_state.shopify_cfg,
+            AIConfig(use_mock_ai=True, language="tr")
+        )
+        if mock_result.get("success") and "analysis" in mock_result:
+            st.session_state.result = mock_result
             st.rerun()
+        else:
+            if st.button("Tekrar Dene"):
+                st.session_state.result = None
+                st.rerun()
         return
 
     # ── SONUÇ EKRANI
