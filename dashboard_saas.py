@@ -67,6 +67,11 @@ h1, h2, h3 {
 }
 hr { border-color: var(--border) !important; }
 
+/* Input — Streamlit default kırmızı/turuncu border'ı tamamen ezeriz */
+.stTextInput > div > div {
+    border: none !important;
+    box-shadow: none !important;
+}
 .stTextInput > div > div > input {
     background: var(--surface2) !important;
     border: 1px solid var(--border) !important;
@@ -75,10 +80,17 @@ hr { border-color: var(--border) !important; }
     font-family: 'Inter', sans-serif !important;
     font-size: 14px !important;
     padding: 12px 16px !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 .stTextInput > div > div > input:focus {
     border-color: var(--gold) !important;
-    box-shadow: 0 0 0 2px rgba(201,168,76,0.12) !important;
+    box-shadow: 0 0 0 1px rgba(201,168,76,0.3) !important;
+    outline: none !important;
+}
+.stTextInput > div[data-focused="true"] {
+    border: none !important;
+    box-shadow: none !important;
 }
 .stTextInput > label {
     color: var(--muted) !important;
@@ -86,6 +98,8 @@ hr { border-color: var(--border) !important; }
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
 }
+
+/* Buton — emoji olmadan temiz gold */
 .stButton > button {
     background: linear-gradient(135deg, #c9a84c, #e8c97a, #c9a84c) !important;
     color: #0d0d0d !important;
@@ -98,11 +112,45 @@ hr { border-color: var(--border) !important; }
     font-size: 11px !important;
     padding: 12px 28px !important;
     transition: all 0.3s !important;
+    width: 100%;
 }
 .stButton > button:hover {
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 24px rgba(201,168,76,0.25) !important;
 }
+.stButton > button:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(201,168,76,0.3) !important;
+}
+
+/* Tab — aktif tab gold, pasif muted */
+.stTabs [data-baseweb="tab-list"] {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border) !important;
+    gap: 0 !important;
+}
+.stTabs [data-baseweb="tab"] {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    color: var(--muted) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 12px 20px !important;
+}
+.stTabs [aria-selected="true"] {
+    color: var(--gold) !important;
+    border-bottom: 2px solid var(--gold) !important;
+    background: transparent !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: var(--gold) !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+    background-color: var(--border) !important;
+}
+
 [data-testid="stMetric"] {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -120,11 +168,9 @@ hr { border-color: var(--border) !important; }
 }
 [data-testid="stMetricLabel"] { color: var(--muted) !important; font-size: 10px !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; }
 [data-testid="stMetricValue"] { color: var(--cream) !important; font-family: 'Playfair Display', serif !important; font-size: 28px !important; }
-hr { border-color: var(--border) !important; }
+
 .block-container { padding-top: 2rem !important; max-width: 1200px; }
 section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--border); }
-.stTabs [data-baseweb="tab"] { font-size: 11px !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; color: var(--muted) !important; }
-.stTabs [aria-selected="true"] { color: var(--gold) !important; border-bottom-color: var(--gold) !important; }
 
 .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 48px 52px; max-width: 460px; margin: 0 auto; }
 .plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px 28px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
@@ -150,6 +196,11 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
 .score-num { font-family: 'Playfair Display', serif; font-size: 68px; font-weight: 700; line-height: 1; letter-spacing: -2px; }
 
 .locked-feature { background: rgba(42,37,32,0.4); border: 1px dashed var(--border); border-radius: 4px; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Streamlit genel overrides */
+div[data-testid="stForm"] { border: none !important; }
+.stSelectbox > div > div { background: var(--surface2) !important; border-color: var(--border) !important; }
+.stRadio > div { gap: 8px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -676,8 +727,8 @@ def page_analysis():
     st.divider()
 
     # Sekmeler
-    tab_names = ["📋 Bulgular", "📈 Gelir", "📦 Stok", "⚡ Aksiyonlar"]
-    if meta_result and limits["can_meta"]: tab_names.append("📣 Meta Ads")
+    tab_names = ["Bulgular", "Gelir", "Stok", "Aksiyonlar"]
+    if meta_result and limits["can_meta"]: tab_names.append("Meta Ads")
     tabs = st.tabs(tab_names)
 
     # ── TAB 1: BULGULAR
