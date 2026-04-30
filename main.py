@@ -9,7 +9,7 @@ pip install fastapi uvicorn python-jose passlib bcrypt supabase openai pandas nu
 uvicorn main:app --reload
 """
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
@@ -467,8 +467,71 @@ async def get_pdf(req: AnalysisRequest, payload: dict = Depends(verify_token)):
 
 
 # ─────────────────────────────────────────────
-# PLAN ENDPOINTİ
+# STRIPE ÖDEMELERİ
 # ─────────────────────────────────────────────
+
+class CheckoutRequest(BaseModel):
+    plan: str
+    success_url: str
+    cancel_url: str
+
+@app.post("/payments/create-checkout")
+async def create_checkout(req: CheckoutRequest, payload: dict = Depends(verify_token)):
+    import stripe
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    if not stripe.api_key:
+        raise HTTPException(status_code=500, detail="Stripe yapılandırılmamış.")
+
+    price_ids = {
+        "starter": os.environ.get("STRIPE_PRICE_STARTER", "price_1TRf3JG1DLQ2LxkRn0eLrytf"),
+        "pro":     os.environ.get("STRIPE_PRICE_PRO",     "price_1TRf3aG1DLQ2LxkRqDhmI9jg"),
+    }
+    price_id = price_ids.get(req.plan)
+    if not price_id:
+        raise HTTPException(status_code=400, detail="Geçersiz plan.")
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=req.success_url,
+            cancel_url=req.cancel_url,
+            customer_email=payload["sub"],
+            metadata={"user_email": payload["sub"], "plan": req.plan},
+        )
+        return {"success": True, "checkout_url": session.url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/payments/webhook")
+async def stripe_webhook(request: Request):
+    import stripe
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+
+    body = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(body, sig, webhook_secret)
+        else:
+            event = stripe.Event.construct_from(body, stripe.api_key)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        email = session.get("customer_email") or session.get("metadata", {}).get("user_email")
+        plan = session.get("metadata", {}).get("plan", "starter")
+        if email:
+            db = get_supabase()
+            db.table("users").update({"plan": plan}).eq("email", email).execute()
+            print(f"✅ Plan güncellendi: {email} → {plan}")
+
+    return {"status": "ok"}
 
 @app.put("/user/plan")
 async def update_plan(plan: str, payload: dict = Depends(verify_token)):
