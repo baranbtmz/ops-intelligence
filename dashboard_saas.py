@@ -807,7 +807,15 @@ def page_analysis():
         # OpenAI key varsa gerçek AI, yoksa mock
         openai_key = ""
         try:
-            openai_key = st.secrets.get("OPENAI_API_KEY", "")
+            openai_key = ""
+try:
+    import streamlit as _st
+    openai_key = _st.secrets.get("OPENAI_API_KEY", "")
+except Exception:
+    pass
+if not openai_key:
+    import os as _os
+    openai_key = _os.environ.get("OPENAI_API_KEY", "")openai_key = st.secrets.get("OPENAI_API_KEY", "")
         except Exception:
             import os as _os
             openai_key = _os.environ.get("OPENAI_API_KEY", "")
