@@ -421,6 +421,13 @@ def run_full_analysis(
     engine = AIAnalysisEngine(ai_config)
     ai_result = engine.analyze(report)
 
+    # API başarısız olursa Mock'a geri dön
+    if not ai_result.get("success") or "analysis" not in ai_result:
+        print(f"⚠️ API hatası: {ai_result.get('error', 'Bilinmeyen')} — Mock AI'ya geçiliyor")
+        mock_engine = AIAnalysisEngine(AIConfig(use_mock_ai=True))
+        ai_result = mock_engine.analyze(report)
+        ai_result["api_fallback"] = True
+
     # Sonucu birleştir
     ai_result["metrics"] = {
         "fulfillment_time": {
