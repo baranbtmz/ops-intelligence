@@ -803,8 +803,17 @@ def page_analysis():
             return
 
         prog = st.progress(0, "Shopify verisi çekiliyor...")
-        # AIConfig otomatik olarak Streamlit Secrets'tan OpenAI key okur
-        ai_cfg = AIConfig(language="tr")
+
+        # OpenAI key varsa gerçek AI, yoksa mock
+        try:
+            openai_key = st.secrets.get("OPENAI_API_KEY", "")
+        except Exception:
+            openai_key = os.environ.get("OPENAI_API_KEY", "")
+
+        if openai_key:
+            ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=False, language="tr")
+        else:
+            ai_cfg = AIConfig(use_mock_ai=True, language="tr")
 
         prog.progress(30, "Metrikler hesaplanıyor...")
         st.session_state.result = run_full_analysis(st.session_state.shopify_cfg, ai_cfg)

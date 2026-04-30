@@ -24,29 +24,10 @@ from data_layer import run_pipeline, ShopifyConfig
 
 @dataclass
 class AIConfig:
-    api_key: str = ""                  # OpenAI API key (veya env var)
-    model: str = "gpt-4o-mini"        # gpt-4o veya gpt-4o-mini
-    language: str = "tr"              # "tr" = Türkçe, "en" = İngilizce
-    use_mock_ai: bool = True          # True = gerçek API çağrısı yapma, demo yanıtı döndür
-
-    def __post_init__(self):
-        """Streamlit Secrets veya env variable'dan key'i otomatik oku"""
-        if not self.api_key:
-            # Streamlit Secrets'tan dene
-            try:
-                import streamlit as st
-                key = st.secrets.get("OPENAI_API_KEY", "")
-                if key:
-                    self.api_key = key
-                    self.use_mock_ai = False
-            except Exception:
-                pass
-        # Environment variable'dan dene
-        if not self.api_key:
-            key = os.environ.get("OPENAI_API_KEY", "")
-            if key:
-                self.api_key = key
-                self.use_mock_ai = False
+    api_key: str = ""
+    model: str = "gpt-4o-mini"
+    language: str = "tr"
+    use_mock_ai: bool = True
 
 
 # ─────────────────────────────────────────────
