@@ -16,8 +16,8 @@ import os
 from datetime import datetime
 
 st.set_page_config(
-    page_title="OPS Intelligence",
-    page_icon="⬡",
+    page_title="OPS Intelligence — E-Ticaret Analiz Platformu",
+    page_icon="◆",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -32,82 +32,124 @@ from auth import get_db, PLANS
 from stripe_payments import create_checkout_session, get_subscription_status, STRIPE_PUBLISHABLE_KEY
 
 # ─────────────────────────────────────────────
-# STİL
+# STİL — LÜKS & PROFESYONEL TEMA
 # ─────────────────────────────────────────────
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 :root {
-    --bg:#0a0c0f;--surface:#111318;--border:#1e2128;
-    --accent:#00e5b0;--accent2:#ff6b35;--warn:#f5a623;
-    --danger:#ff3b5c;--text:#e8eaf0;--muted:#6b7280;
-}
-html,body,[class*="css"]{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);}
-h1,h2,h3{font-family:'Syne',sans-serif!important;letter-spacing:-0.02em;}
-.stTextInput>div>div>input{
-    background:var(--surface)!important;border:1px solid var(--border)!important;
-    border-radius:6px!important;color:var(--text)!important;
-    font-family:'DM Mono',monospace!important;font-size:13px!important;padding:10px 14px!important;
-}
-.stTextInput>div>div>input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(0,229,176,0.15)!important;}
-.stButton>button{
-    background:var(--accent)!important;color:#000!important;border:none!important;
-    border-radius:6px!important;font-family:'DM Mono',monospace!important;
-    font-weight:500!important;letter-spacing:0.05em!important;text-transform:uppercase!important;
-    font-size:12px!important;padding:10px 24px!important;transition:all 0.2s!important;
-}
-.stButton>button:hover{background:#00ffcc!important;transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,229,176,0.3)!important;}
-[data-testid="stMetric"]{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;position:relative;overflow:hidden;}
-[data-testid="stMetric"]::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
-[data-testid="stMetricLabel"]{color:var(--muted)!important;font-size:11px!important;letter-spacing:0.1em;text-transform:uppercase;}
-[data-testid="stMetricValue"]{color:var(--text)!important;font-family:'Syne',sans-serif!important;font-size:26px!important;}
-hr{border-color:var(--border)!important;}
-.block-container{padding-top:2rem!important;max-width:1200px;}
-section[data-testid="stSidebar"]{background:var(--surface);border-right:1px solid var(--border);}
-
-/* Auth kartı */
-.auth-card{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:12px;padding:40px 44px;max-width:440px;margin:0 auto;
+    --bg:       #0d0d0d;
+    --surface:  #141414;
+    --surface2: #1a1a1a;
+    --border:   #2a2520;
+    --gold:     #c9a84c;
+    --gold2:    #e8c97a;
+    --gold-dim: #8a6d2f;
+    --cream:    #f5f0e8;
+    --text:     #e8e0d0;
+    --muted:    #7a7060;
+    --danger:   #c0392b;
+    --warn:     #d4ac0d;
+    --success:  #27ae60;
 }
 
-/* Plan kartı */
-.plan-card{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:10px;padding:24px 20px;text-align:center;
-    transition:transform 0.2s,border-color 0.2s;cursor:pointer;
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
 }
-.plan-card:hover{transform:translateY(-3px);border-color:var(--accent);}
-.plan-card.active{border-color:var(--accent);background:rgba(0,229,176,0.04);}
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif !important;
+    letter-spacing: 0.01em;
+    color: var(--cream) !important;
+}
+hr { border-color: var(--border) !important; }
 
-/* Bulgular */
-.finding-card{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:8px;padding:16px 20px;margin-bottom:10px;
-    border-left:3px solid;transition:transform 0.15s;
+.stTextInput > div > div > input {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 4px !important;
+    color: var(--text) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
 }
-.finding-card:hover{transform:translateX(4px);}
-.finding-critical{border-left-color:#ff3b5c;}
-.finding-warning{border-left-color:#f5a623;}
-.finding-ok{border-left-color:#00e5b0;}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
-.tag-critical{background:rgba(255,59,92,0.15);color:#ff3b5c;border:1px solid rgba(255,59,92,0.3);}
-.tag-warning{background:rgba(245,166,35,0.15);color:#f5a623;border:1px solid rgba(245,166,35,0.3);}
-.tag-ok{background:rgba(0,229,176,0.1);color:#00e5b0;border:1px solid rgba(0,229,176,0.25);}
-.finding-rec{font-size:12px;margin-top:8px;padding:8px 12px;background:rgba(0,229,176,0.05);border-radius:4px;border-left:2px solid #00e5b0;}
-.qw-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;font-size:13px;line-height:1.5;}
-.qw-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#00e5b0;min-width:28px;line-height:1;}
-.health-box{background:linear-gradient(135deg,#111318 0%,#0d1117 100%);border:1px solid var(--border);border-radius:12px;padding:28px 32px;text-align:center;position:relative;overflow:hidden;}
-.health-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
-.score-num{font-family:'Syne',sans-serif;font-size:72px;font-weight:800;line-height:1;letter-spacing:-4px;}
+.stTextInput > div > div > input:focus {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 2px rgba(201,168,76,0.12) !important;
+}
+.stTextInput > label {
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+}
+.stButton > button {
+    background: linear-gradient(135deg, #c9a84c, #e8c97a, #c9a84c) !important;
+    color: #0d0d0d !important;
+    border: none !important;
+    border-radius: 3px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    padding: 12px 28px !important;
+    transition: all 0.3s !important;
+}
+.stButton > button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 24px rgba(201,168,76,0.25) !important;
+}
+[data-testid="stMetric"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+}
+[data-testid="stMetric"]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dim));
+}
+[data-testid="stMetricLabel"] { color: var(--muted) !important; font-size: 10px !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; }
+[data-testid="stMetricValue"] { color: var(--cream) !important; font-family: 'Playfair Display', serif !important; font-size: 28px !important; }
+hr { border-color: var(--border) !important; }
+.block-container { padding-top: 2rem !important; max-width: 1200px; }
+section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--border); }
+.stTabs [data-baseweb="tab"] { font-size: 11px !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; color: var(--muted) !important; }
+.stTabs [aria-selected="true"] { color: var(--gold) !important; border-bottom-color: var(--gold) !important; }
 
-/* Kilit ikonu */
-.locked-feature{
-    background:rgba(107,114,128,0.08);border:1px dashed var(--border);
-    border-radius:8px;padding:24px;text-align:center;color:var(--muted);
-    font-size:13px;
-}
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 48px 52px; max-width: 460px; margin: 0 auto; }
+.plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px 28px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+.plan-card:hover { transform: translateY(-4px); border-color: var(--gold-dim); }
+
+.finding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin-bottom: 12px; border-left: 2px solid; transition: transform 0.2s; }
+.finding-card:hover { transform: translateX(4px); }
+.finding-critical { border-left-color: var(--danger); }
+.finding-warning  { border-left-color: var(--warn); }
+.finding-ok       { border-left-color: var(--gold); }
+
+.tag { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+.tag-critical { background: rgba(192,57,43,0.12); color: #e74c3c; border: 1px solid rgba(192,57,43,0.3); }
+.tag-warning  { background: rgba(212,172,13,0.12); color: #f1c40f; border: 1px solid rgba(212,172,13,0.3); }
+.tag-ok       { background: rgba(201,168,76,0.1);  color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+
+.finding-rec { font-size: 13px; margin-top: 12px; padding: 10px 16px; background: rgba(201,168,76,0.04); border-radius: 3px; border-left: 2px solid var(--gold-dim); color: var(--text); line-height: 1.6; }
+.qw-item { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 14px 20px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 16px; font-size: 14px; line-height: 1.6; color: var(--text); }
+.qw-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gold); min-width: 32px; line-height: 1; }
+
+.health-box { background: linear-gradient(135deg, #141414 0%, #1a1714 100%); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; text-align: center; position: relative; overflow: hidden; }
+.health-box::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim)); }
+.score-num { font-family: 'Playfair Display', serif; font-size: 68px; font-weight: 700; line-height: 1; letter-spacing: -2px; }
+
+.locked-feature { background: rgba(42,37,32,0.4); border: 1px dashed var(--border); border-radius: 4px; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -116,22 +158,22 @@ section[data-testid="stSidebar"]{background:var(--surface);border-right:1px soli
 # YARDIMCILAR
 # ─────────────────────────────────────────────
 
-def score_color(s): return "#00e5b0" if s>=75 else "#f5a623" if s>=50 else "#ff3b5c"
+def score_color(s): return "#c9a84c" if s>=75 else "#d4ac0d" if s>=50 else "#c0392b"
 
 def plotly_theme():
     return dict(
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="DM Mono, monospace", color="#6b7280", size=11),
-        xaxis=dict(gridcolor="#1e2128", linecolor="#1e2128"),
-        yaxis=dict(gridcolor="#1e2128", linecolor="#1e2128"),
+        font=dict(family="Inter, sans-serif", color="#7a7060", size=11),
+        xaxis=dict(gridcolor="#2a2520", linecolor="#2a2520"),
+        yaxis=dict(gridcolor="#2a2520", linecolor="#2a2520"),
         margin=dict(l=0, r=0, t=30, b=0),
     )
 
 def plan_badge(plan_key: str) -> str:
-    colors = {"free":"#6b7280","starter":"#f5a623","pro":"#00e5b0"}
-    c = colors.get(plan_key,"#6b7280")
+    colors = {"free":"#7a7060","starter":"#c9a84c","pro":"#e8c97a"}
+    c = colors.get(plan_key,"#7a7060")
     name = PLANS[plan_key].name
-    return f'<span style="background:rgba(0,0,0,0);border:1px solid {c};color:{c};padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase">{name}</span>'
+    return f'<span style="background:transparent;border:1px solid {c};color:{c};padding:3px 10px;border-radius:2px;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;font-family:Inter,sans-serif">{name}</span>'
 
 
 # ─────────────────────────────────────────────
@@ -165,10 +207,17 @@ db = get_db()
 def page_auth():
     st.markdown("""
     <div style="text-align:center;padding:40px 0 32px">
-        <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:800;letter-spacing:-2px;margin-bottom:6px">
-            OPS<span style="color:#00e5b0">·</span>INTELLIGENCE
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:#7a7060;
+                    letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px">
+            ◆
         </div>
-        <div style="font-size:11px;color:#6b7280;letter-spacing:0.15em;text-transform:uppercase">
+        <div style="font-family:'Playfair Display',serif;font-size:38px;font-weight:700;
+                    letter-spacing:0.05em;margin-bottom:8px;color:#f5f0e8">
+            OPS Intelligence
+        </div>
+        <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);
+                    margin:0 auto 12px"></div>
+        <div style="font-size:11px;color:#7a7060;letter-spacing:0.2em;text-transform:uppercase">
             E-Ticaret Operasyonel Analiz Platformu
         </div>
     </div>
@@ -259,10 +308,11 @@ def render_sidebar():
     with st.sidebar:
         # Kullanıcı bilgisi
         st.markdown(f"""
-        <div style="padding:16px 0 8px">
-            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">{user['name']}</div>
-            <div style="font-size:11px;color:#6b7280;margin-top:2px">{user['email']}</div>
-            <div style="margin-top:8px">{plan_badge(user['plan'])}</div>
+        <div style="padding:20px 0 12px">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+                        color:#f5f0e8;letter-spacing:0.05em">OPS Intelligence</div>
+            <div style="font-size:11px;color:#7a7060;margin-top:4px">{user['email']}</div>
+            <div style="margin-top:10px">{plan_badge(user['plan'])}</div>
         </div>
         """, unsafe_allow_html=True)
 
