@@ -30,6 +30,27 @@ from pdf_report import generate_pdf_report
 
 app = FastAPI(title="OPS Intelligence API", version="1.0.0")
 
+# ── Startup: DejaVu fontlarını indir (Türkçe PDF desteği)
+@app.on_event("startup")
+async def download_fonts():
+    import urllib.request
+    font_dir = "/app/fonts"
+    os.makedirs(font_dir, exist_ok=True)
+    fonts = {
+        "DejaVuSans.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
+        "DejaVuSans-Bold.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf",
+        "DejaVuSans-Oblique.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Oblique.ttf",
+        "DejaVuSansMono.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf",
+    }
+    for fname, url in fonts.items():
+        fpath = os.path.join(font_dir, fname)
+        if not os.path.exists(fpath):
+            try:
+                urllib.request.urlretrieve(url, fpath)
+                print(f"✅ Font indirildi: {fname}")
+            except Exception as e:
+                print(f"⚠️ Font indirilemedi: {fname} — {e}")
+
 # ── CORS — Netlify'dan gelen isteklere izin ver
 app.add_middleware(
     CORSMiddleware,
