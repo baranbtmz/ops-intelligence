@@ -803,10 +803,8 @@ def page_analysis():
             return
 
         prog = st.progress(0, "Shopify verisi çekiliyor...")
-        ai_cfg = AIConfig(
-            use_mock_ai=True,
-            language="tr",
-        ) if not limits["can_ai"] else AIConfig(use_mock_ai=True, language="tr")
+        # AIConfig otomatik olarak Streamlit Secrets'tan OpenAI key okur
+        ai_cfg = AIConfig(language="tr")
 
         prog.progress(30, "Metrikler hesaplanıyor...")
         st.session_state.result = run_full_analysis(st.session_state.shopify_cfg, ai_cfg)
@@ -824,6 +822,14 @@ def page_analysis():
         st.rerun()
 
     if result is None:
+        return
+
+    # Güvenlik kontrolü — analiz başarısız olduysa
+    if not result.get("success") or "analysis" not in result:
+        st.error("Analiz tamamlanamadı. Lütfen tekrar deneyin.")
+        if st.button("Tekrar Dene"):
+            st.session_state.result = None
+            st.rerun()
         return
 
     # ── SONUÇ EKRANI
