@@ -37,102 +37,107 @@ from stripe_payments import create_checkout_session, get_subscription_status, ST
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 
+/* ── Pazarlama sitesiyle birebir aynı değişkenler ── */
 :root {
-    --bg:       #0d0d0d;
-    --surface:  #141414;
-    --surface2: #1a1a1a;
-    --border:   #2a2520;
-    --gold:     #c9a84c;
-    --gold2:    #e8c97a;
-    --gold-dim: #8a6d2f;
-    --cream:    #f5f0e8;
-    --text:     #e8e0d0;
-    --muted:    #7a7060;
-    --danger:   #c0392b;
-    --warn:     #d4ac0d;
-    --success:  #27ae60;
+    --white:   #ffffff;
+    --bg:      #f8f7f4;
+    --surface: #f0ede6;
+    --black:   #0d0c0a;
+    --dark:    #1a1916;
+    --gold:    #c9963a;
+    --gold-l:  #e8b84b;
+    --text:    #2c2a25;
+    --muted:   #8a8070;
+    --border:  #e0d8cc;
+    --danger:  #c0392b;
+    --warn:    #d4ac0d;
+    --success: #1a7a4a;
 }
 
+/* ── Temel ── */
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
+    font-family: 'DM Sans', sans-serif !important;
+    background-color: var(--white) !important;
+    color: var(--text) !important;
 }
 h1, h2, h3 {
-    font-family: 'Playfair Display', serif !important;
-    letter-spacing: 0.01em;
-    color: var(--cream) !important;
+    font-family: 'Instrument Serif', serif !important;
+    color: var(--black) !important;
+    letter-spacing: -0.02em !important;
 }
 hr { border-color: var(--border) !important; }
+.block-container { padding-top: 2rem !important; max-width: 1200px; }
 
-/* Input — Streamlit default kırmızı/turuncu border'ı tamamen ezeriz */
+/* ── Sidebar ── */
+section[data-testid="stSidebar"] {
+    background: var(--bg) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+/* ── Input ── */
 .stTextInput > div > div {
     border: none !important;
     box-shadow: none !important;
 }
 .stTextInput > div > div > input {
-    background: var(--surface2) !important;
+    background: var(--white) !important;
     border: 1px solid var(--border) !important;
-    border-radius: 4px !important;
+    border-radius: 100px !important;
     color: var(--text) !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'DM Sans', sans-serif !important;
     font-size: 14px !important;
-    padding: 12px 16px !important;
+    padding: 12px 18px !important;
     outline: none !important;
     box-shadow: none !important;
 }
 .stTextInput > div > div > input:focus {
     border-color: var(--gold) !important;
-    box-shadow: 0 0 0 1px rgba(201,168,76,0.3) !important;
+    box-shadow: 0 0 0 2px rgba(201,150,58,0.12) !important;
     outline: none !important;
-}
-.stTextInput > div[data-focused="true"] {
-    border: none !important;
-    box-shadow: none !important;
 }
 .stTextInput > label {
     color: var(--muted) !important;
-    font-size: 11px !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
+    font-size: 12px !important;
+    font-family: 'DM Sans', sans-serif !important;
 }
 
-/* Buton — emoji olmadan temiz gold */
+/* ── Buton — pazarlama sitesindeki siyah yuvarlak buton ── */
 .stButton > button {
-    background: linear-gradient(135deg, #c9a84c, #e8c97a, #c9a84c) !important;
-    color: #0d0d0d !important;
+    background: var(--black) !important;
+    color: var(--white) !important;
     border: none !important;
-    border-radius: 3px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
-    font-size: 11px !important;
+    border-radius: 100px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
     padding: 12px 28px !important;
-    transition: all 0.3s !important;
+    transition: all 0.2s !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
     width: 100%;
 }
 .stButton > button:hover {
+    background: var(--dark) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 6px 24px rgba(201,168,76,0.25) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
 }
 .stButton > button:focus {
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(201,168,76,0.3) !important;
+    box-shadow: 0 0 0 2px rgba(201,150,58,0.3) !important;
 }
 
-/* Tab — aktif tab gold, pasif muted */
+/* ── Tab ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid var(--border) !important;
     gap: 0 !important;
 }
 .stTabs [data-baseweb="tab"] {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 10px !important;
-    letter-spacing: 0.15em !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 12px !important;
+    letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
     color: var(--muted) !important;
     background: transparent !important;
@@ -140,21 +145,18 @@ hr { border-color: var(--border) !important; }
     padding: 12px 20px !important;
 }
 .stTabs [aria-selected="true"] {
-    color: var(--gold) !important;
+    color: var(--black) !important;
     border-bottom: 2px solid var(--gold) !important;
     background: transparent !important;
 }
-.stTabs [data-baseweb="tab-highlight"] {
-    background-color: var(--gold) !important;
-}
-.stTabs [data-baseweb="tab-border"] {
-    background-color: var(--border) !important;
-}
+.stTabs [data-baseweb="tab-highlight"] { background-color: var(--gold) !important; }
+.stTabs [data-baseweb="tab-border"] { background-color: var(--border) !important; }
 
+/* ── Metrik kartları ── */
 [data-testid="stMetric"] {
-    background: var(--surface);
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 20px 24px;
     position: relative;
     overflow: hidden;
@@ -164,43 +166,157 @@ hr { border-color: var(--border) !important; }
     position: absolute;
     top: 0; left: 0;
     width: 2px; height: 100%;
-    background: linear-gradient(180deg, var(--gold), var(--gold-dim));
+    background: linear-gradient(180deg, var(--gold), var(--gold-l));
 }
-[data-testid="stMetricLabel"] { color: var(--muted) !important; font-size: 10px !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; }
-[data-testid="stMetricValue"] { color: var(--cream) !important; font-family: 'Playfair Display', serif !important; font-size: 28px !important; }
+[data-testid="stMetricLabel"] {
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+[data-testid="stMetricValue"] {
+    color: var(--black) !important;
+    font-family: 'Instrument Serif', serif !important;
+    font-size: 28px !important;
+}
 
-.block-container { padding-top: 2rem !important; max-width: 1200px; }
-section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--border); }
+/* ── Özel kartlar ── */
+.auth-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 52px;
+    max-width: 460px;
+    margin: 0 auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
 
-.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 48px 52px; max-width: 460px; margin: 0 auto; }
-.plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px 28px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
-.plan-card:hover { transform: translateY(-4px); border-color: var(--gold-dim); }
+.plan-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+.plan-card.featured { background: var(--black); border-color: var(--black); }
 
-.finding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; margin-bottom: 12px; border-left: 2px solid; transition: transform 0.2s; }
-.finding-card:hover { transform: translateX(4px); }
+/* ── Bulgu kartları ── */
+.finding-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 10px;
+    border-left: 3px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.finding-card:hover { transform: translateX(4px); box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
 .finding-critical { border-left-color: var(--danger); }
 .finding-warning  { border-left-color: var(--warn); }
 .finding-ok       { border-left-color: var(--gold); }
 
-.tag { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
-.tag-critical { background: rgba(192,57,43,0.12); color: #e74c3c; border: 1px solid rgba(192,57,43,0.3); }
-.tag-warning  { background: rgba(212,172,13,0.12); color: #f1c40f; border: 1px solid rgba(212,172,13,0.3); }
-.tag-ok       { background: rgba(201,168,76,0.1);  color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+.tag-critical { background: rgba(192,57,43,0.08); color: var(--danger); border: 1px solid rgba(192,57,43,0.2); }
+.tag-warning  { background: rgba(212,172,13,0.08); color: #a07c00; border: 1px solid rgba(212,172,13,0.2); }
+.tag-ok       { background: rgba(201,150,58,0.08); color: var(--gold); border: 1px solid rgba(201,150,58,0.2); }
 
-.finding-rec { font-size: 13px; margin-top: 12px; padding: 10px 16px; background: rgba(201,168,76,0.04); border-radius: 3px; border-left: 2px solid var(--gold-dim); color: var(--text); line-height: 1.6; }
-.qw-item { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 14px 20px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 16px; font-size: 14px; line-height: 1.6; color: var(--text); }
-.qw-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gold); min-width: 32px; line-height: 1; }
+.finding-rec {
+    font-size: 13px;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: rgba(201,150,58,0.05);
+    border-radius: 8px;
+    border-left: 2px solid var(--gold);
+    color: var(--text);
+    line-height: 1.6;
+}
 
-.health-box { background: linear-gradient(135deg, #141414 0%, #1a1714 100%); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; text-align: center; position: relative; overflow: hidden; }
-.health-box::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim)); }
-.score-num { font-family: 'Playfair Display', serif; font-size: 68px; font-weight: 700; line-height: 1; letter-spacing: -2px; }
+/* ── Quick wins ── */
+.qw-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    transition: transform 0.2s;
+}
+.qw-item:hover { transform: translateX(4px); }
+.qw-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--gold);
+    min-width: 32px;
+    line-height: 1;
+}
 
-.locked-feature { background: rgba(42,37,32,0.4); border: 1px dashed var(--border); border-radius: 4px; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+/* ── Sağlık skoru ── */
+.health-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.health-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.score-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 68px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -2px;
+}
 
-/* Streamlit genel overrides */
+/* ── Kilitli özellik ── */
+.locked-feature {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* ── Genel overrides ── */
 div[data-testid="stForm"] { border: none !important; }
-.stSelectbox > div > div { background: var(--surface2) !important; border-color: var(--border) !important; }
+.stSelectbox > div > div {
+    background: var(--white) !important;
+    border-color: var(--border) !important;
+    border-radius: 100px !important;
+}
 .stRadio > div { gap: 8px !important; }
+p { color: var(--text) !important; }
+.stMarkdown { color: var(--text) !important; }
+
+/* ── Dataframe ── */
+.stDataFrame { border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden; }
+
+/* ── Toggle ── */
+.stToggle > label { color: var(--text) !important; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -209,22 +325,26 @@ div[data-testid="stForm"] { border: none !important; }
 # YARDIMCILAR
 # ─────────────────────────────────────────────
 
-def score_color(s): return "#c9a84c" if s>=75 else "#d4ac0d" if s>=50 else "#c0392b"
+def score_color(s): return "#c9963a" if s>=75 else "#d4ac0d" if s>=50 else "#c0392b"
 
 def plotly_theme():
     return dict(
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", color="#7a7060", size=11),
-        xaxis=dict(gridcolor="#2a2520", linecolor="#2a2520"),
-        yaxis=dict(gridcolor="#2a2520", linecolor="#2a2520"),
+        font=dict(family="DM Sans, sans-serif", color="#8a8070", size=11),
+        xaxis=dict(gridcolor="#e0d8cc", linecolor="#e0d8cc"),
+        yaxis=dict(gridcolor="#e0d8cc", linecolor="#e0d8cc"),
         margin=dict(l=0, r=0, t=30, b=0),
     )
 
 def plan_badge(plan_key: str) -> str:
-    colors = {"free":"#7a7060","starter":"#c9a84c","pro":"#e8c97a"}
-    c = colors.get(plan_key,"#7a7060")
+    colors = {"free":"#8a8070","starter":"#c9963a","pro":"#0d0c0a"}
+    bg     = {"free":"#f0ede6","starter":"#fff8e8","pro":"#0d0c0a"}
+    tc     = {"free":"#8a8070","starter":"#c9963a","pro":"#ffffff"}
+    c = colors.get(plan_key,"#8a8070")
+    b = bg.get(plan_key,"#f0ede6")
+    t = tc.get(plan_key,"#8a8070")
     name = PLANS[plan_key].name
-    return f'<span style="background:transparent;border:1px solid {c};color:{c};padding:3px 10px;border-radius:2px;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;font-family:Inter,sans-serif">{name}</span>'
+    return f'<span style="background:{b};border:1px solid {c};color:{t};padding:3px 12px;border-radius:100px;font-size:11px;letter-spacing:0.05em;font-family:DM Sans,sans-serif;font-weight:500">{name}</span>'
 
 
 # ─────────────────────────────────────────────
@@ -258,17 +378,11 @@ db = get_db()
 def page_auth():
     st.markdown("""
     <div style="text-align:center;padding:40px 0 32px">
-        <div style="font-family:'Playfair Display',serif;font-size:13px;color:#7a7060;
-                    letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px">
-            ◆
+        <div style="font-size:28px;font-weight:600;color:#0d0c0a;letter-spacing:-0.03em;margin-bottom:8px">
+            OPS<span style="color:#c9963a">.</span>
         </div>
-        <div style="font-family:'Playfair Display',serif;font-size:38px;font-weight:700;
-                    letter-spacing:0.05em;margin-bottom:8px;color:#f5f0e8">
-            OPS Intelligence
-        </div>
-        <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);
-                    margin:0 auto 12px"></div>
-        <div style="font-size:11px;color:#7a7060;letter-spacing:0.2em;text-transform:uppercase">
+        <div style="width:40px;height:1px;background:linear-gradient(90deg,transparent,#c9963a,transparent);margin:0 auto 12px"></div>
+        <div style="font-size:13px;color:#8a8070;letter-spacing:0.05em">
             E-Ticaret Operasyonel Analiz Platformu
         </div>
     </div>
@@ -360,9 +474,11 @@ def render_sidebar():
         # Kullanıcı bilgisi
         st.markdown(f"""
         <div style="padding:20px 0 12px">
-            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
-                        color:#f5f0e8;letter-spacing:0.05em">OPS Intelligence</div>
-            <div style="font-size:11px;color:#7a7060;margin-top:4px">{user['email']}</div>
+            <div style="font-size:20px;font-weight:600;color:#0d0c0a;letter-spacing:-0.03em">
+                OPS<span style="color:#c9963a">.</span>
+            </div>
+            <div style="font-size:13px;color:#8a8070;margin-top:8px">{user['name']}</div>
+            <div style="font-size:12px;color:#8a8070;margin-top:2px">{user['email']}</div>
             <div style="margin-top:10px">{plan_badge(user['plan'])}</div>
         </div>
         """, unsafe_allow_html=True)
