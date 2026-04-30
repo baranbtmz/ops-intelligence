@@ -804,24 +804,15 @@ def page_analysis():
 
         prog = st.progress(0, "Shopify verisi çekiliyor...")
 
-        # OpenAI key varsa gerçek AI, yoksa mock
-        openai_key = ""
+        # OpenAI key — her durumda çalışır
+        _openai_key = ""
         try:
-            openai_key = ""
-try:
-    import streamlit as _st
-    openai_key = _st.secrets.get("OPENAI_API_KEY", "")
-except Exception:
-    pass
-if not openai_key:
-    import os as _os
-    openai_key = _os.environ.get("OPENAI_API_KEY", "")openai_key = st.secrets.get("OPENAI_API_KEY", "")
+            _openai_key = st.secrets["OPENAI_API_KEY"]
         except Exception:
-            import os as _os
-            openai_key = _os.environ.get("OPENAI_API_KEY", "")
+            _openai_key = ""
 
-        if openai_key:
-            ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=False, language="tr")
+        if _openai_key:
+            ai_cfg = AIConfig(api_key=_openai_key, use_mock_ai=False, language="tr")
         else:
             ai_cfg = AIConfig(use_mock_ai=True, language="tr")
 
