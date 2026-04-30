@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPS. — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#fff;--bg:#f8f7f4;--surface:#f0ede6;
+  --black:#0d0c0a;--dark:#1a1916;
+  --gold:#c9963a;--gold-l:#e8b84b;--gold-dim:rgba(201,150,58,.15);
+  --text:#2c2a25;--muted:#8a8070;--border:#e0d8cc;
+  --danger:#c0392b;--warn:#d4ac0d;--success:#1a7a4a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* PAGES */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* ── AUTH ── */
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--white);padding:20px;position:relative;overflow:hidden}
+.auth-shape{position:absolute;border-radius:50%;animation:float 6s ease-in-out infinite;pointer-events:none}
+.auth-shape-1{width:280px;height:280px;top:10%;right:5%;background:radial-gradient(135deg at 30% 30%,#e8c97a,#c9963a,#8a5c1a);box-shadow:inset -15px -15px 30px rgba(0,0,0,.2),inset 8px 8px 20px rgba(255,220,100,.3),0 20px 40px rgba(201,150,58,.2);animation-delay:0s}
+.auth-shape-2{width:140px;height:140px;bottom:15%;left:5%;background:radial-gradient(135deg at 30% 30%,#f0d080,#c9963a,#6b3e0a);box-shadow:inset -10px -10px 20px rgba(0,0,0,.2),0 15px 30px rgba(201,150,58,.15);animation-delay:-2s;animation-duration:8s}
+.auth-shape-3{width:70px;height:70px;top:25%;left:10%;background:radial-gradient(135deg at 30% 30%,#e8c97a,#c9963a);animation-delay:-4s;border-radius:30%;animation-duration:7s}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-16px) rotate(4deg)}66%{transform:translateY(8px) rotate(-3deg)}}
+
+.auth-box{width:100%;max-width:420px;position:relative;z-index:1}
+.auth-logo{text-align:center;margin-bottom:36px}
+.auth-logo-text{font-size:32px;font-weight:600;color:var(--black);letter-spacing:-0.03em}
+.auth-logo-text .dot{color:var(--gold)}
+.auth-logo-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:10px auto}
+.auth-logo-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.auth-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:36px;box-shadow:0 8px 40px rgba(0,0,0,.06)}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.08em;text-transform:uppercase}
+.auth-tab.active{color:var(--black);border-bottom-color:var(--gold)}
+.auth-form{display:none}
+.auth-form.active{display:block}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input{width:100%;padding:11px 16px;border:1px solid var(--border);border-radius:100px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--white);outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,150,58,.1)}
+.auth-btn{width:100%;padding:13px;background:var(--black);color:var(--white);border:none;border-radius:100px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;margin-top:6px}
+.auth-btn:hover{background:var(--dark);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.auth-error{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:18px}
+.auth-demo{text-align:center;margin-top:14px;font-size:12px;color:var(--muted);padding:10px;background:var(--bg);border-radius:10px}
+
+/* ── APP LAYOUT ── */
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s}
+.sidebar-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sidebar-logo-text{font-size:20px;font-weight:600;color:var(--black);letter-spacing:-0.03em}
+.sidebar-logo-text .dot{color:var(--gold)}
+.sidebar-user{padding:14px 20px;border-bottom:1px solid var(--border)}
+.sidebar-user-name{font-size:13px;font-weight:500;color:var(--black)}
+.sidebar-user-email{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-plan{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:100px;font-size:10px;font-weight:500}
+.plan-free{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.plan-starter{background:rgba(201,150,58,.1);color:var(--gold);border:1px solid rgba(201,150,58,.2)}
+.plan-pro{background:var(--black);color:var(--white)}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;border-left:2px solid transparent;border-radius:0}
+.nav-item:hover{color:var(--black);background:var(--bg)}
+.nav-item.active{color:var(--black);background:var(--bg);border-left-color:var(--gold);font-weight:500}
+.nav-item .icon{font-size:15px;width:20px;text-align:center}
+.nav-section{padding:14px 20px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.sidebar-bottom{padding:14px 20px;border-top:1px solid var(--border)}
+.sidebar-usage{margin-bottom:10px}
+.usage-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.usage-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.usage-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:2px;transition:width .5s}
+.logout-btn{width:100%;padding:9px;border:1px solid var(--border);border-radius:100px;font-size:13px;color:var(--muted);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+.main-content{margin-left:240px;flex:1;padding:36px 40px;min-height:100vh}
+.page-header{margin-bottom:28px}
+.page-title{font-family:'Instrument Serif',serif;font-size:34px;font-weight:400;color:var(--black);letter-spacing:-0.02em;margin-bottom:4px}
+.page-sub{font-size:14px;color:var(--muted)}
+
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.metric-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.metric-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.metric-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,var(--gold),var(--gold-l))}
+.metric-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.metric-value{font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;color:var(--black);line-height:1;letter-spacing:-0.02em}
+.metric-delta{font-size:11px;margin-top:4px}
+.delta-good{color:var(--success)}.delta-bad{color:var(--danger)}.delta-warn{color:var(--warn)}.delta-neutral{color:var(--muted)}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:18px}
+.card-title{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+
+/* ── HOME ── */
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.home-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:26px;transition:transform .2s,box-shadow .2s;cursor:pointer}
+.home-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.08)}
+.home-card-icon{font-size:28px;margin-bottom:12px}
+.home-card-title{font-family:'Instrument Serif',serif;font-size:19px;font-weight:400;color:var(--black);margin-bottom:6px}
+.home-card-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.home-card-btn{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:8px 18px;background:var(--black);color:var(--white);border-radius:100px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.home-card-btn:hover{background:var(--dark)}
+
+/* ── SCORE ── */
+.score-box{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;position:relative;overflow:hidden;margin-bottom:18px}
+.score-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.score-num{font-family:'Instrument Serif',serif;font-size:80px;font-weight:400;line-height:1;letter-spacing:-4px}
+.score-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-top:6px}
+.score-desc{font-size:13px;color:var(--muted);margin-top:8px;max-width:500px;margin-left:auto;margin-right:auto}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0}
+.tab{padding:10px 20px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.06em;text-transform:uppercase}
+.tab:hover{color:var(--black)}
+.tab.active{color:var(--black);border-bottom-color:var(--gold)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── FINDINGS ── */
+.finding-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;border-left:3px solid var(--gold);transition:transform .2s}
+.finding-card:hover{transform:translateX(3px)}
+.finding-card.critical{border-left-color:var(--danger)}
+.finding-card.warning{border-left-color:var(--warn)}
+.finding-card.good{border-left-color:var(--success)}
+.finding-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.finding-tag{font-size:9px;font-weight:600;padding:2px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.1em}
+.tag-critical{background:rgba(192,57,43,.08);color:var(--danger);border:1px solid rgba(192,57,43,.2)}
+.tag-warning{background:rgba(212,172,13,.08);color:#a07c00;border:1px solid rgba(212,172,13,.2)}
+.tag-ok{background:rgba(26,122,74,.08);color:var(--success);border:1px solid rgba(26,122,74,.2)}
+.tag-info{background:rgba(201,150,58,.08);color:var(--gold);border:1px solid rgba(201,150,58,.2)}
+.finding-title{font-size:14px;font-weight:500;color:var(--black)}
+.finding-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.finding-impact{font-size:12px;color:var(--danger);margin-top:6px;font-weight:500}
+.finding-rec{font-size:13px;color:var(--text);margin-top:10px;padding:10px 14px;background:rgba(201,150,58,.05);border-radius:8px;border-left:2px solid var(--gold);line-height:1.6}
+
+/* ── QUICK WINS ── */
+.qw-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;transition:transform .2s}
+.qw-item:hover{transform:translateX(3px)}
+.qw-num{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:var(--gold);min-width:28px;line-height:1}
+.qw-text{font-size:13px;color:var(--text);line-height:1.6}
+
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 12px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);font-weight:400}
+.data-table td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg)}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:500}
+.badge-danger{background:rgba(192,57,43,.08);color:var(--danger)}
+.badge-warn{background:rgba(212,172,13,.08);color:#a07c00}
+.badge-success{background:rgba(26,122,74,.08);color:var(--success)}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:200px;margin-top:12px}
+.chart-wrap-tall{position:relative;height:280px;margin-top:12px}
+
+/* ── META ADS ── */
+.alarm-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.alarm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.alarm-dot.red{background:var(--danger)}.alarm-dot.yellow{background:var(--warn)}.alarm-dot.green{background:var(--success)}
+.alarm-text{flex:1;font-size:13px;color:var(--text)}
+.alarm-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:100px}
+.alarm-badge.danger{background:rgba(192,57,43,.1);color:var(--danger)}
+.alarm-badge.warn{background:rgba(212,172,13,.1);color:#a07c00}
+.alarm-badge.ok{background:rgba(26,122,74,.1);color:var(--success)}
+
+/* ── PLANS ── */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plan-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:26px;position:relative;transition:transform .2s,box-shadow .2s}
+.plan-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.08)}
+.plan-card.featured{background:var(--black);border-color:var(--black)}
+.plan-popular{position:absolute;top:14px;right:14px;background:var(--gold);color:var(--white);font-size:10px;font-weight:500;padding:3px 10px;border-radius:100px}
+.plan-name{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+.plan-card.featured .plan-name{color:rgba(255,255,255,.4)}
+.plan-price{font-family:'Instrument Serif',serif;font-size:46px;font-weight:400;color:var(--black);line-height:1;margin-bottom:3px}
+.plan-card.featured .plan-price{color:var(--white)}
+.plan-period{font-size:13px;color:var(--muted);margin-bottom:18px}
+.plan-card.featured .plan-period{color:rgba(255,255,255,.35)}
+.plan-divider{height:1px;background:var(--border);margin-bottom:18px}
+.plan-card.featured .plan-divider{background:rgba(255,255,255,.1)}
+.plan-features{list-style:none;margin-bottom:22px}
+.plan-features li{font-size:13px;color:var(--text);padding:5px 0;display:flex;align-items:center;gap:8px}
+.plan-card.featured .plan-features li{color:rgba(255,255,255,.65)}
+.plan-features li.off{opacity:.3}
+.chk{color:var(--gold);font-weight:600}.cx{color:var(--muted)}
+.plan-btn{display:block;width:100%;padding:11px;border-radius:100px;font-size:14px;font-weight:500;text-align:center;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;border:1px solid var(--border);background:transparent;color:var(--black)}
+.plan-btn:hover{border-color:var(--black)}
+.plan-btn.white{background:var(--white);color:var(--black);border:none}
+.plan-btn.white:hover{background:var(--bg)}
+.plan-btn.current{opacity:.5;cursor:default;pointer-events:none}
+
+/* ── PDF ── */
+.pdf-section{background:linear-gradient(135deg,#1a1916,#0d0c0a);border-radius:16px;padding:28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
+.pdf-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:200px;background:radial-gradient(ellipse,rgba(201,150,58,.1) 0%,transparent 70%);pointer-events:none}
+.pdf-text{position:relative;z-index:1}
+.pdf-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--white);margin-bottom:4px}
+.pdf-sub{font-size:13px;color:rgba(255,255,255,.4)}
+
+/* ── BUTTONS ── */
+.btn{padding:11px 22px;border-radius:100px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:8px}
+.btn-black{background:var(--black);color:var(--white)}
+.btn-black:hover{background:var(--dark);transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.btn-gold{background:var(--gold);color:var(--white)}
+.btn-gold:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 8px 20px rgba(201,150,58,.25)}
+.btn-outline{background:transparent;color:var(--black);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--black)}
+.btn-sm{padding:7px 16px;font-size:12px}
+
+/* ── LOADING ── */
+.loading-overlay{display:none;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px}
+.loading-overlay.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-steps{display:flex;flex-direction:column;gap:8px;margin-top:16px;width:100%;max-width:300px}
+.loading-step{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:8px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border)}
+.loading-step.active{color:var(--black);border-color:var(--gold);background:rgba(201,150,58,.05)}
+.loading-step.done{color:var(--success);border-color:rgba(26,122,74,.2)}
+
+/* ── ALERT ── */
+.alert{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
+.alert.show{display:block}
+.alert-error{background:rgba(192,57,43,.08);color:var(--danger);border:1px solid rgba(192,57,43,.2)}
+.alert-success{background:rgba(26,122,74,.08);color:var(--success);border:1px solid rgba(26,122,74,.2)}
+.alert-info{background:rgba(201,150,58,.08);color:#8a6020;border:1px solid rgba(201,150,58,.2)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:var(--white);padding:11px 20px;border-radius:100px;font-size:13px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── CONNECT PAGE ── */
+.connect-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.connect-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:22px}
+.connect-card-title{font-size:15px;font-weight:500;color:var(--black);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main-content{margin-left:0;padding:20px}
+.metrics-grid{grid-template-columns:repeat(2,1fr)}
+.home-grid,.connect-grid,.plan-grid{grid-template-columns:1fr}
+.mobile-menu-btn{display:flex!important}
+}
+.mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+</style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="page-auth">
+  <div class="auth-page">
+    <div class="auth-shape auth-shape-1"></div>
+    <div class="auth-shape auth-shape-2"></div>
+    <div class="auth-shape auth-shape-3"></div>
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="auth-logo-text">OPS<span class="dot">.</span></div>
+        <div class="auth-logo-line"></div>
+        <div class="auth-logo-sub">E-Ticaret Operasyonel Analiz Platformu</div>
+      </div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <div class="auth-tab active" onclick="switchTab('login')">Giriş Yap</div>
+          <div class="auth-tab" onclick="switchTab('register')">Kayıt Ol</div>
+        </div>
+        <div class="auth-form active" id="form-login">
+          <div class="field"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@sirket.com" onkeydown="if(event.key==='Enter')login()"></div>
+          <div class="field"><label>Şifre</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+          <button class="auth-btn" onclick="login()">Giriş Yap</button>
+          <div class="auth-error" id="login-error"></div>
+        </div>
+        <div class="auth-form" id="form-register">
+          <div class="field"><label>Ad Soyad</label><input type="text" id="reg-name" placeholder="Adınız Soyadınız"></div>
+          <div class="field"><label>E-posta</label><input type="email" id="reg-email" placeholder="ornek@sirket.com"></div>
+          <div class="field"><label>Şifre</label><input type="password" id="reg-password" placeholder="En az 6 karakter"></div>
+          <button class="auth-btn" onclick="register()">Hesap Oluştur</button>
+          <div class="auth-error" id="reg-error"></div>
+        </div>
+        <div class="auth-demo">Demo: demo@opsint.com / demo123</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div class="page" id="page-app">
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-text">OPS<span class="dot">.</span></div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" id="sb-name">—</div>
+        <div class="sidebar-user-email" id="sb-email">—</div>
+        <div class="sidebar-plan plan-free" id="sb-plan">Free</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Genel</div>
+        <div class="nav-item active" onclick="nav('home')"><span class="icon">🏠</span>Ana Sayfa</div>
+        <div class="nav-section">Analiz</div>
+        <div class="nav-item" onclick="nav('connect')"><span class="icon">🔗</span>Mağaza Bağla</div>
+        <div class="nav-item" onclick="nav('analysis')"><span class="icon">📊</span>Analiz Yap</div>
+        <div class="nav-item" onclick="nav('results')"><span class="icon">📋</span>Sonuçlar</div>
+        <div class="nav-section">Hesap</div>
+        <div class="nav-item" onclick="nav('plans')"><span class="icon">💳</span>Planlar</div>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-usage">
+          <div class="usage-label" id="usage-label">0 / 10 analiz</div>
+          <div class="usage-bar"><div class="usage-fill" id="usage-fill" style="width:0%"></div></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">↩ Çıkış Yap</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- HOME -->
+      <section id="sec-home">
+        <div class="page-header">
+          <div class="page-title" id="home-title">Hoş geldin!</div>
+          <div class="page-sub">Mağazanı bağla ve AI destekli operasyonel analize başla.</div>
+        </div>
+        <div class="home-grid">
+          <div class="home-card" onclick="nav('connect')">
+            <div class="home-card-icon">🔗</div>
+            <div class="home-card-title">Mağazanı Bağla</div>
+            <div class="home-card-desc">Shopify mağazanı bağla, gerçek verilerinle AI destekli analiz yap.</div>
+            <button class="home-card-btn">Bağla →</button>
+          </div>
+          <div class="home-card" onclick="startDemo()">
+            <div class="home-card-icon">📊</div>
+            <div class="home-card-title">Demo Analizi Dene</div>
+            <div class="home-card-desc">Gerçek bağlantı olmadan örnek verilerle sistemi keşfet.</div>
+            <button class="home-card-btn">Demo Başlat →</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Planının Kapsamı</div>
+          <div id="plan-features"></div>
+        </div>
+      </section>
+
+      <!-- CONNECT -->
+      <section id="sec-connect" style="display:none">
+        <div class="page-header">
+          <div class="page-title">Mağaza Bağlantısı</div>
+          <div class="page-sub">Shopify ve Meta Ads hesaplarını bağla.</div>
+        </div>
+        <div class="connect-grid">
+          <div class="connect-card">
+            <div class="connect-card-title">🛍️ Shopify</div>
+            <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="magazaadi.myshopify.com"></div>
+            <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Shopify Admin → Apps → Private apps → Token</div>
+          </div>
+          <div class="connect-card">
+            <div class="connect-card-title">📣 Meta Ads <span style="font-size:11px;color:var(--muted)">(Pro plan)</span></div>
+            <div class="field"><label>Access Token</label><input type="password" id="meta-token" placeholder="EAAxxxxx..." disabled></div>
+            <div class="field"><label>Ad Account ID</label><input type="text" id="meta-account" placeholder="act_123456" disabled></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Pro plan gerektirir.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-black" onclick="saveAndAnalyze()">🚀 Bağla ve Analiz Et</button>
+          <button class="btn btn-outline" onclick="startDemo()">Demo ile Dene</button>
+        </div>
+      </section>
+
+      <!-- ANALYSIS -->
+      <section id="sec-analysis" style="display:none">
+        <div class="page-header">
+          <div class="page-title">Analiz</div>
+          <div class="page-sub" id="analysis-shop-name">Analiz başlatılıyor...</div>
+        </div>
+        <div class="loading-overlay show" id="analysis-loading">
+          <div class="spinner"></div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:16px" id="loading-text">Hazırlanıyor...</div>
+          <div class="loading-steps">
+            <div class="loading-step" id="step-1">📦 Shopify verisi çekiliyor</div>
+            <div class="loading-step" id="step-2">⚙️ Metrikler hesaplanıyor</div>
+            <div class="loading-step" id="step-3">🤖 AI analizi yapılıyor</div>
+            <div class="loading-step" id="step-4">✅ Sonuçlar hazırlanıyor</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section id="sec-results" style="display:none">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="page-title">Analiz Sonuçları</div>
+            <div class="page-sub" id="results-meta">—</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="startDemo()">🔄 Yeniden Analiz Et</button>
+        </div>
+
+        <!-- Score -->
+        <div class="score-box">
+          <div class="score-num" id="r-score" style="color:var(--gold)">—</div>
+          <div class="score-label">Mağaza Sağlık Skoru / 100</div>
+          <div class="score-desc" id="r-summary"></div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid" id="r-metrics"></div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" onclick="switchResultTab('findings')">📋 Bulgular</div>
+          <div class="tab" onclick="switchResultTab('revenue')">📈 Gelir</div>
+          <div class="tab" onclick="switchResultTab('inventory')">📦 Stok</div>
+          <div class="tab" onclick="switchResultTab('actions')">⚡ Aksiyonlar</div>
+          <div class="tab" id="tab-meta" onclick="switchResultTab('meta')" style="display:none">📣 Meta Ads</div>
+        </div>
+
+        <!-- Findings Tab -->
+        <div class="tab-content active" id="tab-findings">
+          <div id="r-findings"></div>
+        </div>
+
+        <!-- Revenue Tab -->
+        <div class="tab-content" id="tab-revenue">
+          <div class="card">
+            <div class="card-title">Günlük Gelir Trendi</div>
+            <div class="chart-wrap-tall"><canvas id="chart-revenue"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Gelir Detayları</div>
+            <div id="r-revenue-detail"></div>
+          </div>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div class="tab-content" id="tab-inventory">
+          <div class="card">
+            <div class="card-title">Stok Durumu</div>
+            <div class="chart-wrap"><canvas id="chart-inventory"></canvas></div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-title">Ürün Detayları</div>
+            <div id="r-inventory-table"></div>
+          </div>
+        </div>
+
+        <!-- Actions Tab -->
+        <div class="tab-content" id="tab-actions">
+          <div class="card">
+            <div class="card-title">Bu Hafta Yapılacaklar</div>
+            <div class="card-sub">AI tarafından önceliklendirilmiş aksiyon planı</div>
+            <div id="r-actions"></div>
+          </div>
+        </div>
+
+        <!-- Meta Ads Tab -->
+        <div class="tab-content" id="tab-meta-content">
+          <div class="card">
+            <div class="card-title">ROAS Analizi</div>
+            <div class="chart-wrap"><canvas id="chart-roas"></canvas></div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-title">Çapraz Alarmlar</div>
+            <div class="card-sub">Stok durumu ile reklam aktivitesi çakışmaları</div>
+            <div id="r-alarms"></div>
+          </div>
+        </div>
+
+        <!-- PDF -->
+        <div class="pdf-section">
+          <div class="pdf-text">
+            <div class="pdf-title">PDF Rapor</div>
+            <div class="pdf-sub">Tüm analiz sonuçlarını profesyonel PDF olarak indir.</div>
+          </div>
+          <button class="btn btn-gold" onclick="downloadPDF()">📄 PDF İndir</button>
+        </div>
+      </section>
+
+      <!-- PLANS -->
+      <section id="sec-plans" style="display:none">
+        <div class="page-header">
+          <div class="page-title">Planlar</div>
+          <div class="page-sub">İhtiyacına göre plan seç, istediğin zaman değiştir.</div>
+        </div>
+        <div class="plan-grid">
+          <div class="plan-card">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">€0</div>
+            <div class="plan-period">/ ay, sonsuza kadar</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+              <li><span class="chk">✓</span> 1 mağaza bağlantısı</li>
+              <li><span class="chk">✓</span> 100 sipariş / ay</li>
+              <li><span class="chk">✓</span> Temel metrikler</li>
+              <li class="off"><span class="cx">×</span> AI Analiz Raporu</li>
+              <li class="off"><span class="cx">×</span> PDF Export</li>
+              <li class="off"><span class="cx">×</span> Meta Ads Analizi</li>
+            </ul>
+            <button class="plan-btn" id="pb-free" onclick="selectPlan('free')">Seç</button>
+          </div>
+          <div class="plan-card featured">
+            <div class="plan-popular">En Popüler</div>
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">€29</div>
+            <div class="plan-period">/ ay</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+              <li><span class="chk">✓</span> 2 mağaza bağlantısı</li>
+              <li><span class="chk">✓</span> 1.000 sipariş / ay</li>
+              <li><span class="chk">✓</span> AI Analiz Raporu</li>
+              <li><span class="chk">✓</span> PDF Export</li>
+              <li><span class="chk">✓</span> E-posta Destek</li>
+              <li class="off"><span class="cx">×</span> Meta Ads Analizi</li>
+            </ul>
+            <button class="plan-btn white" id="pb-starter" onclick="selectPlan('starter')">Starter'a Geç</button>
+          </div>
+          <div class="plan-card">
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">€79</div>
+            <div class="plan-period">/ ay</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+              <li><span class="chk">✓</span> 10 mağaza bağlantısı</li>
+              <li><span class="chk">✓</span> 10.000 sipariş / ay</li>
+              <li><span class="chk">✓</span> AI Analiz Raporu</li>
+              <li><span class="chk">✓</span> PDF Export</li>
+              <li><span class="chk">✓</span> Meta Ads + ROAS</li>
+              <li><span class="chk">✓</span> Öncelikli Destek</li>
+            </ul>
+            <button class="plan-btn" id="pb-pro" onclick="selectPlan('pro')">Pro'ya Geç</button>
+          </div>
+        </div>
+
+        <!-- İptal Bölümü -->
+        <div id="cancel-section" style="display:none;margin-top:32px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--white)">
+          <div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:6px">Aboneliği İptal Et</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">İlk 7 gün içinde iptal ederseniz tam iade alırsınız. Dönem sonuna kadar erişiminiz devam eder.</div>
+          <button class="plan-btn" style="width:auto;padding:10px 24px;color:#e53e3e;border-color:#e53e3e;" onclick="cancelSubscription()">Aboneliğimi İptal Et</button>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://ops-intelligence-production.up.railway.app';
+let token = localStorage.getItem('ops_token');
+let user = null;
+let lastResult = null;
+let charts = {};
+
+// ── INIT
+window.onload = () => { if (token) fetchMe(); };
+
+// ── MOBILE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── AUTH
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.querySelectorAll('.auth-form').forEach((f,i)=>f.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+}
+
+async function login() {
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const err=document.getElementById('login-error');
+  err.textContent='';
+  if(!email||!password){err.textContent='E-posta ve şifre gerekli.';return;}
+  try {
+    const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.detail||'Giriş başarısız.';return;}
+    token=d.token; localStorage.setItem('ops_token',token); user=d.user; showApp();
+  } catch(e){err.textContent='Bağlantı hatası.';}
+}
+
+async function register() {
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const password=document.getElementById('reg-password').value;
+  const err=document.getElementById('reg-error');
+  err.textContent='';
+  if(!name||!email||!password){err.textContent='Tüm alanları doldurun.';return;}
+  try {
+    const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.detail||'Kayıt başarısız.';return;}
+    token=d.token; localStorage.setItem('ops_token',token); user=d.user; showApp();
+  } catch(e){err.textContent='Bağlantı hatası.';}
+}
+
+async function fetchMe() {
+  try {
+    const r=await fetch(`${API}/auth/me`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!r.ok){logout();return;}
+    const d=await r.json(); user=d.user; showApp();
+  } catch(e){logout();}
+}
+
+function logout() {
+  token=null; user=null; lastResult=null;
+  localStorage.removeItem('ops_token');
+  showPage('auth');
+}
+
+// ── PAGES
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+}
+
+function showApp() {
+  showPage('app');
+  if(user) {
+    document.getElementById('sb-name').textContent=user.name||'—';
+    document.getElementById('sb-email').textContent=user.email||'—';
+    const planEl=document.getElementById('sb-plan');
+    planEl.textContent={free:'Free',starter:'Starter',pro:'Pro'}[user.plan]||'Free';
+    planEl.className='sidebar-plan plan-'+(user.plan||'free');
+    document.getElementById('home-title').textContent=`Hoş geldin, ${(user.name||'').split(' ')[0]}!`;
+    const used=user.analyses_this_month||0;
+    const limit={free:1,starter:10,pro:100}[user.plan]||1;
+    document.getElementById('usage-label').textContent=`${used} / ${limit} analiz`;
+    document.getElementById('usage-fill').style.width=`${Math.min(100,(used/limit)*100)}%`;
+    renderPlanFeatures(user.plan);
+    updatePlanBtns(user.plan);
+    if(lastResult) nav('results');
+    else nav('home');
+  }
+}
+
+function nav(section) {
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const sections=['home','connect','analysis','results','plans'];
+  sections.forEach(s=>{
+    const el=document.getElementById(`sec-${s}`);
+    if(el) el.style.display=s===section?'block':'none';
+  });
+  const navMap={home:0,connect:1,analysis:2,results:3,plans:4};
+  const items=document.querySelectorAll('.nav-item');
+  if(items[navMap[section]]) items[navMap[section]].classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── PLAN FEATURES
+function renderPlanFeatures(plan) {
+  const feats=[
+    ['Mağaza Bağlantısı',`Max ${{free:1,starter:2,pro:10}[plan]||1}`,true],
+    ['Aylık Sipariş',`${{free:100,starter:1000,pro:10000}[plan]||100}`,true],
+    ['AI Analiz Raporu','GPT-4o destekli',plan!=='free'],
+    ['PDF Export','Profesyonel rapor',plan!=='free'],
+    ['Meta Ads Analizi','ROAS + Çapraz Alarm',plan==='pro'],
+    ['Destek',{free:'Topluluk',starter:'E-posta',pro:'Öncelikli'}[plan]||'Topluluk',true],
+  ];
+  document.getElementById('plan-features').innerHTML='<div style="margin-top:8px">'+feats.map(([n,d,a])=>`
+    <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);color:${a?'var(--text)':'var(--muted)'}">
+      <span>${a?'✅':'🔒'} ${n}</span>
+      <span style="color:var(--muted);font-size:12px">${d}</span>
+    </div>`).join('')+'</div>';
+}
+
+function updatePlanBtns(plan) {
+  ['free','starter','pro'].forEach(p=>{
+    const b=document.getElementById(`pb-${p}`);
+    if(!b)return;
+    if(p===plan){b.textContent='✓ Mevcut';b.classList.add('current');}
+    else{b.classList.remove('current');}
+  });
+  // Ücretli plandaysa iptal bölümünü göster
+  const cancelSection = document.getElementById('cancel-section');
+  if(cancelSection){
+    cancelSection.style.display = (plan==='starter'||plan==='pro') ? 'block' : 'none';
+  }
+}
+
+// ── ANALYSIS
+function startDemo() {
+  nav('analysis');
+  runAnalysis(true,'','');
+}
+
+function saveAndAnalyze() {
+  const domain=document.getElementById('shopify-domain').value.trim();
+  const st=document.getElementById('shopify-token').value.trim();
+  if(!domain||!st){showToast('Domain ve token gerekli.');return;}
+  nav('analysis');
+  runAnalysis(false,domain,st);
+}
+
+async function runAnalysis(mock=true,domain='',shopToken='') {
+  const loadEl=document.getElementById('analysis-loading');
+  loadEl.classList.add('show');
+  document.getElementById('analysis-shop-name').textContent=mock?'Demo Mağaza':'Analiz başlatılıyor...';
+
+  const steps=['step-1','step-2','step-3','step-4'];
+  let si=0;
+  const interval=setInterval(()=>{
+    steps.forEach((s,i)=>{
+      const el=document.getElementById(s);
+      if(i<si)el.className='loading-step done';
+      else if(i===si)el.className='loading-step active';
+      else el.className='loading-step';
+    });
+    si=Math.min(si+1,steps.length-1);
+  },1200);
+
+  try {
+    const r=await fetch(`${API}/analysis/run`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,use_mock_meta:true,language:'tr'})
+    });
+    const d=await r.json();
+    clearInterval(interval);
+    loadEl.classList.remove('show');
+    if(!r.ok){showToast(d.detail||'Analiz başarısız.');nav('connect');return;}
+    lastResult=d;
+    renderResults(d);
+    nav('results');
+    if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
+  } catch(e) {
+    clearInterval(interval);
+    loadEl.classList.remove('show');
+    showToast('Bağlantı hatası. Tekrar dene.');
+    nav('home');
+  }
+}
+
+// ── RENDER RESULTS
+function renderResults(data) {
+  const an=data.analysis||{};
+  const m=data.metrics||{};
+  const score=an.overall_health_score||0;
+  const findings=an.findings||[];
+  const quickWins=an.quick_wins||[];
+  const rev=m.revenue||{};
+  const ft=m.fulfillment||{};
+  const inv=m.inventory||{};
+
+  // Score
+  const sc=score>=75?'var(--success)':score>=50?'var(--warn)':'var(--danger)';
+  document.getElementById('r-score').textContent=score;
+  document.getElementById('r-score').style.color=sc;
+  document.getElementById('r-summary').textContent=an.executive_summary||'';
+  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Mağaza'} — ${new Date().toLocaleDateString('tr-TR')}`;
+
+  // Metrics
+  const cancelRate=((rev.cancel_rate||0)*100).toFixed(1);
+  const refundRate=((rev.refund_rate||0)*100).toFixed(1);
+  document.getElementById('r-metrics').innerHTML=`
+    <div class="metric-card">
+      <div class="metric-label">Toplam Gelir</div>
+      <div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div>
+      <div class="metric-delta delta-good">↑ Analiz dönemi</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Ort. Sepet</div>
+      <div class="metric-value">€${Math.round(rev.aov||0)}</div>
+      <div class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">Hedef: €250</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Fulfillment</div>
+      <div class="metric-value">${(ft.mean||0).toFixed(1)}s</div>
+      <div class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">Medyan: ${(ft.median||0).toFixed(1)}s</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">İptal Oranı</div>
+      <div class="metric-value">%${cancelRate}</div>
+      <div class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">Hedef: %2.5</div>
+    </div>
+  `;
+
+  // Findings
+  const severityMap={critical:'KRİTİK',warning:'UYARI',ok:'İYİ',info:'BİLGİ'};
+  const tagMap={critical:'tag-critical',warning:'tag-warning',ok:'tag-ok',info:'tag-info'};
+  const cardMap={critical:'critical',warning:'warning',ok:'good',info:''};
+  document.getElementById('r-findings').innerHTML=findings.length?findings.map(f=>`
+    <div class="finding-card ${cardMap[f.severity]||''}">
+      <div class="finding-header">
+        <span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span>
+        <span class="finding-title">${f.title||''}</span>
+      </div>
+      <div class="finding-desc">${f.description||''}</div>
+      ${f.impact?`<div class="finding-impact">💸 ${f.impact}</div>`:''}
+      ${f.recommendation?`<div class="finding-rec">💡 ${f.recommendation}</div>`:''}
+    </div>`).join(''):'<div style="color:var(--muted);font-size:14px;padding:20px 0">Bulgu bulunamadı.</div>';
+
+  // Revenue detail
+  document.getElementById('r-revenue-detail').innerHTML=`
+    <table class="data-table">
+      <tr><th>Metrik</th><th>Değer</th><th>Durum</th></tr>
+      <tr><td>Toplam Gelir</td><td>€${(rev.total||0).toLocaleString('tr-TR',{maximumFractionDigits:0})}</td><td><span class="badge badge-success">—</span></td></tr>
+      <tr><td>Toplam Sipariş</td><td>${rev.orders||0}</td><td><span class="badge badge-success">—</span></td></tr>
+      <tr><td>Ortalama Sepet</td><td>€${Math.round(rev.aov||0)}</td><td><span class="badge ${(rev.aov||0)>=200?'badge-success':'badge-warn'}">${(rev.aov||0)>=200?'İyi':'Hedefin Altında'}</span></td></tr>
+      <tr><td>İptal Oranı</td><td>%${cancelRate}</td><td><span class="badge ${parseFloat(cancelRate)<=3?'badge-success':'badge-danger'}">${parseFloat(cancelRate)<=3?'Normal':'Yüksek'}</span></td></tr>
+      <tr><td>İade Oranı</td><td>%${refundRate}</td><td><span class="badge ${parseFloat(refundRate)<=5?'badge-success':'badge-warn'}">${parseFloat(refundRate)<=5?'Normal':'Yüksek'}</span></td></tr>
+      <tr><td>P95 Fulfillment</td><td>${(ft.p95||0).toFixed(1)}s</td><td><span class="badge ${(ft.p95||0)<=72?'badge-success':'badge-danger'}">${(ft.p95||0)<=72?'Normal':'Yüksek'}</span></td></tr>
+    </table>`;
+
+  // Inventory table
+  const products=inv.products||[];
+  document.getElementById('r-inventory-table').innerHTML=products.length?`
+    <table class="data-table">
+      <tr><th>Ürün</th><th>Stok</th><th>Devir Hızı</th><th>Durum</th></tr>
+      ${products.slice(0,10).map(p=>`
+        <tr>
+          <td>${p.title||p.product_id||'—'}</td>
+          <td>${p.current_stock??'—'}</td>
+          <td>${(p.turnover_rate||0).toFixed(2)}x</td>
+          <td><span class="badge ${p.current_stock<=0?'badge-danger':p.current_stock<=10?'badge-warn':'badge-success'}">${p.current_stock<=0?'Tükendi':p.current_stock<=10?'Kritik':'Normal'}</span></td>
+        </tr>`).join('')}
+    </table>`:'<div style="color:var(--muted);font-size:14px">Ürün verisi bulunamadı.</div>';
+
+  // Quick wins / actions
+  document.getElementById('r-actions').innerHTML=quickWins.length?quickWins.map((qw,i)=>`
+    <div class="qw-item">
+      <div class="qw-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="qw-text">${qw}</div>
+    </div>`).join(''):'<div style="color:var(--muted)">Aksiyon bulunamadı.</div>';
+
+  // Charts — destroy old ones first
+  Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});
+  charts={};
+
+  // Revenue chart (mock daily data)
+  setTimeout(()=>{
+    const revCtx=document.getElementById('chart-revenue');
+    if(revCtx) {
+      const days=30;
+      const base=rev.total/days||1000;
+      const labels=Array.from({length:days},(_, i)=>{const d=new Date();d.setDate(d.getDate()-days+i);return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})});
+      const vals=labels.map(()=>base*(0.6+Math.random()*0.8));
+      charts.revenue=new Chart(revCtx,{type:'line',data:{labels,datasets:[{label:'Günlük Gelir (€)',data:vals,borderColor:'#c9963a',backgroundColor:'rgba(201,150,58,0.08)',borderWidth:2,pointRadius:0,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e0d8cc'},ticks:{color:'#8a8070',callback:v=>'€'+v.toFixed(0)}},x:{grid:{display:false},ticks:{color:'#8a8070',maxTicksLimit:6}}}}});
+    }
+
+    // Inventory chart
+    const invCtx=document.getElementById('chart-inventory');
+    if(invCtx&&products.length) {
+      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{label:'Mevcut Stok',data:products.slice(0,8).map(p=>p.current_stock||0),backgroundColor:products.slice(0,8).map(p=>p.current_stock<=0?'rgba(192,57,43,0.7)':p.current_stock<=10?'rgba(212,172,13,0.7)':'rgba(201,150,58,0.7)'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e0d8cc'},ticks:{color:'#8a8070'}},x:{grid:{display:false},ticks:{color:'#8a8070'}}}}});
+    }
+
+    // ROAS chart (mock)
+    const roasCtx=document.getElementById('chart-roas');
+    if(roasCtx) {
+      charts.roas=new Chart(roasCtx,{type:'bar',data:{labels:['Kampanya A','Kampanya B','Kampanya C','Kampanya D','Kampanya E'],datasets:[{label:'ROAS',data:[4.8,3.2,1.4,2.9,5.1],backgroundColor:d=>d.raw>=3?'rgba(26,122,74,0.7)':'rgba(192,57,43,0.7)',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e0d8cc'},ticks:{color:'#8a8070',callback:v=>v+'x'}},x:{grid:{display:false},ticks:{color:'#8a8070'}}}}});
+    }
+  },100);
+
+  // Alarms (mock)
+  document.getElementById('r-alarms').innerHTML=`
+    <div class="alarm-item"><div class="alarm-dot red"></div><div class="alarm-text">Coconut Shampoo — Stok tükendi, reklam aktif</div><div class="alarm-badge danger">€535 israf riski</div></div>
+    <div class="alarm-item"><div class="alarm-dot yellow"></div><div class="alarm-text">Vitamin C Cream — Kritik stok (9 adet kaldı)</div><div class="alarm-badge warn">Acil sipariş</div></div>
+    <div class="alarm-item"><div class="alarm-dot green"></div><div class="alarm-text">Rose Serum — Stok ve reklam dengeli</div><div class="alarm-badge ok">✓ Normal</div></div>
+  `;
+}
+
+function switchResultTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs=['findings','revenue','inventory','actions','meta'];
+    t.classList.toggle('active',tabs[i]===tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
+  const target=document.getElementById(tab==='meta'?'tab-meta-content':`tab-${tab}`);
+  if(target)target.classList.add('active');
+}
+
+// ── PDF
+async function downloadPDF() {
+  showToast('PDF hazırlanıyor...');
+  try {
+    const r=await fetch(`${API}/analysis/pdf`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({use_mock:true,language:'tr'})});
+    if(!r.ok){showToast('PDF oluşturulamadı.');return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='ops_rapor.pdf';a.click();
+    showToast('PDF indirildi! ✓');
+  } catch(e){showToast('PDF hatası.');}
+}
+
+// ── PLANS
+async function selectPlan(plan) {
+  if(user&&user.plan===plan)return;
+  if(plan==='free'){
+    showToast('Ücretsiz plana geçiliyor...');
+    try {
+      const r=await fetch(`${API}/user/plan?plan=free`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}});
+      const d=await r.json();
+      if(!r.ok){showToast(d.detail||'Hata.');return;}
+      token=d.token; localStorage.setItem('ops_token',token);
+      user.plan='free';
+      document.getElementById('sb-plan').textContent='Free';
+      document.getElementById('sb-plan').className='sidebar-plan plan-free';
+      renderPlanFeatures('free'); updatePlanBtns('free');
+      showToast('Ücretsiz plana geçildi! ✓');
+    } catch(e){showToast('Bağlantı hatası.');}
+    return;
+  }
+
+  // Ücretli plan — Stripe Checkout'a yönlendir
+  showToast('Ödeme sayfasına yönlendiriliyor...');
+  try {
+    const r=await fetch(`${API}/payments/create-checkout`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({plan, success_url: window.location.href+'?plan_success='+plan, cancel_url: window.location.href})
+    });
+    const d=await r.json();
+    if(!r.ok){showToast(d.detail||'Ödeme başlatılamadı.');return;}
+    window.location.href = d.checkout_url;
+  } catch(e){showToast('Bağlantı hatası.');}
+}
+
+async function cancelSubscription() {
+  if(!confirm('Aboneliğinizi iptal etmek istediğinizden emin misiniz?')) return;
+  showToast('İptal işlemi yapılıyor...');
+  try {
+    const r = await fetch(`${API}/payments/cancel`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+    const d = await r.json();
+    if(!r.ok){showToast(d.detail||'Hata oluştu.');return;}
+    token = d.token; localStorage.setItem('ops_token', token);
+    user.plan = 'free';
+    document.getElementById('sb-plan').textContent = 'Free';
+    document.getElementById('sb-plan').className = 'sidebar-plan plan-free';
+    renderPlanFeatures('free'); updatePlanBtns('free');
+    document.getElementById('cancel-section').style.display = 'none';
+    showToast(d.message);
+  } catch(e){showToast('Bağlantı hatası.');}
+}
+
+// ── TOAST
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
