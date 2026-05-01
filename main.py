@@ -533,55 +533,6 @@ async def stripe_webhook(request: Request):
 
     return {"status": "ok"}
 
-@app.post("/payments/cancel")
-async def cancel_subscription(payload: dict = Depends(verify_token)):
-    import stripe
-    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
-    email = payload["sub"]
-
-    try:
-        # Müşteriyi bul
-        customers = stripe.Customer.list(email=email, limit=1)
-        if not customers.data:
-            raise HTTPException(status_code=404, detail="Stripe müşterisi bulunamadı.")
-
-        customer = customers.data[0]
-        subs = stripe.Subscription.list(customer=customer.id, status="active", limit=1)
-        if not subs.data:
-            raise HTTPException(status_code=404, detail="Aktif abonelik bulunamadı.")
-
-        sub = subs.data[0]
-        created_at = datetime.fromtimestamp(sub.created)
-        days_since = (datetime.now() - created_at).days
-
-        # Aboneliği dönem sonunda iptal et
-        stripe.Subscription.modify(sub.id, cancel_at_period_end=True)
-
-        # 7 gün içindeyse otomatik iade
-        refund_issued = False
-        if days_since <= 7:
-            latest_invoice = stripe.Invoice.retrieve(sub.latest_invoice)
-            if latest_invoice.payment_intent:
-                stripe.Refund.create(payment_intent=latest_invoice.payment_intent)
-                refund_issued = True
-
-        # Veritabanında planı free'ye çek
-        db = get_supabase()
-        db.table("users").update({"plan": "free"}).eq("email", email).execute()
-        new_token = create_token(email, "free")
-
-        period_end = datetime.fromtimestamp(sub.current_period_end).strftime("%d.%m.%Y")
-        msg = f"Aboneliğiniz {period_end} tarihinde sona erecek."
-        if refund_issued:
-            msg += " 7 gün içinde iptal ettiğiniz için tam iade yapıldı."
-
-        print(f"🚫 Abonelik iptal: {email} | İade: {refund_issued}")
-        return {"success": True, "message": msg, "refund_issued": refund_issued, "token": new_token}
-
-    except stripe.StripeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.put("/user/plan")
 async def update_plan(plan: str, payload: dict = Depends(verify_token)):
     if plan not in PLANS:
