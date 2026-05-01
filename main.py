@@ -556,21 +556,3 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
-@app.post("/payments/cancel-subscription")
-async def cancel_subscription(payload: dict = Depends(verify_token)):
-    import stripe
-    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
-    email = payload["sub"]
-    db = get_supabase()
-    try:
-        customers = stripe.Customer.list(email=email, limit=1)
-        if customers.data:
-            subs = stripe.Subscription.list(customer=customers.data[0].id, status="active", limit=1)
-            if subs.data:
-                stripe.Subscription.cancel(subs.data[0].id)
-        db.table("users").update({"plan": "free"}).eq("email", email).execute()
-        new_token = create_token(email, "free")
-        return {"success": True, "token": new_token}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
