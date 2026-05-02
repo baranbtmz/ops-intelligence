@@ -63,15 +63,15 @@ _FONT_MONO   = "DejaVu-Mono" if _HAS_DEJAVU else "Courier"
 # RENK PALETİ
 # ─────────────────────────────────────────────
 
-C_BG      = colors.HexColor("#0f0f0f")
-C_SURFACE = colors.HexColor("#1a1a1a")
-C_BORDER  = colors.HexColor("#2a2a2a")
-C_ACCENT  = colors.HexColor("#c9a84c")   # Gold
-C_ACCENT2 = colors.HexColor("#e8c97a")   # Light gold
-C_WARN    = colors.HexColor("#d4a017")
-C_DANGER  = colors.HexColor("#c0392b")
-C_TEXT    = colors.HexColor("#f0ece4")
-C_MUTED   = colors.HexColor("#888880")
+C_BG      = colors.HexColor("#FAF7F2")
+C_SURFACE = colors.HexColor("#F0EBE1")
+C_BORDER  = colors.HexColor("#D9D0C0")
+C_ACCENT  = colors.HexColor("#C4982A")   # Gold
+C_ACCENT2 = colors.HexColor("#A07820")   # Dark gold
+C_WARN    = colors.HexColor("#C4982A")
+C_DANGER  = colors.HexColor("#C0392B")
+C_TEXT    = colors.HexColor("#1A1A1A")
+C_MUTED   = colors.HexColor("#6B6560")
 C_WHITE   = colors.white
 C_BLACK   = colors.black
 
@@ -195,7 +195,7 @@ def make_styles():
 # ─────────────────────────────────────────────
 
 def dark_background(canvas, doc):
-    """Her sayfaya koyu arka plan uygular"""
+    """Her sayfaya krem arka plan uygular"""
     canvas.saveState()
     canvas.setFillColor(C_BG)
     canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
@@ -414,7 +414,7 @@ class PDFReportGenerator:
                     textColor=sc, leading=11)),
                 Paragraph(f["area"].upper(), self._sp("label")),
                 Paragraph(
-                    f"Efor: {f.get('estimated_effort','—')}  |  Etki: {f.get('estimated_impact','—')}",
+                    f"Effort: {f.get('estimated_effort','—')}  |  Impact: {f.get('estimated_impact','—')}",
                     self._sp("label")
                 ),
             ]]
@@ -497,15 +497,15 @@ class PDFReportGenerator:
             ["Fulfillment Time",
              f"{kpi.get('fulfillment_target_hours',24)}h",
              f"{ft.get('median',0)}h",
-             "✅" if ft.get('median',0) <= kpi.get('fulfillment_target_hours',24) else "⚠️"],
+             "OK" if ft.get('median',0) <= kpi.get('fulfillment_target_hours',24) else "WARN"],
             ["Cancellation Rate",
              f"{kpi.get('target_cancellation_rate_pct',2.5)}%",
              f"{rev.get('cancellation_rate',0)}%",
-             "✅" if rev.get('cancellation_rate',0) <= kpi.get('target_cancellation_rate_pct',2.5) else "⚠️"],
+             "OK" if rev.get('cancellation_rate',0) <= kpi.get('target_cancellation_rate_pct',2.5) else "WARN"],
             ["Reorder Point",
              f"{kpi.get('inventory_reorder_point',30)} units",
              "Not defined",
-             "🔴"],
+             "ACTION"],
         ]
 
         kpi_table = Table(kpi_data, colWidths=[60*mm, 35*mm, 35*mm, 20*mm])
@@ -678,7 +678,11 @@ def generate_pdf_report(
     shop_name: str = "Demo Store",
 ) -> bytes:
     """Dashboard'dan tek satırda çağrılabilir"""
-    gen = PDFReportGenerator(analysis_result, meta_result, shop_name)
+    # Font encoding sorunu için shop_name'i güvenli hale getir
+    safe_name = shop_name.encode('ascii', 'replace').decode('ascii').replace('?', '')
+    if not safe_name.strip():
+        safe_name = "Demo Store"
+    gen = PDFReportGenerator(analysis_result, meta_result, safe_name)
     return gen.generate()
 
 
