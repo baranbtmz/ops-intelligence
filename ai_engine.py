@@ -26,7 +26,7 @@ from data_layer import run_pipeline, ShopifyConfig
 class AIConfig:
     api_key: str = ""
     model: str = "gpt-4o-mini"
-    language: str = "tr"
+    language: str = "en"
     use_mock_ai: bool = True
 
 
@@ -43,17 +43,17 @@ Dil: {language}
 
 JSON yapısı:
 {{
-  "executive_summary": "2-3 cümle yönetici özeti",
-  "overall_health_score": 0-100 arası puan,
-  "overall_health_label": "Kritik | Zayıf | Orta | İyi | Mükemmel",
+  "executive_summary": "2-3 sentence executive summary",
+  "overall_health_score": score between 0-100,
+  "overall_health_label": "Critical | Poor | Average | Good | Excellent",
   "findings": [
     {{
-      "area": "alan adı",
+      "area": "area name",
       "severity": "critical | warning | ok",
       "title": "kısa başlık",
       "root_cause": "kök neden analizi",
       "impact": "iş etkisi (para/müşteri kaybı gibi)",
-      "recommendation": "somut aksiyon adımı",
+      "recommendation": "concrete action step",
       "priority": 1-5 (1=en acil),
       "estimated_effort": "Düşük | Orta | Yüksek",
       "estimated_impact": "Düşük | Orta | Yüksek"
@@ -78,8 +78,8 @@ ANALYSIS_PROMPT = """Aşağıdaki e-ticaret operasyon verilerini analiz et:
 
 === STOK ANALİZİ ===
 - Ortalama stok devir hızı: {avg_turnover}x
-- Kritik stok altındaki ürün sayısı: {critical_items_count}
-- Kritik ürünler: {critical_items}
+- Number of critical stock products: {critical_items_count}
+- Critical products: {critical_items}
 - Toplam ürün sayısı: {total_products}
 
 === GELİR METRİKLERİ ===
@@ -89,7 +89,7 @@ ANALYSIS_PROMPT = """Aşağıdaki e-ticaret operasyon verilerini analiz et:
 - Ortalama sepet tutarı (AOV): €{aov}
 - İptal oranı: %{cancellation_rate}
 - İade oranı: %{refund_rate}
-- Sipariş başına ortalama ürün: {avg_items}
+- Average items per order: {avg_items}
 
 === BAĞLAM ===
 - Hedef pazar: AB (Öncelikle Almanya)
@@ -104,25 +104,25 @@ Bu verilere dayanarak kapsamlı operasyonel analiz yap ve JSON formatında dönd
 # ─────────────────────────────────────────────
 
 MOCK_AI_RESPONSE = {
-    "executive_summary": "Mağazanın sipariş hazırlama süresi sektör ortalamasının altında olup iyi performans göstermektedir. Ancak 3 üründe kritik stok seviyesi tespit edilmiş olup bu durum gelir kaybına ve müşteri memnuniyetsizliğine yol açabilir. İptal ve iade oranları kabul edilebilir sınırlarda olmakla birlikte, ortalama sepet tutarının artırılması için çapraz satış fırsatları mevcuttur.",
+    "executive_summary": "Order fulfillment time is below the industry average, indicating good performance. However, critical stock levels detected in 3 products may lead to revenue loss and customer dissatisfaction. Cancellation and return rates are within acceptable limits, but there are cross-sell opportunities to increase average order value.",
     "overall_health_score": 68,
     "overall_health_label": "Orta",
     "findings": [
         {
-            "area": "Stok Yönetimi",
+            "area": "Inventory Management",
             "severity": "critical",
-            "title": "3 Üründe Kritik Stok Seviyesi",
-            "root_cause": "Coconut Shampoo (0 stok), Vitamin C Cream (9 adet) ve Midnight Oud Perfume (16 adet) tükenme riski altında. Tedarik zincirinde yeniden sipariş noktaları tanımlanmamış görünüyor.",
-            "impact": "Bu 3 ürün toplam satışların yaklaşık %35'ini oluşturuyorsa, stok kesintisi 90 günde €13,000+ gelir kaybına yol açabilir. Ayrıca Meta Ads'ten gelen trafiğin bu ürünlere yönlendirilmesi durumunda reklam bütçesi israf olur.",
-            "recommendation": "Derhal tedarikçiyle iletişime geç. Coconut Shampoo için acil sipariş ver. Shopify'da tüm ürünlere 'reorder point' tanımla (en az 30 adet). Stok tükendiğinde Meta Ads'te ilgili ürünlerin reklamını otomatik duraklat.",
+            "title": "3 Products with Critical Stock Levels",
+            "root_cause": "Coconut Shampoo (0 stock), Vitamin C Cream (9 units) and Midnight Oud Perfume (16 units) are at risk of stockout. Reorder points appear to be undefined in the supply chain.",
+            "impact": "If these 3 products account for ~35% of total sales, stockouts could cause €13,000+ revenue loss in 90 days. Ad spend is also wasted if Meta Ads traffic is directed to out-of-stock products.",
+            "recommendation": "Contact your supplier immediately. Place urgent order for Coconut Shampoo. Set 'reorder points' for all products in Shopify (minimum 30 units). Auto-pause Meta Ads for products when stock runs out.",
             "priority": 1,
             "estimated_effort": "Düşük",
             "estimated_impact": "Yüksek"
         },
         {
-            "area": "Sipariş Hazırlama",
+            "area": "Order Fulfillment",
             "severity": "ok",
-            "title": "Fulfillment Süresi Kontrol Altında",
+            "title": "Fulfillment Time Under Control",
             "root_cause": "Medyan 12.1 saat, P95 39.5 saat. 72 saatten uzun yalnızca 1 sipariş mevcut. Bu performans Amazon Prime dışındaki rakiplere göre rekabetçi.",
             "impact": "Mevcut durum müşteri memnuniyeti için yeterli. Almanya'da tüketiciler hız konusunda hassastır; bu avantajı pazarlama materyallerinde vurgulamak dönüşümü artırabilir.",
             "recommendation": "Hızlı gönderimi ('24 Stunden Versand' gibi) ürün sayfalarında ve Meta Ads'te öne çıkar. P95'i 24 saatin altına indirmeyi hedefle.",
@@ -133,7 +133,7 @@ MOCK_AI_RESPONSE = {
         {
             "area": "Gelir Optimizasyonu",
             "severity": "warning",
-            "title": "AOV Artırma Fırsatı Mevcut",
+            "title": "AOV Increase Opportunity Available",
             "root_cause": "Ortalama sepet tutarı €201. Kozmetik sektöründe çapraz satış (örn. serum + tonik + krem seti) ile bu rakamın %20-30 artırılması mümkün.",
             "impact": "AOV'yi €201'den €250'ye çıkarmak, mevcut sipariş hacmiyle 90 günde ek €9,800+ gelir anlamına gelir.",
             "recommendation": "Shopify'da 'Frequently Bought Together' uygulaması ekle. Skincare rutini paketleri oluştur (Serum + Toner + Cream = %10 indirim). Sepet sayfasında upsell widget'ı test et.",
@@ -142,9 +142,9 @@ MOCK_AI_RESPONSE = {
             "estimated_impact": "Yüksek"
         },
         {
-            "area": "İptal & İade Yönetimi",
+            "area": "Cancellation & Return Management",
             "severity": "ok",
-            "title": "İptal ve İade Oranları Kabul Edilebilir",
+            "title": "Cancellation and Return Rates Acceptable",
             "root_cause": "İptal %3.5, iade %3.0. Kozmetik sektörü ortalaması %5-8 iade. Şu anki oranlar iyi ancak Almanya'da 14 günlük yasal iade hakkı göz önünde bulundurulmalı.",
             "impact": "Mevcut oranlar düşük maliyetli. İade nedenlerini kategorize ederek ürün açıklamalarını iyileştirmek bu oranı daha da düşürebilir.",
             "recommendation": "İade gerekçelerini Shopify'da kayıt altına al. En sık iade edilen ürünlerin fotoğraf/açıklamalarını güçlendir. 'Satisfied or Refunded' garantisini öne çıkar.",
@@ -153,12 +153,12 @@ MOCK_AI_RESPONSE = {
             "estimated_impact": "Düşük"
         },
         {
-            "area": "Reklam-Stok Uyumu",
+            "area": "Ad-Inventory Alignment",
             "severity": "warning",
-            "title": "Meta Ads ve Stok Senkronizasyonu Yok",
-            "root_cause": "Stoku tükenen ürünlere Meta Ads bütçesi aktarılmaya devam edebilir. Bu durum reklam harcamasını boşa çıkarır ve müşteri deneyimini olumsuz etkiler.",
+            "title": "No Meta Ads and Inventory Synchronization",
+            "root_cause": "Meta Ads budget may keep flowing to out-of-stock products, wasting ad spend and negatively impacting customer experience.",
             "impact": "Günlük €50 reklam bütçesinin %20'si stoksuz ürünlere gidiyorsa, ayda €300 israf söz konusu olabilir.",
-            "recommendation": "Shopify-Meta Catalog senkronizasyonunu kontrol et. Stok <10 olduğunda o ürünün reklam setini otomatik kapatan bir otomasyon kur (Shopify Flow veya Zapier ile mümkün).",
+            "recommendation": "Check Shopify-Meta Catalog synchronization. Set up automation to pause ad sets when stock drops below 10 units (possible with Shopify Flow or Zapier).",
             "priority": 3,
             "estimated_effort": "Orta",
             "estimated_impact": "Orta"
@@ -204,13 +204,13 @@ class AIAnalysisEngine:
         critical_items = inv.get("critical_items")
         if critical_items is not None and len(critical_items) > 0:
             critical_str = ", ".join(
-                f"{row['title']} ({row['inventory']} adet)"
+                f"{row['title']} ({row['inventory']} units)"
                 for _, row in critical_items.iterrows()
             )
         else:
-            critical_str = "Yok"
+            critical_str = "None"
 
-        lang = "Türkçe" if self.config.language == "tr" else "English"
+        lang = "English"
 
         return ANALYSIS_PROMPT.format(
             fulfillment_mean      = ft["mean"],
@@ -253,7 +253,7 @@ class AIAnalysisEngine:
         # ── Gerçek OpenAI API çağrısı ──
         print(f"🤖 [GPT-4] {self.config.model} ile analiz başlıyor...")
 
-        lang = "Türkçe" if self.config.language == "tr" else "English"
+        lang = "English"
         system = SYSTEM_PROMPT.format(language=lang)
         user_prompt = self._build_prompt(report)
 
