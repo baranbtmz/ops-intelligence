@@ -63,15 +63,15 @@ _FONT_MONO   = "DejaVu-Mono" if _HAS_DEJAVU else "Courier"
 # RENK PALETİ
 # ─────────────────────────────────────────────
 
-C_BG      = colors.HexColor("#0a0c0f")
-C_SURFACE = colors.HexColor("#111318")
-C_BORDER  = colors.HexColor("#1e2128")
-C_ACCENT  = colors.HexColor("#00e5b0")
-C_ACCENT2 = colors.HexColor("#ff6b35")
-C_WARN    = colors.HexColor("#f5a623")
-C_DANGER  = colors.HexColor("#ff3b5c")
-C_TEXT    = colors.HexColor("#e8eaf0")
-C_MUTED   = colors.HexColor("#6b7280")
+C_BG      = colors.HexColor("#0f0f0f")
+C_SURFACE = colors.HexColor("#1a1a1a")
+C_BORDER  = colors.HexColor("#2a2a2a")
+C_ACCENT  = colors.HexColor("#c9a84c")   # Gold
+C_ACCENT2 = colors.HexColor("#e8c97a")   # Light gold
+C_WARN    = colors.HexColor("#d4a017")
+C_DANGER  = colors.HexColor("#c0392b")
+C_TEXT    = colors.HexColor("#f0ece4")
+C_MUTED   = colors.HexColor("#888880")
 C_WHITE   = colors.white
 C_BLACK   = colors.black
 
@@ -208,9 +208,9 @@ def dark_background(canvas, doc):
     # Footer metni
     canvas.setFillColor(C_MUTED)
     canvas.setFont("Helvetica", 7)
-    canvas.drawString(20*mm, 10*mm, "OPS·INTELLIGENCE — Gizli Analiz Raporu")
+    canvas.drawString(20*mm, 10*mm, "OPS·INTELLIGENCE — Confidential Analysis Report")
     canvas.drawRightString(A4[0]-20*mm, 10*mm,
-                           f"Sayfa {doc.page} | {datetime.now().strftime('%d.%m.%Y')}")
+                           f"Page {doc.page} | {datetime.now().strftime('%d.%m.%Y')}")
 
     # Üst accent çizgi (kapak hariç)
     if doc.page > 1:
@@ -262,7 +262,7 @@ class PDFReportGenerator:
         story.append(self._spacer(4))
 
         story.append(Paragraph(
-            "E-TİCARET OPERASYONEL ANALİZ RAPORU",
+            "E-COMMERCE OPERATIONAL ANALYSIS REPORT",
             self._sp("cover_sub")
         ))
         story.append(self._spacer(12))
@@ -273,10 +273,10 @@ class PDFReportGenerator:
         score = self.analysis.get("overall_health_score", 0)
 
         cover_data = [
-            [Paragraph("MAĞAZA", self._sp("label")),
-             Paragraph("ANALİZ TARİHİ", self._sp("label")),
-             Paragraph("SİPARİŞ SAYISI", self._sp("label")),
-             Paragraph("SAĞLIK SKORU", self._sp("label"))],
+            [Paragraph("STORE", self._sp("label")),
+             Paragraph("ANALYSIS DATE", self._sp("label")),
+             Paragraph("ORDER COUNT", self._sp("label")),
+             Paragraph("HEALTH SCORE", self._sp("label"))],
             [Paragraph(f"<b>{self.shop_name}</b>", self._sp("body_white")),
              Paragraph(datetime.now().strftime("%d.%m.%Y"), self._sp("body_white")),
              Paragraph(f"{rev.get('total_orders',0):,}", self._sp("body_white")),
@@ -296,7 +296,7 @@ class PDFReportGenerator:
         story.append(self._spacer(8))
 
         # Yönetici özeti
-        story.append(Paragraph("YÖNETİCİ ÖZETİ", self._sp("label")))
+        story.append(Paragraph("EXECUTIVE SUMMARY", self._sp("label")))
         story.append(self._spacer(2))
         summary_box = Table(
             [[Paragraph(self.analysis.get("executive_summary",""), self._sp("body_white"))]],
@@ -316,7 +316,7 @@ class PDFReportGenerator:
         # Sağlık skoru göstergesi
         score_color = C_ACCENT if score >= 75 else C_WARN if score >= 50 else C_DANGER
         score_data = [[
-            Paragraph("OPERASYoNEL SAĞLIK SKORU", self._sp("label")),
+            Paragraph("OPERATIONAL HEALTH SCORE", self._sp("label")),
             Paragraph(f"{score}", ParagraphStyle("big_score",
                 fontName=_FONT_BOLD, fontSize=48,
                 textColor=score_color, leading=52)),
@@ -338,7 +338,7 @@ class PDFReportGenerator:
     # ── KPI ÖZETİ ────────────────────────────
     def _kpi_section(self) -> list:
         story = []
-        story.append(Paragraph("TEMEL PERFORMANS GÖSTERGELERİ", self._sp("section_head")))
+        story.append(Paragraph("KEY PERFORMANCE INDICATORS", self._sp("section_head")))
         story.append(AccentLine(self.W, C_ACCENT, 1.5))
         story.append(self._spacer(3))
 
@@ -347,12 +347,12 @@ class PDFReportGenerator:
         inv = self.metrics.get("inventory", {})
 
         kpis = [
-            ("TOPLAM GELİR",       f"€{rev.get('total_revenue',0):,.0f}", f"{rev.get('total_orders',0)} sipariş"),
-            ("ORT. SEPET (AOV)",   f"€{rev.get('aov',0):.0f}",          "Hedef: €250"),
-            ("İPTAL ORANI",        f"%{rev.get('cancellation_rate',0)}", "Hedef: <%2.5"),
-            ("İADE ORANI",         f"%{rev.get('refund_rate',0)}",       "Sektör: %5-8"),
-            ("FULFILLMENT MEDYAN", f"{ft.get('median',0)}s",            "Hedef: <24s"),
-            ("P95 FULFILLMENT",    f"{ft.get('p95',0)}s",               f">72s: {ft.get('orders_over_72h',0)} sipariş"),
+            ("TOTAL REVENUE",       f"€{rev.get('total_revenue',0):,.0f}", f"{rev.get('total_orders',0)} orders"),
+            ("AVG. BASKET (AOV)",   f"€{rev.get('aov',0):.0f}",          "Target: €250"),
+            ("CANCELLATION RATE",   f"%{rev.get('cancellation_rate',0)}", "Target: <2.5%"),
+            ("REFUND RATE",         f"%{rev.get('refund_rate',0)}",       "Industry: 5-8%"),
+            ("FULFILLMENT MEDIAN",  f"{ft.get('median',0)}s",            "Target: <24s"),
+            ("P95 FULFILLMENT",     f"{ft.get('p95',0)}s",               f">72s: {ft.get('orders_over_72h',0)} orders"),
         ]
 
         rows = []
@@ -395,13 +395,13 @@ class PDFReportGenerator:
     # ── BULGULAR ─────────────────────────────
     def _findings_section(self) -> list:
         story = []
-        story.append(Paragraph("OPERASYONEL BULGULAR VE AKSİYON PLANI", self._sp("section_head")))
+        story.append(Paragraph("OPERATIONAL FINDINGS & ACTION PLAN", self._sp("section_head")))
         story.append(AccentLine(self.W, C_ACCENT, 1.5))
         story.append(self._spacer(3))
 
         findings = sorted(self.analysis.get("findings",[]), key=lambda x: x["priority"])
         sev_colors = {"critical": C_DANGER, "warning": C_WARN, "ok": C_ACCENT}
-        pri_labels = {1:"ACİL",2:"YÜKSEK",3:"ORTA",4:"DÜŞÜK",5:"İZLE"}
+        pri_labels = {1:"CRITICAL",2:"HIGH",3:"MEDIUM",4:"LOW",5:"MONITOR"}
 
         for f in findings:
             sc  = sev_colors.get(f["severity"], C_MUTED)
@@ -432,11 +432,11 @@ class PDFReportGenerator:
             content_data = [
                 [Paragraph(f["title"], self._sp("finding_title"))],
                 [Spacer(1, 2*mm)],
-                [Paragraph(f"Kök Neden: {f['root_cause']}", self._sp("finding_body"))],
+                [Paragraph(f"Root Cause: {f['root_cause']}", self._sp("finding_body"))],
                 [Spacer(1, 1*mm)],
-                [Paragraph(f"İş Etkisi: {f.get('impact','—')}", self._sp("finding_body"))],
+                [Paragraph(f"Business Impact: {f.get('impact','—')}", self._sp("finding_body"))],
                 [Spacer(1, 2*mm)],
-                [Paragraph(f"→ Aksiyon: {f['recommendation']}", self._sp("action"))],
+                [Paragraph(f"→ Action: {f['recommendation']}", self._sp("action"))],
             ]
             content = Table(content_data, colWidths=[self.W])
             content.setStyle(TableStyle([
@@ -457,7 +457,7 @@ class PDFReportGenerator:
     def _quick_wins_section(self) -> list:
         story = []
         story.append(PageBreak())
-        story.append(Paragraph("BU HAFTA YAPILACAKLAR", self._sp("section_head")))
+        story.append(Paragraph("THIS WEEK'S ACTION ITEMS", self._sp("section_head")))
         story.append(AccentLine(self.W, C_ACCENT, 1.5))
         story.append(self._spacer(3))
 
@@ -482,7 +482,7 @@ class PDFReportGenerator:
 
         # KPI Hedefleri
         story.append(self._spacer(4))
-        story.append(Paragraph("HEDEF KPI TABLOSU", self._sp("section_head")))
+        story.append(Paragraph("TARGET KPI TABLE", self._sp("section_head")))
         story.append(AccentLine(self.W, C_MUTED, 0.5))
 
         kpi = self.analysis.get("kpi_targets", {})
@@ -491,20 +491,20 @@ class PDFReportGenerator:
 
         kpi_data = [
             [Paragraph("KPI", self._sp("label")),
-             Paragraph("HEDEF", self._sp("label")),
-             Paragraph("MEVCUT", self._sp("label")),
-             Paragraph("DURUM", self._sp("label"))],
-            ["Fulfillment Süresi",
-             f"{kpi.get('fulfillment_target_hours',24)} saat",
-             f"{ft.get('median',0)} saat",
+             Paragraph("TARGET", self._sp("label")),
+             Paragraph("CURRENT", self._sp("label")),
+             Paragraph("STATUS", self._sp("label"))],
+            ["Fulfillment Time",
+             f"{kpi.get('fulfillment_target_hours',24)}h",
+             f"{ft.get('median',0)}h",
              "✅" if ft.get('median',0) <= kpi.get('fulfillment_target_hours',24) else "⚠️"],
-            ["İptal Oranı",
-             f"%{kpi.get('target_cancellation_rate_pct',2.5)}",
-             f"%{rev.get('cancellation_rate',0)}",
+            ["Cancellation Rate",
+             f"{kpi.get('target_cancellation_rate_pct',2.5)}%",
+             f"{rev.get('cancellation_rate',0)}%",
              "✅" if rev.get('cancellation_rate',0) <= kpi.get('target_cancellation_rate_pct',2.5) else "⚠️"],
-            ["Yeniden Sipariş Noktası",
-             f"{kpi.get('inventory_reorder_point',30)} adet",
-             "Tanımlanmamış",
+            ["Reorder Point",
+             f"{kpi.get('inventory_reorder_point',30)} units",
+             "Not defined",
              "🔴"],
         ]
 
@@ -534,7 +534,7 @@ class PDFReportGenerator:
 
         story = []
         story.append(PageBreak())
-        story.append(Paragraph("META ADS PERFORMANS ANALİZİ", self._sp("section_head")))
+        story.append(Paragraph("META ADS PERFORMANCE ANALYSIS", self._sp("section_head")))
         story.append(AccentLine(self.W, C_ACCENT2, 1.5))
         story.append(self._spacer(3))
 
@@ -542,10 +542,10 @@ class PDFReportGenerator:
 
         # ROAS özet satırı
         meta_kpis = [
-            ("TOPLAM HARCAMA", f"€{ra.get('total_spend',0):,.0f}"),
-            ("TOPLAM GELİR",   f"€{ra.get('total_revenue',0):,.0f}"),
+            ("TOTAL SPEND",    f"€{ra.get('total_spend',0):,.0f}"),
+            ("TOTAL REVENUE",  f"€{ra.get('total_revenue',0):,.0f}"),
             ("BLENDED ROAS",   f"{ra.get('blended_roas',0)}x"),
-            ("İYİ KAMPANYA",   f"{ra.get('good_campaigns',0)}/{ra.get('total_campaigns',0)}"),
+            ("GOOD CAMPAIGNS", f"{ra.get('good_campaigns',0)}/{ra.get('total_campaigns',0)}"),
         ]
         meta_row = []
         for label, value in meta_kpis:
@@ -575,10 +575,10 @@ class PDFReportGenerator:
         # Kampanya tablosu
         camp_df = self.meta.get("campaign_summary")
         if camp_df is not None and len(camp_df) > 0:
-            story.append(Paragraph("KAMPANYA PERFORMANSI", self._sp("label")))
+            story.append(Paragraph("CAMPAIGN PERFORMANCE", self._sp("label")))
             story.append(self._spacer(2))
 
-            headers = ["Kampanya", "Harcama €", "Gelir €", "ROAS", "CPC €", "Durum"]
+            headers = ["Campaign", "Spend €", "Revenue €", "ROAS", "CPC €", "Status"]
             table_data = [headers]
             for _, row in camp_df.iterrows():
                 table_data.append([
@@ -611,7 +611,7 @@ class PDFReportGenerator:
         # Çapraz alarmlar
         alarms = self.meta.get("cross_alarms", [])
         if alarms:
-            story.append(Paragraph("ÇAPRAZ ALARMLAR", self._sp("label")))
+            story.append(Paragraph("CROSS ALARMS", self._sp("label")))
             story.append(self._spacer(2))
             for a in alarms:
                 sc = C_DANGER if a["severity"] == "critical" else C_WARN
@@ -675,7 +675,7 @@ class PDFReportGenerator:
 def generate_pdf_report(
     analysis_result: dict,
     meta_result: dict = None,
-    shop_name: str = "Demo Mağaza",
+    shop_name: str = "Demo Store",
 ) -> bytes:
     """Dashboard'dan tek satırda çağrılabilir"""
     gen = PDFReportGenerator(analysis_result, meta_result, shop_name)
