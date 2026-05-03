@@ -232,12 +232,13 @@ class PDFReportGenerator:
     """
 
     def __init__(self, analysis_result: dict, meta_result: dict = None,
-                 shop_name: str = "Demo Mağaza"):
+                 shop_name: str = "Demo Store"):
         self.result    = analysis_result
         self.meta      = meta_result
         self.shop_name = shop_name
         self.analysis  = analysis_result.get("analysis", {})
         self.metrics   = analysis_result.get("metrics", {})
+        self.extended  = analysis_result.get("extended", {})
         self.styles    = make_styles()
         self.W         = A4[0] - 40*mm  # kullanılabilir genişlik
 
@@ -639,6 +640,204 @@ class PDFReportGenerator:
         return story
 
     # ── PDF OLUŞTUR ──────────────────────────
+    def _churn_section(self) -> list:
+        story = []
+        churn = self.extended.get("churn", {})
+        if not churn or churn.get("error"):
+            return story
+
+        story.append(PageBreak())
+        story.append(Paragraph("CUSTOMER CHURN PREDICTION", self._sp("section_head")))
+        story.append(AccentLine(self.W, C_ACCENT, 1.5))
+        story.append(self._spacer(3))
+
+        kpis = [
+            ("TOTAL CUSTOMERS", str(churn.get("total_customers", 0))),
+            ("CHURN RISK", f"{churn.get('churn_rate', 0)}%"),
+            ("REVENUE AT RISK", f"€{churn.get('potential_revenue_at_risk', 0):,.0f}"),
+            ("HIGH RISK COUNT", str(churn.get("high_risk_count", 0))),
+        ]
+        self._kpi_row(story, kpis)
+        story.append(self._spacer(4))
+
+        segs = churn.get("segments", {})
+        if segs:
+            seg_data = [[Paragraph("SEGMENT", self._sp("label")), Paragraph("CUSTOMERS", self._sp("label"))]]
+            for k, v in segs.items():
+                seg_data.append([str(k), str(v)])
+            t = Table(seg_data, colWidths=[self.W*0.6, self.W*0.4])
+            t.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,0), C_SURFACE),
+                ("TEXTCOLOR", (0,0), (-1,0), C_MUTED),
+                ("FONTSIZE", (0,0), (-1,-1), 9),
+                ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+                ("ROWBACKGROUNDS", (0,1), (-1,-1), [C_BG, C_SURFACE]),
+                ("ALIGN", (1,0), (1,-1), "CENTER"),
+                ("LEFTPADDING", (0,0), (-1,-1), 8),
+                ("RIGHTPADDING", (0,0), (-1,-1), 8),
+                ("TOPPADDING", (0,0), (-1,-1), 5),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 5),
+            ]))
+            story.append(t)
+
+        rec = churn.get("recommendation", "")
+        if rec:
+            story.append(self._spacer(4))
+            story.append(Paragraph(f"Recommendation: {rec}", self._sp("finding_body")))
+        return story
+
+    def _pricing_section(self) -> list:
+        story = []
+        pricing = self.extended.get("price_elasticity", {})
+        if not pricing or pricing.get("error"):
+            return story
+
+        story.append(PageBreak())
+        story.append(Paragraph("PRICE ELASTICITY ANALYSIS", self._sp("section_head")))
+        story.append(AccentLine(self.W, C_ACCENT, 1.5))
+        story.append(self._spacer(3))
+
+        story.append(Paragraph(pricing.get("insight", ""), self._sp("finding_body")))
+        story.append(self._spacer(4))
+
+        products = pricing.get("products", [])[:8]
+        if products:
+            headers = [Paragraph(h, self._sp("label")) for h in ["PRODUCT", "CURRENT €", "SUGGESTED €", "MARGIN %", "ACTION"]]
+            rows = [headers]
+            for p in products:
+                rec = p.get("recommendation","").upper()
+                rows.append([
+                    p.get("product","")[:30],
+                    f"€{p.get('current_price',0)}",
+                    f"€{p.get('suggested_price',0)}",
+                    f"{p.get('margin_pct',0)}%",
+                    rec,
+                ])
+            t = Table(rows, colWidths=[self.W*0.35, self.W*0.15, self.W*0.15, self.W*0.15, self.W*0.2])
+            t.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,0), C_SURFACE),
+                ("TEXTCOLOR", (0,0), (-1,0), C_MUTED),
+                ("FONTSIZE", (0,0), (-1,-1), 9),
+                ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+                ("ROWBACKGROUNDS", (0,1), (-1,-1), [C_BG, C_SURFACE]),
+                ("ALIGN", (1,0), (-1,-1), "CENTER"),
+                ("LEFTPADDING", (0,0), (-1,-1), 6),
+                ("TOPPADDING", (0,0), (-1,-1), 5),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 5),
+            ]))
+            story.append(t)
+        return story
+
+    def _forecast_section(self) -> list:
+        story = []
+        forecast = self.extended.get("forecast", {})
+        if not forecast or forecast.get("error"):
+            return story
+
+        story.append(PageBreak())
+        story.append(Paragraph("30-DAY REVENUE FORECAST", self._sp("section_head")))
+        story.append(AccentLine(self.W, C_ACCENT, 1.5))
+        story.append(self._spacer(3))
+
+        kpis = [
+            ("PREDICTED REVENUE", f"€{forecast.get('total_predicted_revenue',0):,.0f}"),
+            ("DAILY AVERAGE", f"€{forecast.get('avg_daily_predicted',0):,.0f}"),
+            ("PEAK DAY", str(forecast.get("peak_day",{}).get("date","—"))),
+            ("PEAK REVENUE", f"€{forecast.get('peak_day',{}).get('predicted_revenue',0):,.0f}"),
+        ]
+        self._kpi_row(story, kpis)
+        story.append(self._spacer(4))
+        story.append(Paragraph(forecast.get("insight",""), self._sp("finding_body")))
+        story.append(self._spacer(2))
+        story.append(Paragraph(forecast.get("recommendation",""), self._sp("action")))
+
+        # Forecast table (first 14 days)
+        days = forecast.get("forecast_30_days", [])[:14]
+        if days:
+            story.append(self._spacer(4))
+            headers = [Paragraph(h, self._sp("label")) for h in ["DATE", "PREDICTED REVENUE", "PREDICTED ORDERS", "CONFIDENCE"]]
+            rows = [headers] + [[d["date"], f"€{d['predicted_revenue']:,.0f}", str(d["predicted_orders"]), d["confidence"].upper()] for d in days]
+            t = Table(rows, colWidths=[self.W*0.3, self.W*0.3, self.W*0.2, self.W*0.2])
+            t.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,0), C_SURFACE),
+                ("TEXTCOLOR", (0,0), (-1,0), C_MUTED),
+                ("FONTSIZE", (0,0), (-1,-1), 8),
+                ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+                ("ROWBACKGROUNDS", (0,1), (-1,-1), [C_BG, C_SURFACE]),
+                ("ALIGN", (1,0), (-1,-1), "CENTER"),
+                ("LEFTPADDING", (0,0), (-1,-1), 6),
+                ("TOPPADDING", (0,0), (-1,-1), 4),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+            ]))
+            story.append(t)
+        return story
+
+    def _benchmark_section(self) -> list:
+        story = []
+        bench = self.extended.get("benchmark", {})
+        if not bench:
+            return story
+
+        story.append(PageBreak())
+        story.append(Paragraph("COMPETITOR BENCHMARKING", self._sp("section_head")))
+        story.append(AccentLine(self.W, C_ACCENT, 1.5))
+        story.append(self._spacer(3))
+
+        kpis = [
+            ("PERCENTILE SCORE", f"{bench.get('overall_percentile',0)}%"),
+            ("OVERALL RATING", bench.get("overall_rating","—")),
+            ("TOP STRENGTH", bench.get("top_strength","—")[:20]),
+            ("IMPROVE", bench.get("top_weakness","—")[:20]),
+        ]
+        self._kpi_row(story, kpis)
+        story.append(self._spacer(3))
+        story.append(Paragraph(bench.get("insight",""), self._sp("finding_body")))
+        story.append(self._spacer(4))
+
+        benchmarks = bench.get("benchmarks", [])
+        if benchmarks:
+            headers = [Paragraph(h, self._sp("label")) for h in ["METRIC", "YOUR VALUE", "INDUSTRY AVG", "TOP 10%", "RATING"]]
+            rows = [headers]
+            for b in benchmarks:
+                rows.append([
+                    b["metric"],
+                    str(b["your_value"]),
+                    str(b["industry_average"]),
+                    str(b["top_10_pct"]),
+                    b["rating"],
+                ])
+            t = Table(rows, colWidths=[self.W*0.35, self.W*0.15, self.W*0.17, self.W*0.13, self.W*0.2])
+            t.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,0), C_SURFACE),
+                ("TEXTCOLOR", (0,0), (-1,0), C_MUTED),
+                ("FONTSIZE", (0,0), (-1,-1), 9),
+                ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+                ("ROWBACKGROUNDS", (0,1), (-1,-1), [C_BG, C_SURFACE]),
+                ("ALIGN", (1,0), (-1,-1), "CENTER"),
+                ("LEFTPADDING", (0,0), (-1,-1), 6),
+                ("TOPPADDING", (0,0), (-1,-1), 5),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 5),
+            ]))
+            story.append(t)
+        return story
+
+    def _kpi_row(self, story, kpis):
+        """Yardımcı: KPI kartları satırı"""
+        kpi_data = [[
+            Paragraph(k, self._sp("label")),
+            Paragraph(v, self._sp("kpi_value"))
+        ] for k, v in kpis]
+        t = Table([[item for pair in kpi_data for item in pair]], colWidths=[self.W*0.15, self.W*0.1]*len(kpis))
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,-1), C_SURFACE),
+            ("FONTSIZE", (0,0), (-1,-1), 9),
+            ("ALIGN", (0,0), (-1,-1), "CENTER"),
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+            ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+        ]))
+        story.append(t)
+
     def generate(self) -> bytes:
         """
         PDF'i oluştur ve bytes olarak döndür.
@@ -661,6 +860,10 @@ class PDFReportGenerator:
         story.append(self._spacer(4))
         story += self._findings_section()
         story += self._quick_wins_section()
+        story += self._churn_section()
+        story += self._pricing_section()
+        story += self._forecast_section()
+        story += self._benchmark_section()
         story += self._meta_section()
 
         doc.build(story, onFirstPage=dark_background, onLaterPages=dark_background)
