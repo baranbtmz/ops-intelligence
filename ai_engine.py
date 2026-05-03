@@ -56,15 +56,21 @@ JSON yapısı:
       "impact": "iş etkisi (para/müşteri kaybı gibi)",
       "recommendation": "concrete action step",
       "priority": 1-5 (1=en acil),
-      "estimated_effort": "Düşük | Orta | Yüksek",
-      "estimated_impact": "Düşük | Orta | Yüksek"
+      "estimated_effort": "Low | Medium | High",
+      "estimated_impact": "Low | Medium | High"
     }}
   ],
-  "quick_wins": ["Bu hafta yapılabilecek 3 hızlı aksiyon"],
+  "quick_wins": ["3 quick actions doable this week"],
   "kpi_targets": {{
-    "fulfillment_target_hours": sayı,
-    "inventory_reorder_point": sayı,
-    "target_cancellation_rate_pct": sayı
+    "fulfillment_target_hours": number,
+    "inventory_reorder_point": number,
+    "target_cancellation_rate_pct": number
+  }},
+  "swot": {{
+    "strengths": ["2-3 key strengths based on data"],
+    "weaknesses": ["2-3 key weaknesses based on data"],
+    "opportunities": ["2-3 market/operational opportunities"],
+    "threats": ["2-3 risks or threats to watch"]
   }}
 }}"""
 
@@ -174,6 +180,28 @@ MOCK_AI_RESPONSE = {
         "fulfillment_target_hours": 24,
         "inventory_reorder_point": 30,
         "target_cancellation_rate_pct": 2.5
+    },
+    "swot": {
+        "strengths": [
+            "Fast order fulfillment (median 12h) — competitive advantage vs industry average of 48h",
+            "Low cancellation rate (3.5%) — well below the 5-8% cosmetics sector average",
+            "Diverse product portfolio with strong margin potential"
+        ],
+        "weaknesses": [
+            "Critical stock issues on 3 key products risk stockouts and lost revenue",
+            "AOV of €201 below €250 target — cross-sell opportunities untapped",
+            "No Meta Ads and inventory synchronization causing ad spend waste"
+        ],
+        "opportunities": [
+            "Bundle creation (serum + toner + cream sets) could increase AOV by 20-30%",
+            "German market expansion — fast fulfillment is a key differentiator in DE",
+            "Win-back campaigns for at-risk customers with high historical spend"
+        ],
+        "threats": [
+            "Stockouts on popular products could drive customers to competitors",
+            "Rising Meta Ads CPM in cosmetics vertical increasing customer acquisition costs",
+            "14-day return policy in EU markets if product descriptions are not accurate"
+        ]
     }
 }
 
