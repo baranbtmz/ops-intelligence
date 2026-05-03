@@ -443,6 +443,15 @@ class MetricsEngine:
 # ANA PIPELINE
 # ─────────────────────────────────────────────
 
+def calculate_metrics(orders_df: "pd.DataFrame", products_df: "pd.DataFrame") -> dict:
+    """Hazır DataFrame'lerden metrik hesaplar — CSV upload için"""
+    engine = MetricsEngine(orders_df, products_df)
+    report = engine.full_report()
+    report["orders_df"]   = orders_df
+    report["products_df"] = products_df
+    return report
+
+
 def run_pipeline(config: Optional[ShopifyConfig] = None) -> dict:
     """
     Tam veri pipeline'ını çalıştırır:
