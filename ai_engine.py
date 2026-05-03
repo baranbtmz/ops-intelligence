@@ -9,9 +9,10 @@ pip install openai --break-system-packages
 import os
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Optional
+import numpy as np
 from openai import OpenAI
 
 # Adım 1'den içe aktar
@@ -375,6 +376,304 @@ class ReportFormatter:
 # ─────────────────────────────────────────────
 # ANA PIPELINE (Adım 1 + 2 birleşik)
 # ─────────────────────────────────────────────
+
+# ─────────────────────────────────────────────
+# 1. CHURN PREDICTION ENGINE
+# ─────────────────────────────────────────────
+
+def run_churn_prediction(orders_df, openai_client=None) -> dict:
+    """
+    Müşteri kaçış riski analizi.
+    RFM (Recency, Frequency, Monetary) modeliyle churn riski hesaplar.
+    """
+    try:
+        import pandas as pd
+        now = pd.Timestamp.now(tz="UTC")
+
+        if "customer_email" not in orders_df.columns:
+            return {"error": "No customer data", "segments": [], "churn_rate": 0}
+
+        # RFM hesapla
+        rfm = orders_df.groupby("customer_email").agg(
+            last_order=("created_at", "max"),
+            frequency=("order_id", "count"),
+            monetary=("total_price", "sum")
+        ).reset_index()
+
+        rfm["recency_days"] = (now - rfm["last_order"]).dt.days
+
+        # Churn risk skoru (0-100)
+        rfm["churn_risk"] = (
+            (rfm["recency_days"] / rfm["recency_days"].max() * 60) +
+            ((1 - rfm["frequency"] / rfm["frequency"].max()) * 25) +
+            ((1 - rfm["monetary"] / rfm["monetary"].max()) * 15)
+        ).clip(0, 100).round(1)
+
+        # Segmentler
+        rfm["segment"] = pd.cut(
+            rfm["churn_risk"],
+            bins=[0, 30, 60, 80, 100],
+            labels=["Loyal", "At Risk", "High Risk", "Lost"]
+        )
+
+        segments = rfm["segment"].value_counts().to_dict()
+        high_risk = rfm[rfm["churn_risk"] >= 60].sort_values("monetary", ascending=False)
+
+        # Ortalama geri kazanım değeri
+        avg_clv = rfm["monetary"].mean()
+
+        return {
+            "total_customers": len(rfm),
+            "churn_rate": round((rfm["churn_risk"] >= 60).sum() / len(rfm) * 100, 1),
+            "segments": {str(k): int(v) for k, v in segments.items()},
+            "high_risk_count": int((rfm["churn_risk"] >= 60).sum()),
+            "avg_customer_value": round(float(avg_clv), 2),
+            "potential_revenue_at_risk": round(float(high_risk["monetary"].sum()), 2),
+            "top_at_risk": high_risk[["customer_email","recency_days","monetary","churn_risk"]].head(5).to_dict("records"),
+            "recommendation": "Re-engage customers inactive for 30+ days with a personalized win-back email offering 15% discount.",
+        }
+    except Exception as e:
+        return {"error": str(e), "segments": {}, "churn_rate": 0}
+
+
+# ─────────────────────────────────────────────
+# 2. PRICE ELASTICITY ENGINE
+# ─────────────────────────────────────────────
+
+def run_price_elasticity(orders_df, products_df) -> dict:
+    """
+    Hangi ürünün fiyatını artırabilirsin?
+    Satış hızı ve fiyat ilişkisini analiz eder.
+    """
+    try:
+        import pandas as pd
+
+        results = []
+        for _, product in products_df.iterrows():
+            title = product.get("title", "Unknown")
+            price = float(product.get("price", 0))
+            stock = float(product.get("stock", 0))
+            cost  = float(product.get("cost", 0))
+            margin = ((price - cost) / price * 100) if price > 0 else 0
+
+            # Bu ürünün sipariş sayısı
+            if "product_title" in orders_df.columns:
+                product_orders = orders_df[orders_df["product_title"].str.contains(title, na=False, case=False)]
+            else:
+                product_orders = orders_df.head(0)  # boş
+
+            order_count = len(product_orders)
+            revenue = float(product_orders["total_price"].sum()) if len(product_orders) > 0 else price * 10
+
+            # Elasticity score: yüksek margin + yüksek talep = fiyat artırılabilir
+            elasticity_score = min(100, (margin * 0.5) + (min(order_count, 50) / 50 * 30) + (min(stock, 100) / 100 * 20))
+            recommendation = "price_increase" if elasticity_score > 60 and margin < 60 else \
+                            "bundle" if order_count > 10 else \
+                            "discount" if stock > 80 else "maintain"
+
+            price_increase_potential = round(price * 1.15, 2) if recommendation == "price_increase" else price
+            additional_revenue = round((price_increase_potential - price) * max(order_count, 5), 2)
+
+            results.append({
+                "product": title,
+                "current_price": price,
+                "margin_pct": round(margin, 1),
+                "elasticity_score": round(elasticity_score, 1),
+                "recommendation": recommendation,
+                "suggested_price": price_increase_potential,
+                "additional_revenue_potential": additional_revenue,
+            })
+
+        results.sort(key=lambda x: x["additional_revenue_potential"], reverse=True)
+        total_potential = sum(r["additional_revenue_potential"] for r in results if r["recommendation"] == "price_increase")
+
+        return {
+            "products": results[:10],
+            "total_revenue_potential": round(total_potential, 2),
+            "increase_candidates": sum(1 for r in results if r["recommendation"] == "price_increase"),
+            "bundle_candidates": sum(1 for r in results if r["recommendation"] == "bundle"),
+            "insight": f"Increasing prices on {sum(1 for r in results if r['recommendation'] == 'price_increase')} products by 15% could generate an additional €{round(total_potential, 0)} in revenue."
+        }
+    except Exception as e:
+        return {"error": str(e), "products": [], "total_revenue_potential": 0}
+
+
+# ─────────────────────────────────────────────
+# 3. SEASONAL FORECASTING ENGINE
+# ─────────────────────────────────────────────
+
+def run_seasonal_forecast(orders_df) -> dict:
+    """
+    Önümüzdeki 30 günün gelir tahmini.
+    Geçmiş trend + mevsimsel etkileri kullanır.
+    """
+    try:
+        import pandas as pd
+
+        orders_df = orders_df.copy()
+        orders_df["created_at"] = pd.to_datetime(orders_df["created_at"], utc=True, errors="coerce")
+        orders_df["date"] = orders_df["created_at"].dt.date
+        orders_df["total_price"] = pd.to_numeric(orders_df["total_price"], errors="coerce").fillna(0)
+
+        daily = orders_df.groupby("date").agg(
+            revenue=("total_price", "sum"),
+            orders=("order_id", "count")
+        ).reset_index()
+
+        if len(daily) < 7:
+            # Yeterli veri yok — mock tahmin
+            avg_daily = orders_df["total_price"].sum() / max(len(daily), 1)
+            forecast = []
+            for i in range(1, 31):
+                date = (datetime.now() + timedelta(days=i)).date()
+                weekday = date.weekday()
+                multiplier = 1.3 if weekday in [4, 5] else 0.85 if weekday == 6 else 1.0
+                forecast.append({
+                    "date": str(date),
+                    "predicted_revenue": round(avg_daily * multiplier, 2),
+                    "predicted_orders": max(1, round(avg_daily / 50 * multiplier)),
+                    "confidence": "low"
+                })
+        else:
+            daily["date"] = pd.to_datetime(daily["date"])
+            daily["weekday"] = daily["date"].dt.weekday
+            avg_daily = daily["revenue"].mean()
+            trend = (daily["revenue"].iloc[-7:].mean() - daily["revenue"].iloc[:7].mean()) / max(daily["revenue"].iloc[:7].mean(), 1)
+
+            weekday_factors = daily.groupby("weekday")["revenue"].mean() / avg_daily
+            weekday_factors = weekday_factors.reindex(range(7), fill_value=1.0)
+
+            forecast = []
+            for i in range(1, 31):
+                date = (datetime.now() + timedelta(days=i)).date()
+                weekday = date.weekday()
+                factor = weekday_factors.get(weekday, 1.0)
+                predicted = avg_daily * float(factor) * (1 + trend * i / 30)
+                forecast.append({
+                    "date": str(date),
+                    "predicted_revenue": round(max(0, predicted), 2),
+                    "predicted_orders": max(1, round(predicted / max(avg_daily / daily["orders"].mean(), 1))),
+                    "confidence": "high" if len(daily) >= 30 else "medium"
+                })
+
+        total_forecast = sum(f["predicted_revenue"] for f in forecast)
+        peak_day = max(forecast, key=lambda x: x["predicted_revenue"])
+        low_day = min(forecast, key=lambda x: x["predicted_revenue"])
+
+        return {
+            "forecast_30_days": forecast,
+            "total_predicted_revenue": round(total_forecast, 2),
+            "avg_daily_predicted": round(total_forecast / 30, 2),
+            "peak_day": peak_day,
+            "lowest_day": low_day,
+            "insight": f"Next 30 days projected revenue: €{round(total_forecast, 0)}. Peak expected on {peak_day['date']} (€{peak_day['predicted_revenue']}).",
+            "recommendation": "Increase ad spend on peak days. Prepare inventory for projected demand spikes."
+        }
+    except Exception as e:
+        return {"error": str(e), "forecast_30_days": [], "total_predicted_revenue": 0}
+
+
+# ─────────────────────────────────────────────
+# 4. COMPETITOR BENCHMARKING ENGINE
+# ─────────────────────────────────────────────
+
+def run_competitor_benchmark(metrics: dict) -> dict:
+    """
+    Sektör ortalamasıyla karşılaştırma.
+    E-ticaret kozmetik sektörü benchmark verileri kullanır.
+    """
+    # Sektör benchmark verileri (kozmetik D2C, AB)
+    BENCHMARKS = {
+        "fulfillment_hours": {"excellent": 12, "good": 24, "average": 48, "poor": 72, "label": "Order Fulfillment Time"},
+        "cancellation_rate": {"excellent": 1.5, "good": 2.5, "average": 4.0, "poor": 7.0, "label": "Cancellation Rate %"},
+        "refund_rate":       {"excellent": 2.0, "good": 4.0, "average": 6.0, "poor": 10.0, "label": "Refund Rate %"},
+        "aov":               {"excellent": 85, "good": 60, "average": 40, "poor": 25, "label": "Average Order Value €"},
+        "repeat_rate":       {"excellent": 40, "good": 25, "average": 15, "poor": 8, "label": "Repeat Purchase Rate %"},
+    }
+
+    ft  = metrics.get("fulfillment_time", {})
+    rev = metrics.get("revenue", {})
+
+    user_values = {
+        "fulfillment_hours": ft.get("median", 0),
+        "cancellation_rate": rev.get("cancellation_rate", 0),
+        "refund_rate":       rev.get("refund_rate", 0),
+        "aov":               rev.get("aov", 0),
+        "repeat_rate":       rev.get("repeat_rate", 15),
+    }
+
+    results = []
+    total_score = 0
+
+    for key, bench in BENCHMARKS.items():
+        user_val = user_values.get(key, 0)
+        is_lower_better = key in ["fulfillment_hours", "cancellation_rate", "refund_rate"]
+
+        if is_lower_better:
+            if user_val <= bench["excellent"]:   rating, score = "Excellent", 100
+            elif user_val <= bench["good"]:      rating, score = "Good", 75
+            elif user_val <= bench["average"]:   rating, score = "Average", 50
+            else:                                rating, score = "Below Average", 25
+        else:
+            if user_val >= bench["excellent"]:   rating, score = "Excellent", 100
+            elif user_val >= bench["good"]:      rating, score = "Good", 75
+            elif user_val >= bench["average"]:   rating, score = "Average", 50
+            else:                                rating, score = "Below Average", 25
+
+        total_score += score
+        results.append({
+            "metric": bench["label"],
+            "your_value": user_val,
+            "industry_average": bench["average"],
+            "top_10_pct": bench["excellent"],
+            "rating": rating,
+            "score": score,
+            "gap_to_excellent": round(abs(user_val - bench["excellent"]), 1),
+        })
+
+    overall_percentile = round(total_score / len(BENCHMARKS))
+    return {
+        "benchmarks": results,
+        "overall_percentile": overall_percentile,
+        "overall_rating": "Excellent" if overall_percentile >= 80 else "Good" if overall_percentile >= 60 else "Average" if overall_percentile >= 40 else "Below Average",
+        "industry": "Cosmetics D2C — EU Market",
+        "insight": f"You score better than {overall_percentile}% of similar e-commerce stores in the EU cosmetics market.",
+        "top_strength": max(results, key=lambda x: x["score"])["metric"],
+        "top_weakness": min(results, key=lambda x: x["score"])["metric"],
+    }
+
+
+# ─────────────────────────────────────────────
+# MASTER ANALYSIS RUNNER
+# ─────────────────────────────────────────────
+
+def run_extended_analysis(report: dict, openai_client=None) -> dict:
+    """Tüm gelişmiş analizleri çalıştırır"""
+    orders_df  = report.get("orders_df")
+    products_df = report.get("products_df")
+    metrics    = {
+        "fulfillment_time": report.get("fulfillment_time", {}),
+        "revenue": report.get("revenue", {}),
+        "inventory": report.get("inventory", {}),
+    }
+
+    result = {}
+
+    if orders_df is not None and len(orders_df) > 0:
+        print("🔮 Churn Prediction çalışıyor...")
+        result["churn"] = run_churn_prediction(orders_df, openai_client)
+
+        print("💰 Price Elasticity analizi çalışıyor...")
+        result["price_elasticity"] = run_price_elasticity(orders_df, products_df) if products_df is not None else {}
+
+        print("📈 Seasonal Forecast hesaplanıyor...")
+        result["forecast"] = run_seasonal_forecast(orders_df)
+
+    print("🏆 Competitor Benchmarking yapılıyor...")
+    result["benchmark"] = run_competitor_benchmark(metrics)
+
+    return result
+
 
 def run_full_analysis(
     shopify_config: Optional[ShopifyConfig] = None,
