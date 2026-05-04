@@ -106,8 +106,16 @@ class MockDataGenerator:
             carrier = random.choice(["DHL", "DPD", "Hermes", "UPS", "GLS"])
             shipping_cost = random.choice([0, 4.99, 6.99, 9.99])
 
+            # Müşteri e-postası (RFM/Churn için) — 60 farklı müşteri
+            customer_id = random.randint(1, 60)
+            customer_email = f"customer{customer_id:03d}@demo.com"
+
+            # Ana ürün başlığı (Pricing için)
+            primary_product = selected_products[0]["title"] if selected_products else "Unknown"
+
             orders.append({
                 "id": 10000 + i,
+                "order_id": f"#AU{1000 + i}",
                 "order_number": f"#AU{1000 + i}",
                 "created_at": created_at.isoformat(),
                 "fulfilled_at": fulfilled_at.isoformat() if status == "fulfilled" else None,
@@ -117,8 +125,10 @@ class MockDataGenerator:
                 "subtotal_price": round(total_price, 2),
                 "shipping_cost": shipping_cost,
                 "line_items": line_items,
+                "customer_email": customer_email,
                 "customer_country": random.choice(["DE", "DE", "DE", "AT", "CH"]),
                 "shipping_carrier": carrier,
+                "product_title": primary_product,
                 "tags": random.choice(["", "vip", "repeat_customer", "wholesale", ""]),
             })
 
@@ -230,7 +240,7 @@ class DataTransformer:
             total_qty = sum(item.get("quantity", 1) for item in items)
 
             records.append({
-                "order_id":           o.get("id"),
+                "order_id":           o.get("order_id", o.get("id")),
                 "order_number":       o.get("order_number", o.get("name", "")),
                 "created_at":         o.get("created_at"),
                 "fulfilled_at":       o.get("fulfilled_at"),
@@ -240,7 +250,9 @@ class DataTransformer:
                 "subtotal_price":     float(o.get("subtotal_price", 0) or 0),
                 "shipping_cost":      float(o.get("shipping_cost", 0) or 0),
                 "item_count":         total_qty,
-                "product_titles":     ", ".join(product_titles[:2]),  # ilk 2 ürün
+                "product_titles":     ", ".join(product_titles[:2]),
+                "product_title":      product_titles[0] if product_titles else o.get("product_title", ""),
+                "customer_email":     o.get("customer_email", o.get("email", f"customer@demo.com")),
                 "customer_country":   o.get("customer_country", o.get("billing_address", {}) or {}).get("country_code", "UNKNOWN") if isinstance(o.get("billing_address"), dict) else o.get("customer_country", "DE"),
                 "shipping_carrier":   o.get("shipping_carrier", "Unknown"),
                 "tags":               o.get("tags", ""),
@@ -442,15 +454,6 @@ class MetricsEngine:
 # ─────────────────────────────────────────────
 # ANA PIPELINE
 # ─────────────────────────────────────────────
-
-def calculate_metrics(orders_df: "pd.DataFrame", products_df: "pd.DataFrame") -> dict:
-    """Hazır DataFrame'lerden metrik hesaplar — CSV upload için"""
-    engine = MetricsEngine(orders_df, products_df)
-    report = engine.full_report()
-    report["orders_df"]   = orders_df
-    report["products_df"] = products_df
-    return report
-
 
 def run_pipeline(config: Optional[ShopifyConfig] = None) -> dict:
     """
