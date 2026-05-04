@@ -640,6 +640,63 @@ class PDFReportGenerator:
         return story
 
     # ── PDF OLUŞTUR ──────────────────────────
+    def _swot_section(self) -> list:
+        story = []
+        swot = self.analysis.get("swot", {})
+        if not swot:
+            return story
+
+        story.append(PageBreak())
+        story.append(Paragraph("SWOT ANALYSIS", self._sp("section_head")))
+        story.append(AccentLine(self.W, C_ACCENT, 1.5))
+        story.append(self._spacer(3))
+
+        colors_map = {
+            "strengths":     (C_ACCENT,  "💪 STRENGTHS"),
+            "weaknesses":    (C_DANGER,  "⚠ WEAKNESSES"),
+            "opportunities": (colors.HexColor("#1a7a4a"), "🚀 OPPORTUNITIES"),
+            "threats":       (C_MUTED,   "🛡 THREATS"),
+        }
+
+        swot_data = []
+        row = []
+        for i, (key, (color, label)) in enumerate(colors_map.items()):
+            items = swot.get(key, [])
+            cell_content = [
+                Paragraph(label, self._sp("label")),
+                Spacer(1, 3*mm),
+            ] + [Paragraph(f"• {item}", self._sp("finding_body")) for item in items]
+
+            cell = Table([[cell_content]], colWidths=[self.W/2 - 4*mm])
+            cell.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,-1), colors.HexColor("#F5F2ED")),
+                ("ROUNDEDCORNERS", [8,8,8,8]),
+                ("LEFTPADDING", (0,0), (-1,-1), 10),
+                ("RIGHTPADDING", (0,0), (-1,-1), 10),
+                ("TOPPADDING", (0,0), (-1,-1), 10),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+                ("LINEBELOW", (0,0), (-1,0), 2, color),
+            ]))
+            row.append(cell)
+
+            if len(row) == 2:
+                swot_data.append(row)
+                row = []
+
+        if row:
+            swot_data.append(row + [""])
+
+        grid = Table(swot_data, colWidths=[self.W/2 - 2*mm, self.W/2 - 2*mm], rowHeights=None)
+        grid.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("LEFTPADDING", (0,0), (-1,-1), 2),
+            ("RIGHTPADDING", (0,0), (-1,-1), 2),
+            ("TOPPADDING", (0,0), (-1,-1), 4),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+        ]))
+        story.append(grid)
+        return story
+
     def _churn_section(self) -> list:
         story = []
         churn = self.extended.get("churn", {})
@@ -860,6 +917,7 @@ class PDFReportGenerator:
         story.append(self._spacer(4))
         story += self._findings_section()
         story += self._quick_wins_section()
+        story += self._swot_section()
         story += self._churn_section()
         story += self._pricing_section()
         story += self._forecast_section()
