@@ -891,14 +891,21 @@ async def shopify_callback(request: Request):
         )
         return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop)}&shopify_connected=1")
 
+    user_email = state_payload["sub"]
     save_shopify_store(
-        state_payload["sub"],
+        user_email,
         shop,
         access_token,
         token_data.get("scope", SHOPIFY_SCOPES),
     )
 
-    return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_connected=1&shop={quote(shop)}")
+    db = get_supabase()
+    user_result = db.table("users").select("plan").eq("email", user_email).execute()
+    plan_key = user_result.data[0].get("plan", "free") if user_result.data else "free"
+    ops_token = create_token(user_email, plan_key)
+    return RedirectResponse(
+        f"{FRONTEND_PUBLIC_URL}/app.html#shopify_connected=1&shop={quote(shop)}&token={quote(ops_token)}"
+    )
 
 
 @app.get("/shopify/status")

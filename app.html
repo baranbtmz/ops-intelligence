@@ -1455,7 +1455,7 @@ let connectedShops = [];
 
 // ── INIT
 window.onload = () => {
-  const params = new URLSearchParams(window.location.search);
+  const params = getLaunchParams();
   if(params.has('shopify_connected') || params.has('shopify_error')) {
     resumeAfterShopifyCallback(params);
     return;
@@ -1463,13 +1463,24 @@ window.onload = () => {
   showPage('auth');
 };
 
+function getLaunchParams() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = window.location.hash ? window.location.hash.slice(1) : '';
+  if(hash) {
+    const hashParams = new URLSearchParams(hash);
+    hashParams.forEach((value,key)=>params.set(key,value));
+  }
+  return params;
+}
+
 async function resumeAfterShopifyCallback(params) {
-  token = localStorage.getItem('ops_token');
+  token = params.get('token') || localStorage.getItem('ops_token');
   if(!token) {
     showPage('auth');
     showToast('Please sign in again to finish Shopify connection.');
     return;
   }
+  localStorage.setItem('ops_token', token);
   try {
     const r = await fetch(`${API}/auth/me`, {headers:{'Authorization':`Bearer ${token}`}});
     if(!r.ok) throw new Error('Session expired');
@@ -1477,14 +1488,16 @@ async function resumeAfterShopifyCallback(params) {
     user = d.user;
     showApp();
     nav('connect');
-    history.replaceState({}, document.title, window.location.pathname);
+    history.replaceState({}, document.title, window.location.pathname + (params.get('shop') ? '?shop=' + encodeURIComponent(params.get('shop')) : ''));
     if(params.has('shopify_connected')) {
-      showToast('✅ Shopify store connected.');
+      await loadShopifyStatus();
+      const shop = normalizeShopInput(params.get('shop') || '');
+      const confirmed = connectedShops.some(s=>s.domain===shop && s.status==='connected');
+      showToast(confirmed ? '✅ Shopify store connected.' : '❌ Shopify returned, but OPS could not verify the store connection. Reinstall OPS from Shopify.');
     } else {
       const err = params.get('shopify_error') || 'connection_failed';
       showToast('❌ Shopify connection failed: '+err.replaceAll('_',' '));
     }
-    loadShopifyStatus();
   } catch(e) {
     showPage('auth');
     showToast('Please sign in again to finish Shopify connection.');
