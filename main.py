@@ -158,6 +158,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 SHOPIFY_API_KEY = os.environ.get("SHOPIFY_API_KEY", "")
 SHOPIFY_API_SECRET = os.environ.get("SHOPIFY_API_SECRET", "")
 SHOPIFY_SCOPES = os.environ.get("SHOPIFY_SCOPES", "read_orders,read_products,read_inventory")
+SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
 SHOPIFY_STATE_EXPIRE_MINUTES = 10
@@ -193,6 +194,12 @@ class ShopifyConnectStartRequest(BaseModel):
 
 class ShopifyEmbeddedAnalyzeRequest(BaseModel):
     shop: str
+    app_token: str
+
+
+class ShopifyBillingRequest(BaseModel):
+    shop: str
+    plan: str
     app_token: str
 
 
@@ -275,6 +282,56 @@ def verify_shopify_hmac(query_params: dict) -> bool:
     message = "&".join(params)
     digest = hmac.new(SHOPIFY_API_SECRET.encode(), message.encode(), hashlib.sha256).hexdigest()
     return hmac.compare_digest(digest, provided_hmac)
+
+
+def build_shopify_install_url(shop: str) -> str:
+    shop_domain = normalize_shop_domain(shop)
+    state = create_shopify_state(f"shopify:{shop_domain}", shop_domain, mode="embedded")
+    redirect_uri = f"{BACKEND_PUBLIC_URL}/shopify/callback"
+    params = {
+        "client_id": SHOPIFY_API_KEY,
+        "scope": SHOPIFY_SCOPES,
+        "redirect_uri": redirect_uri,
+        "state": state,
+        "grant_options[]": "offline",
+    }
+    return f"https://{shop_domain}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+
+
+def render_shopify_install_required(shop: str) -> HTMLResponse:
+    install_url = build_shopify_install_url(shop)
+    return HTMLResponse(f"""
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Connect OPS to Shopify</title>
+  <style>
+    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
+    .wrap{{min-height:100vh;display:grid;place-items:center;padding:28px}}
+    .card{{max-width:620px;background:#fff;border:1px solid #e0d8cc;border-radius:14px;padding:26px;box-shadow:0 16px 40px rgba(30,24,10,.08)}}
+    h1{{font-family:Georgia,serif;font-size:34px;font-weight:400;margin:0 0 10px}}
+    p{{color:#887f70;line-height:1.6}}
+    a{{display:inline-flex;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:700;text-decoration:none;margin-top:8px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <h1>Connect OPS</h1>
+      <p>OPS needs Shopify permission for {shop}. The approval screen will open now. If Safari blocks the redirect, use the button below.</p>
+      <a href="{install_url}" target="_top">Open Shopify permission screen</a>
+    </section>
+  </div>
+  <script>
+    const url = {json.dumps(install_url)};
+    if (window.top) window.top.location.href = url;
+    else window.location.href = url;
+  </script>
+</body>
+</html>
+""")
 
 
 def create_shopify_embedded_token(email: str, shop: str) -> str:
@@ -408,6 +465,13 @@ def get_connected_shop(email: str, requested_shop: Optional[str] = None) -> Opti
     return None
 
 
+def set_user_plan(email: str, plan: str) -> None:
+    if plan not in ("free", "starter", "pro"):
+        raise HTTPException(status_code=400, detail="Invalid plan.")
+    db = get_supabase()
+    db.table("users").update({"plan": plan}).eq("email", email).execute()
+
+
 def public_store(store: dict) -> dict:
     return {
         "platform": store.get("platform", "shopify"),
@@ -529,16 +593,7 @@ async def shopify_install(shop: str):
         raise HTTPException(status_code=500, detail="Shopify OAuth env ayarları eksik.")
 
     shop_domain = normalize_shop_domain(shop)
-    state = create_shopify_state(f"shopify:{shop_domain}", shop_domain, mode="embedded")
-    redirect_uri = f"{BACKEND_PUBLIC_URL}/shopify/callback"
-    params = {
-        "client_id": SHOPIFY_API_KEY,
-        "scope": SHOPIFY_SCOPES,
-        "redirect_uri": redirect_uri,
-        "state": state,
-        "grant_options[]": "offline",
-    }
-    install_url = f"https://{shop_domain}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+    install_url = build_shopify_install_url(shop_domain)
     return RedirectResponse(install_url)
 
 
@@ -548,7 +603,7 @@ async def shopify_app_home(request: Request):
     shop = normalize_shop_domain(params.get("shop", ""))
     connected = find_shopify_store_by_domain(shop)
     if not connected:
-        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/install?shop={quote(shop)}")
+        return render_shopify_install_required(shop)
 
     user = connected["user"]
     store = connected["store"]
@@ -603,10 +658,10 @@ async def shopify_app_home(request: Request):
         <h2>Plans</h2>
         <div class="plans">
           <div class="plan"><strong>Free</strong><div class="price">€0</div><div class="muted">100 orders</div></div>
-          <div class="plan"><strong>Starter</strong><div class="price">€29</div><div class="muted">AI + PDF</div></div>
-          <div class="plan"><strong>Pro</strong><div class="price">€79</div><div class="muted">Forecast, churn, pricing</div></div>
+          <div class="plan"><strong>Starter</strong><div class="price">€29</div><div class="muted">AI + PDF</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
+          <div class="plan"><strong>Pro</strong><div class="price">€79</div><div class="muted">Forecast, churn, pricing</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
-        <p class="muted">Shopify Billing checkout is the next step. For App Store distribution, plan payments should use Shopify Billing API.</p>
+        <p class="muted">Paid plans open Shopify Billing confirmation inside Shopify. Billing is currently controlled by SHOPIFY_BILLING_TEST.</p>
       </section>
     </div>
   </div>
@@ -635,6 +690,22 @@ async def shopify_app_home(request: Request):
           `${{data.analysis.executive_summary || 'Analysis completed.'}}`;
       }}catch(e){{
         box.textContent='Error: '+e.message;
+      }}
+    }}
+    async function startBilling(plan){{
+      const box=document.getElementById('result');
+      box.textContent='Opening Shopify Billing confirmation...';
+      try{{
+        const res=await fetch('/shopify/app/billing',{{
+          method:'POST',
+          headers:{{'Content-Type':'application/json'}},
+          body:JSON.stringify({{shop,plan,app_token:appToken}})
+        }});
+        const data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Billing failed');
+        window.top.location.href=data.confirmation_url;
+      }}catch(e){{
+        box.textContent='Billing error: '+e.message;
       }}
     }}
   </script>
@@ -685,6 +756,71 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
             },
         },
     }
+
+
+@app.post("/shopify/app/billing")
+async def shopify_embedded_billing(req: ShopifyBillingRequest):
+    shop = normalize_shop_domain(req.shop)
+    payload = verify_shopify_embedded_token(req.app_token, shop)
+    connected = get_connected_shop(payload["sub"], shop)
+    if not connected:
+        raise HTTPException(status_code=404, detail="Connected Shopify store not found.")
+
+    if req.plan not in ("starter", "pro"):
+        raise HTTPException(status_code=400, detail="Only Starter and Pro can be purchased through Shopify Billing.")
+
+    amount = 29.0 if req.plan == "starter" else 79.0
+    name = "OPS Starter" if req.plan == "starter" else "OPS Pro"
+    return_url = f"{BACKEND_PUBLIC_URL}/shopify/billing/return?shop={quote(shop)}&plan={quote(req.plan)}"
+    mutation = """
+    mutation AppSubscriptionCreate($name: String!, $returnUrl: URL!, $test: Boolean!, $lineItems: [AppSubscriptionLineItemInput!]!) {
+      appSubscriptionCreate(name: $name, returnUrl: $returnUrl, test: $test, lineItems: $lineItems) {
+        confirmationUrl
+        userErrors { field message }
+      }
+    }
+    """
+    variables = {
+        "name": name,
+        "returnUrl": return_url,
+        "test": SHOPIFY_BILLING_TEST,
+        "lineItems": [{
+            "plan": {
+                "appRecurringPricingDetails": {
+                    "price": {"amount": amount, "currencyCode": "EUR"},
+                    "interval": "EVERY_30_DAYS",
+                }
+            }
+        }],
+    }
+    response = requests.post(
+        f"https://{shop}/admin/api/2024-01/graphql.json",
+        headers={"X-Shopify-Access-Token": connected["access_token"], "Content-Type": "application/json"},
+        json={"query": mutation, "variables": variables},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    create_result = payload.get("data", {}).get("appSubscriptionCreate", {})
+    errors = create_result.get("userErrors") or payload.get("errors") or []
+    if errors:
+        first_error = errors[0].get("message") if isinstance(errors[0], dict) else str(errors[0])
+        raise HTTPException(status_code=400, detail=first_error or "Shopify Billing could not be started.")
+
+    confirmation_url = create_result.get("confirmationUrl")
+    if not confirmation_url:
+        raise HTTPException(status_code=502, detail="Shopify did not return a billing confirmation URL.")
+
+    return {"success": True, "confirmation_url": confirmation_url, "test": SHOPIFY_BILLING_TEST}
+
+
+@app.get("/shopify/billing/return")
+async def shopify_billing_return(shop: str, plan: str):
+    shop_domain = normalize_shop_domain(shop)
+    connected = find_shopify_store_by_domain(shop_domain)
+    if connected and plan in ("starter", "pro"):
+        set_user_plan(connected["user"]["email"], plan)
+    return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop_domain)}&billing_return=1")
 
 
 @app.post("/shopify/connect/start")
