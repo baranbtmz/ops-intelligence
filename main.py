@@ -26,7 +26,7 @@ import base64
 import secrets
 import re
 from urllib.parse import urlencode, quote
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 # ── Analiz modülleri
 import sys
@@ -218,6 +218,43 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
+
+def make_json_safe(value):
+    """Convert pandas/numpy analysis output into strict JSON-safe primitives."""
+    try:
+        import math
+        import numpy as np
+        import pandas as pd
+    except Exception:
+        math = None
+        np = None
+        pd = None
+
+    if pd is not None:
+        if isinstance(value, pd.DataFrame):
+            return make_json_safe(value.to_dict("records"))
+        if isinstance(value, pd.Series):
+            return make_json_safe(value.tolist())
+        if value is pd.NaT:
+            return None
+
+    if np is not None:
+        if isinstance(value, np.generic):
+            return make_json_safe(value.item())
+        if isinstance(value, np.ndarray):
+            return make_json_safe(value.tolist())
+
+    if isinstance(value, dict):
+        return {str(k): make_json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [make_json_safe(item) for item in value]
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, float):
+        if math is not None and not math.isfinite(value):
+            return None
+        return value
+    return value
 
 def create_token(email: str, plan: str) -> str:
     payload = {
@@ -803,7 +840,7 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
     ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
-    return {
+    return make_json_safe({
         "success": True,
         "shop_name": shop,
         "analysis": ai_result.get("analysis", {}),
@@ -819,7 +856,7 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
                 "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0,
             },
         },
-    }
+    })
 
 
 @app.post("/shopify/app/billing")
@@ -1109,7 +1146,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         product["current_stock"] = product.get("inventory", 0)
 
     # Analiz sonucu
-    result_data = {
+    result_data = make_json_safe({
         "analysis": ai_result.get("analysis", {}),
         "shop_name": shop_domain or "Demo Mağaza",
         "metrics": {
@@ -1117,7 +1154,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
             "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": inventory_products},
         },
-    }
+    })
 
     # Mail gönder
     user_info = db.table("users").select("name").eq("email", email).execute()
@@ -1133,7 +1170,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     rev = report["revenue"]
     inv = report["inventory"]
 
-    return {
+    return make_json_safe({
         "success": True,
         "analysis": ai_result.get("analysis", {}),
         "model": ai_result.get("model", "mock"),
@@ -1162,7 +1199,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         },
         "meta": meta_data,
         "shop_name": shop_domain or "Demo Mağaza",
-    }
+    })
 
 
 # ─────────────────────────────────────────────
