@@ -429,6 +429,15 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
 .connect-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:22px}
 .connect-card-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .connect-card-title svg{width:16px;height:16px;color:var(--muted)}
+.connect-state{display:flex;align-items:flex-start;gap:12px;font-size:12px;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px}
+.connect-state.ok{background:rgba(26,122,74,.07);border-color:rgba(26,122,74,.24)}
+.connect-state.warn{background:rgba(201,150,58,.09);border-color:rgba(201,150,58,.28)}
+.connect-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);margin-top:4px;flex-shrink:0}
+.connect-state.ok .connect-dot{background:var(--success)}
+.connect-state.warn .connect-dot{background:var(--gold)}
+.connect-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.connect-meta div{background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:11px;color:var(--muted)}
+.connect-meta strong{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
 
 /* PDF strip */
 .pdf-strip{background:linear-gradient(135deg,var(--ink2),var(--ink));border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
@@ -806,16 +815,17 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                 Shopify Store
               </div>
-              <div id="shopify-connection-status" style="font-size:12px;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
-                No Shopify store connected yet.
+              <div id="shopify-connection-status" class="connect-state warn">
+                <span class="connect-dot"></span>
+                <div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div></div>
               </div>
               <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
               <button class="btn btn-ink" style="width:100%;justify-content:center;margin-bottom:10px" onclick="connectShopifyApp()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                Install OPS on Shopify
+                Open Shopify Install
               </button>
               <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
-                Analyze Connected Store
+                Analyze Live Shopify Data
               </button>
               <details style="margin-top:14px">
                 <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
@@ -824,17 +834,19 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
                   <button class="btn btn-outline" onclick="saveAndAnalyze()">Analyze with manual token</button>
                 </div>
               </details>
-              <div style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">
-                Recommended: install OPS through Shopify OAuth so the merchant does not copy API tokens manually.
+              <div class="connect-meta">
+                <div><strong>OAuth</strong>No token copy</div>
+                <div><strong>Scopes</strong>Orders + inventory</div>
+                <div><strong>Output</strong>Live analysis</div>
               </div>
             </div>
             <div class="connect-card" style="background:var(--cream2)">
-              <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:12px">How the Shopify app connection works</div>
+              <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:12px">Production connection flow</div>
               <div style="display:flex;flex-direction:column;gap:9px">
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Enter the merchant's Shopify store domain.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Shopify opens the OPS install permission screen.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>The merchant approves orders, products, and inventory access.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>OPS stores the connection and analyzes the shop automatically.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Merchant enters a <strong>.myshopify.com</strong> domain.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Shopify opens the native permission screen outside the iframe.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>OPS stores the offline access token securely on the backend.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>Analysis uses Shopify orders, products, inventory, customers, and fulfillments.</div>
               </div>
             </div>
           </div>
@@ -1930,13 +1942,15 @@ function renderShopifyStatus() {
   if(!el) return;
   const active=connectedShops.find(s=>s.status==='connected') || connectedShops[0];
   if(active) {
-    el.innerHTML='<strong style="color:var(--ink)">Connected:</strong> '+active.domain+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Scopes: '+(active.scope||'orders, products, inventory')+'</div>';
+    el.className='connect-state ok';
+    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Connected: '+active.domain+'</strong>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Live Shopify permissions active: '+(active.scope||'orders, products, inventory')+'</div></div>';
     if(document.getElementById('connect-domain') && !document.getElementById('connect-domain').value) {
       document.getElementById('connect-domain').value=active.domain;
     }
   } else {
-    el.textContent='No Shopify store connected yet.';
+    el.className='connect-state warn';
+    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div></div>';
   }
 }
 
@@ -1964,7 +1978,7 @@ async function connectShopifyApp() {
     });
     const d=await r.json().catch(()=>({}));
     if(!r.ok){showToast('❌ '+(d.detail||'Could not start Shopify connection.'));return;}
-    window.location.href=d.install_url;
+    window.top.location.href=d.install_url;
   } catch(e) {
     showToast('❌ Could not start Shopify connection: '+e.message);
   }
@@ -1981,7 +1995,7 @@ async function analyzeConnectedShopify() {
   document.getElementById('connect-domain').value=active.domain;
   document.getElementById('shopify-domain').value=active.domain;
   nav('analysis');
-  runAnalysis(false,active.domain,'',active.domain);
+  runAnalysis(false,active.domain,'',active.domain,'shopify');
 }
 
 function saveAndAnalyze() {
@@ -1991,10 +2005,10 @@ function saveAndAnalyze() {
   document.getElementById('connect-domain').value=domain;document.getElementById('shopify-domain').value=domain;
   document.getElementById('connect-token').value=st;document.getElementById('shopify-token').value=st;
   nav('analysis');
-  runAnalysis(false,domain,st);
+  runAnalysis(false,domain,st,'','shopify');
 }
 
-async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
+async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',platform='shopify') {
   const loadEl=document.getElementById('analysis-loading');
   loadEl.classList.add('show');
   document.getElementById('analysis-shop-name').textContent=mock?'Demo Store':'Starting analysis...';
@@ -2017,7 +2031,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:true,language:'en'}),
+        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:platform==='shopify',language:'en'}),
         signal:controller.signal
       });
       clearTimeout(timeout);
@@ -2072,7 +2086,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
 
 // ── RENDER RESULTS
 function renderResults(data) {
-  const isDemoResult=(data.shop_name==='Demo Store')||(data.shop_name==='Demo Mağaza')||String(data.model||'').includes('mock')||String(data.model||'').includes('demo');
+  const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store')||(data.shop_name==='Demo Mağaza')||String(data.model||'').includes('mock-demo')||String(data.model||'').includes('demo');
   if(isDemoResult){
     const demoExt=buildLocalMock().extended||{};
     data.extended=Object.assign({}, demoExt, data.extended||{});
@@ -2091,7 +2105,7 @@ function renderResults(data) {
   document.getElementById('r-score').textContent=score;
   document.getElementById('r-score').style.color=sc;
   document.getElementById('r-summary').textContent=an.executive_summary||'';
-  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} — ${new Date().toLocaleDateString('tr-TR')}`;
+  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} — ${new Date().toLocaleDateString('en-GB')}`;
 
   const cancelRate=(rev.cancellation_rate||rev.cancel_rate||0).toFixed(1);
   const refundRate=(rev.refund_rate||0).toFixed(1);
@@ -2147,7 +2161,7 @@ function renderResults(data) {
     const revCtx=document.getElementById('chart-revenue');
     if(revCtx){
       const days=30; const base=rev.total/days||1000;
-      const labels=Array.from({length:days},(_,i)=>{const d=new Date();d.setDate(d.getDate()-days+i);return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})});
+      const labels=Array.from({length:days},(_,i)=>{const d=new Date();d.setDate(d.getDate()-days+i);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
       charts.revenue=new Chart(revCtx,{type:'line',data:{labels,datasets:[{label:'Daily Revenue (€)',data:labels.map(()=>base*(0.6+Math.random()*0.8)),borderColor:'#c9963a',backgroundColor:'rgba(201,150,58,0.07)',borderWidth:2,pointRadius:0,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f',callback:v=>'€'+v.toFixed(0)}},x:{grid:{display:false},ticks:{color:'#96907f',maxTicksLimit:6}}}}});
     }
     const invCtx=document.getElementById('chart-inventory');
@@ -2160,10 +2174,13 @@ function renderResults(data) {
     }
   },100);
 
-  document.getElementById('r-alarms').innerHTML=`
-    <div class="alarm-item"><div class="alarm-dot red"></div><div class="alarm-text">Coconut Shampoo — Out of stock, ads active</div><div class="alarm-badge danger">€535 waste risk</div></div>
-    <div class="alarm-item"><div class="alarm-dot yellow"></div><div class="alarm-text">Vitamin C Cream — Critical stock (9 units left)</div><div class="alarm-badge warn">Urgent reorder</div></div>
-    <div class="alarm-item"><div class="alarm-dot green"></div><div class="alarm-text">Rose Serum — Stock and ads balanced</div><div class="alarm-badge ok">✓ Normal</div></div>`;
+  const criticalProducts=products.filter(p=>stockOf(p)<=10).slice(0,3);
+  const healthyProducts=products.filter(p=>stockOf(p)>10).slice(0,1);
+  const alarmRows=[
+    ...criticalProducts.map(p=>`<div class="alarm-item"><div class="alarm-dot ${stockOf(p)<=0?'red':'yellow'}"></div><div class="alarm-text">${p.title||'Product'} — ${stockOf(p)<=0?'Out of stock':'Critical stock'} (${stockOf(p)} units)</div><div class="alarm-badge ${stockOf(p)<=0?'danger':'warn'}">${stockOf(p)<=0?'Pause campaigns':'Reorder'}</div></div>`),
+    ...healthyProducts.map(p=>`<div class="alarm-item"><div class="alarm-dot green"></div><div class="alarm-text">${p.title||'Product'} — Inventory healthy (${stockOf(p)} units)</div><div class="alarm-badge ok">Normal</div></div>`)
+  ];
+  document.getElementById('r-alarms').innerHTML=alarmRows.length?alarmRows.join(''):'<div style="color:var(--muted);font-size:14px">No inventory alarms from the current data.</div>';
 
   const swot=data.analysis?.swot||{};
   const swotColors={strengths:['#1a7a4a','rgba(26,122,74,0.07)'],weaknesses:['#c0392b','rgba(192,57,43,0.07)'],opportunities:['#c9963a','rgba(201,150,58,0.07)'],threats:['#6b6560','rgba(107,101,96,0.07)']};
@@ -2675,9 +2692,8 @@ async function analyzeWoo() {
   var key = document.getElementById('woo-key').value.trim();
   var secret = document.getElementById('woo-secret').value.trim();
   if(!url||!key||!secret){ showToast('Please fill in all WooCommerce fields.'); return; }
-  // WooCommerce uses same backend — pass as shopify_domain with woo marker
   nav('analysis');
-  runAnalysis(false, url, key+'::'+secret);
+  runAnalysis(false, url, key+'::'+secret, '', 'woocommerce');
 }
 
 

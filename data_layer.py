@@ -11,6 +11,7 @@ import numpy as np
 import requests
 import json
 import random
+import re
 from datetime import datetime, timedelta
 from dateutil import parser as date_parser
 from dataclasses import dataclass, field
@@ -34,6 +35,34 @@ class ShopifyConfig:
     api_version: str = "2024-01"
     use_mock: bool = True           # True = Mock data kullan (test modu)
     mock_order_count: int = 200     # Kaç adet mock sipariş üretilsin
+
+
+@dataclass
+class WooCommerceConfig:
+    store_url: str = ""
+    consumer_key: str = ""
+    consumer_secret: str = ""
+    use_mock: bool = False
+    mock_order_count: int = 200
+
+
+def _money(value, default: float = 0.0) -> float:
+    try:
+        return float(value or default)
+    except (TypeError, ValueError):
+        return default
+
+
+def _shopify_status(value: str | None, financial_status: str | None = None) -> str:
+    value = (value or "").lower()
+    financial_status = (financial_status or "").lower()
+    if value in {"fulfilled", "partial"}:
+        return "fulfilled"
+    if financial_status in {"refunded", "partially_refunded", "voided"}:
+        return "refunded"
+    if value in {"cancelled", "canceled"}:
+        return "cancelled"
+    return value or "unfulfilled"
 
 
 # ─────────────────────────────────────────────
@@ -177,12 +206,12 @@ class ShopifyClient:
             "Content-Type": "application/json"
         }
 
-    def _get(self, endpoint: str, params: dict = None) -> dict:
+    def _get(self, endpoint: str, params: dict = None) -> requests.Response:
         """Shopify API GET isteği"""
         url = f"{self.base_url}/{endpoint}.json"
         response = requests.get(url, headers=self.headers, params=params, timeout=30)
         response.raise_for_status()
-        return response.json()
+        return response
 
     def fetch_orders(self, limit: int = 250, status: str = "any") -> list[dict]:
         """Siparişleri getir (gerçek veya mock)"""
@@ -192,19 +221,21 @@ class ShopifyClient:
 
         print("🔗 [API] Shopify'dan siparişler çekiliyor...")
         all_orders = []
-        params = {"limit": limit, "status": status}
+        params = {"limit": limit, "status": status, "order": "created_at desc"}
 
         while True:
-            data = self._get("orders", params)
+            response = self._get("orders", params)
+            data = response.json()
             orders = data.get("orders", [])
             all_orders.extend(orders)
 
-            # Sayfalama (pagination)
-            link_header = data.get("link", "")
-            if 'rel="next"' not in str(link_header):
+            next_url = response.links.get("next", {}).get("url")
+            if not next_url:
                 break
-            # Bir sonraki sayfa için page_info token'ı parse et
-            # (Shopify cursor-based pagination)
+            match = re.search(r"[?&]page_info=([^&]+)", next_url)
+            if not match:
+                break
+            params = {"limit": limit, "page_info": match.group(1)}
 
         return all_orders
 
@@ -215,8 +246,109 @@ class ShopifyClient:
             return self.mock_gen.generate_products()
 
         print("🔗 [API] Shopify'dan ürünler çekiliyor...")
-        data = self._get("products", {"limit": 250})
-        return data.get("products", [])
+        all_products = []
+        params = {"limit": 250}
+        while True:
+            response = self._get("products", params)
+            data = response.json()
+            all_products.extend(data.get("products", []))
+            next_url = response.links.get("next", {}).get("url")
+            if not next_url:
+                break
+            match = re.search(r"[?&]page_info=([^&]+)", next_url)
+            if not match:
+                break
+            params = {"limit": 250, "page_info": match.group(1)}
+        return all_products
+
+
+class WooCommerceClient:
+    """WooCommerce REST API v3 client."""
+
+    def __init__(self, config: WooCommerceConfig):
+        self.config = config
+        self.mock_gen = MockDataGenerator()
+        self.base_url = config.store_url.rstrip("/") + "/wp-json/wc/v3"
+
+    def _get(self, endpoint: str, params: dict = None) -> list[dict]:
+        url = f"{self.base_url}/{endpoint}"
+        response = requests.get(
+            url,
+            params=params or {},
+            auth=(self.config.consumer_key, self.config.consumer_secret),
+            timeout=30,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def fetch_orders(self, per_page: int = 100) -> list[dict]:
+        if self.config.use_mock:
+            return self.mock_gen.generate_orders(self.config.mock_order_count)
+        all_orders = []
+        page = 1
+        while True:
+            rows = self._get("orders", {"per_page": per_page, "page": page, "status": "any"})
+            if not rows:
+                break
+            all_orders.extend(rows)
+            if len(rows) < per_page:
+                break
+            page += 1
+        mapped = []
+        for o in all_orders:
+            status = (o.get("status") or "").lower()
+            mapped.append({
+                "id": o.get("id"),
+                "name": f"#{o.get('number', o.get('id'))}",
+                "created_at": o.get("date_created_gmt") or o.get("date_created"),
+                "fulfilled_at": o.get("date_completed_gmt") or o.get("date_completed"),
+                "financial_status": "refunded" if status == "refunded" else "paid" if status in {"processing", "completed"} else status,
+                "fulfillment_status": "fulfilled" if status == "completed" else "cancelled" if status in {"cancelled", "failed", "refunded"} else "unfulfilled",
+                "total_price": o.get("total"),
+                "subtotal_price": o.get("total"),
+                "customer_email": (o.get("billing") or {}).get("email"),
+                "customer_country": (o.get("billing") or {}).get("country"),
+                "line_items": [
+                    {
+                        "product_id": item.get("product_id"),
+                        "variant_id": item.get("variation_id") or item.get("product_id"),
+                        "title": item.get("name"),
+                        "quantity": item.get("quantity"),
+                        "price": item.get("price") or item.get("total"),
+                        "sku": item.get("sku", ""),
+                    }
+                    for item in (o.get("line_items") or [])
+                ],
+            })
+        return mapped
+
+    def fetch_products(self, per_page: int = 100) -> list[dict]:
+        if self.config.use_mock:
+            return self.mock_gen.generate_products()
+        all_products = []
+        page = 1
+        while True:
+            rows = self._get("products", {"per_page": per_page, "page": page})
+            if not rows:
+                break
+            all_products.extend(rows)
+            if len(rows) < per_page:
+                break
+            page += 1
+        return [
+            {
+                "id": p.get("id"),
+                "variant_id": p.get("id"),
+                "title": p.get("name"),
+                "category": ", ".join(c.get("name", "") for c in (p.get("categories") or [])) or "Uncategorized",
+                "sku": p.get("sku", ""),
+                "price": p.get("price") or p.get("regular_price"),
+                "cost_per_item": 0,
+                "inventory_quantity": p.get("stock_quantity") or 0,
+                "created_at": p.get("date_created_gmt") or p.get("date_created"),
+            }
+            for p in all_products
+        ]
 
 
 # ─────────────────────────────────────────────
@@ -237,23 +369,41 @@ class DataTransformer:
             # line_items'dan ürün kategorilerini çıkar
             items = o.get("line_items", [])
             product_titles = [item.get("title", "") for item in items]
-            total_qty = sum(item.get("quantity", 1) for item in items)
+            total_qty = sum(int(item.get("quantity", 1) or 1) for item in items)
+            customer = o.get("customer") or {}
+            billing = o.get("billing_address") or {}
+            shipping = o.get("shipping_address") or {}
+            customer_email = (
+                o.get("customer_email")
+                or o.get("email")
+                or customer.get("email")
+                or f"customer-{o.get('id', 'unknown')}@unknown.local"
+            )
+            cancelled_at = o.get("cancelled_at")
+            fulfillment_status = _shopify_status(
+                "cancelled" if cancelled_at else o.get("fulfillment_status"),
+                o.get("financial_status"),
+            )
+            fulfilled_at = o.get("fulfilled_at")
+            if not fulfilled_at and o.get("fulfillments"):
+                fulfilled_at = (o.get("fulfillments") or [{}])[-1].get("created_at")
 
             records.append({
                 "order_id":           o.get("order_id", o.get("id")),
                 "order_number":       o.get("order_number", o.get("name", "")),
                 "created_at":         o.get("created_at"),
-                "fulfilled_at":       o.get("fulfilled_at"),
+                "fulfilled_at":       fulfilled_at,
                 "financial_status":   o.get("financial_status", "unknown"),
-                "fulfillment_status": o.get("fulfillment_status", "unknown"),
-                "total_price":        float(o.get("total_price", 0) or 0),
-                "subtotal_price":     float(o.get("subtotal_price", 0) or 0),
-                "shipping_cost":      float(o.get("shipping_cost", 0) or 0),
+                "fulfillment_status": fulfillment_status,
+                "total_price":        _money(o.get("total_price")),
+                "subtotal_price":     _money(o.get("subtotal_price")),
+                "shipping_cost":      _money(o.get("total_shipping_price_set", {}).get("shop_money", {}).get("amount") if isinstance(o.get("total_shipping_price_set"), dict) else o.get("shipping_cost")),
                 "item_count":         total_qty,
+                "line_items":         items,
                 "product_titles":     ", ".join(product_titles[:2]),
                 "product_title":      product_titles[0] if product_titles else o.get("product_title", ""),
-                "customer_email":     o.get("customer_email", o.get("email", f"customer@demo.com")),
-                "customer_country":   o.get("customer_country", o.get("billing_address", {}) or {}).get("country_code", "UNKNOWN") if isinstance(o.get("billing_address"), dict) else o.get("customer_country", "DE"),
+                "customer_email":     customer_email,
+                "customer_country":   o.get("customer_country") or billing.get("country_code") or shipping.get("country_code") or "UNKNOWN",
                 "shipping_carrier":   o.get("shipping_carrier", "Unknown"),
                 "tags":               o.get("tags", ""),
             })
@@ -277,16 +427,36 @@ class DataTransformer:
         """Ham ürün listesini DataFrame'e çevirir"""
         records = []
         for p in raw_products:
-            records.append({
-                "product_id":    p.get("id"),
-                "title":         p.get("title", ""),
-                "category":      p.get("category", p.get("product_type", "Uncategorized")),
-                "sku":           p.get("sku", ""),
-                "price":         float(p.get("price", 0) or 0),
-                "cost":          float(p.get("cost_per_item", 0) or 0),
-                "inventory":     int(p.get("inventory_quantity", 0) or 0),
-                "created_at":    p.get("created_at"),
-            })
+            variants = p.get("variants") or []
+            if variants:
+                for variant in variants:
+                    title = p.get("title", "")
+                    variant_title = variant.get("title")
+                    if variant_title and variant_title != "Default Title":
+                        title = f"{title} — {variant_title}"
+                    records.append({
+                        "product_id":    p.get("id"),
+                        "variant_id":    variant.get("id"),
+                        "title":         title,
+                        "category":      p.get("category", p.get("product_type", "Uncategorized")),
+                        "sku":           variant.get("sku") or p.get("sku", ""),
+                        "price":         _money(variant.get("price") or p.get("price")),
+                        "cost":          _money(variant.get("cost") or p.get("cost_per_item")),
+                        "inventory":     int(variant.get("inventory_quantity", p.get("inventory_quantity", 0)) or 0),
+                        "created_at":    p.get("created_at"),
+                    })
+            else:
+                records.append({
+                    "product_id":    p.get("id"),
+                    "variant_id":    p.get("variant_id"),
+                    "title":         p.get("title", ""),
+                    "category":      p.get("category", p.get("product_type", "Uncategorized")),
+                    "sku":           p.get("sku", ""),
+                    "price":         _money(p.get("price")),
+                    "cost":          _money(p.get("cost_per_item")),
+                    "inventory":     int(p.get("inventory_quantity", 0) or 0),
+                    "created_at":    p.get("created_at"),
+                })
 
         df = pd.DataFrame(records)
         df["created_at"] = pd.to_datetime(df["created_at"], utc=True, errors="coerce")
@@ -333,9 +503,26 @@ class MetricsEngine:
         # Negatif değerleri temizle (veri kalitesi sorunu)
         fulfilled = fulfilled[fulfilled["fulfillment_hours"] > 0]
 
+        if fulfilled.empty:
+            return {
+                "metric": "Order Fulfillment Time",
+                "unit": "hours",
+                "mean": 0,
+                "median": 0,
+                "p75": 0,
+                "p95": 0,
+                "max": 0,
+                "orders_over_72h": 0,
+                "orders_over_24h": 0,
+                "total_fulfilled": 0,
+                "fulfillment_hours_series": fulfilled[["order_id", "created_at"]],
+                "status": "Insufficient data",
+                "risk": "Unknown",
+            }
+
         stats = {
-            "metric": "Sipariş Hazırlama Süresi",
-            "unit": "saat",
+            "metric": "Order Fulfillment Time",
+            "unit": "hours",
             "mean":   round(fulfilled["fulfillment_hours"].mean(), 1),
             "median": round(fulfilled["fulfillment_hours"].median(), 1),
             "p75":    round(fulfilled["fulfillment_hours"].quantile(0.75), 1),
@@ -349,14 +536,14 @@ class MetricsEngine:
 
         # Performans değerlendirmesi
         if stats["median"] <= 24:
-            stats["status"] = "✅ İyi"
-            stats["risk"] = "Düşük"
+            stats["status"] = "Good"
+            stats["risk"] = "Low"
         elif stats["median"] <= 48:
-            stats["status"] = "⚠️ Orta"
-            stats["risk"] = "Orta"
+            stats["status"] = "Watch"
+            stats["risk"] = "Medium"
         else:
-            stats["status"] = "🔴 Kritik"
-            stats["risk"] = "Yüksek"
+            stats["status"] = "Critical"
+            stats["risk"] = "High"
 
         return stats
 
@@ -374,42 +561,56 @@ class MetricsEngine:
             ~self.orders["fulfillment_status"].isin(["cancelled", "refunded"])
         ]
 
-        # Ürün bazlı satış miktarı
+        # Ürün bazlı satış miktarı Shopify line item'larından hesaplanır.
         product_sales = {}
         for _, row in sales.iterrows():
-            # Basitleştirilmiş: sipariş başına item_count kullan
-            pass
+            for item in row.get("line_items", []) or []:
+                keys = [
+                    ("variant", item.get("variant_id")),
+                    ("product", item.get("product_id")),
+                    ("title", item.get("title")),
+                    ("sku", item.get("sku")),
+                ]
+                qty = int(item.get("quantity", 1) or 1)
+                for kind, key in keys:
+                    if key not in (None, ""):
+                        product_sales[(kind, str(key))] = product_sales.get((kind, str(key)), 0) + qty
 
         results = []
         for _, prod in self.products.iterrows():
-            # Ürün için tahmini satış (mock'ta direkt hesapla)
-            avg_daily_sales = max(
-                np.random.uniform(0.5, 5.0),  # gerçekte satış verisinden gelir
-                0.1
+            total_sold = max(
+                product_sales.get(("variant", str(prod.get("variant_id"))), 0),
+                product_sales.get(("product", str(prod.get("product_id"))), 0),
+                product_sales.get(("sku", str(prod.get("sku"))), 0),
+                product_sales.get(("title", str(prod.get("title"))), 0),
             )
-            total_sold = avg_daily_sales * period_days
+            avg_daily_sales = total_sold / max(period_days, 1)
             avg_inventory = max(prod["inventory"], 1)
 
             turnover = round(total_sold / avg_inventory, 2)
-            days_of_stock = round(avg_inventory / avg_daily_sales, 0) if avg_daily_sales > 0 else 999
+            days_of_stock = round(prod["inventory"] / avg_daily_sales, 0) if avg_daily_sales > 0 else 999
 
             results.append({
                 "product_id":    prod["product_id"],
+                "variant_id":    prod.get("variant_id"),
                 "title":         prod["title"],
                 "category":      prod["category"],
+                "sku":           prod.get("sku", ""),
+                "price":         prod.get("price", 0),
                 "inventory":     prod["inventory"],
+                "sold_units":    int(total_sold),
                 "turnover_rate": turnover,
                 "days_of_stock": days_of_stock,
                 "status": (
-                    "🔴 Stok Tükenme Riski" if prod["inventory"] < 10 else
-                    "⚠️ Düşük Stok" if prod["inventory"] < 30 else
-                    "✅ Normal"
+                    "Critical stock" if prod["inventory"] < 10 else
+                    "Low stock" if prod["inventory"] < 30 else
+                    "Healthy"
                 ),
             })
 
         df = pd.DataFrame(results).sort_values("turnover_rate", ascending=False)
         return {
-            "metric": "Stok Devir Hızı",
+            "metric": "Inventory Turnover",
             "period_days": period_days,
             "details": df,
             "avg_turnover": round(df["turnover_rate"].mean(), 2),
@@ -426,7 +627,7 @@ class MetricsEngine:
         )["total_price"].sum()
 
         return {
-            "metric": "Gelir Metrikleri",
+            "metric": "Revenue Metrics",
             "total_revenue":     round(valid["total_price"].sum(), 2),
             "total_orders":      len(self.orders),
             "valid_orders":      len(valid),
@@ -484,6 +685,25 @@ def run_pipeline(config: Optional[ShopifyConfig] = None) -> dict:
     report["orders_df"]   = orders_df
     report["products_df"] = products_df
 
+    return report
+
+
+def run_woocommerce_pipeline(config: WooCommerceConfig) -> dict:
+    """WooCommerce REST data pipeline using the same OPS metric engine."""
+    client = WooCommerceClient(config)
+    raw_orders = client.fetch_orders()
+    raw_products = client.fetch_products()
+
+    print(f"✅ WooCommerce: {len(raw_orders)} sipariş, {len(raw_products)} ürün alındı.")
+
+    transformer = DataTransformer()
+    orders_df = transformer.orders_to_dataframe(raw_orders)
+    products_df = transformer.products_to_dataframe(raw_products)
+
+    engine = MetricsEngine(orders_df, products_df)
+    report = engine.full_report()
+    report["orders_df"] = orders_df
+    report["products_df"] = products_df
     return report
 
 

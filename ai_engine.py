@@ -35,12 +35,11 @@ class AIConfig:
 # PROMPT ŞABLONLARI
 # ─────────────────────────────────────────────
 
-SYSTEM_PROMPT = """Sen, e-ticaret operasyonlarında uzman bir Endüstri Mühendisi ve İş Analistisin.
-Görevin: verilen operasyonel metrikleri analiz etmek, kök nedenleri tespit etmek ve somut, 
-önceliklendirilmiş aksiyon planı sunmak.
+SYSTEM_PROMPT = """You are an operations analyst for e-commerce stores.
+Your job is to analyze the supplied operational metrics, identify root causes, and produce a concrete prioritized action plan.
 
-Yanıt formatın HER ZAMAN geçerli JSON olmalıdır. Markdown veya ekstra metin ekleme.
-Dil: {language}
+Return ONLY valid JSON. Do not include Markdown or extra text.
+Language: {language}
 
 JSON yapısı:
 {{
@@ -51,11 +50,11 @@ JSON yapısı:
     {{
       "area": "area name",
       "severity": "critical | warning | ok",
-      "title": "kısa başlık",
-      "root_cause": "kök neden analizi",
-      "impact": "iş etkisi (para/müşteri kaybı gibi)",
+      "title": "short title",
+      "root_cause": "root-cause analysis",
+      "impact": "business impact such as revenue/customer loss",
       "recommendation": "concrete action step",
-      "priority": 1-5 (1=en acil),
+      "priority": 1-5 (1=most urgent),
       "estimated_effort": "Low | Medium | High",
       "estimated_impact": "Low | Medium | High"
     }}
@@ -74,36 +73,35 @@ JSON yapısı:
   }}
 }}"""
 
-ANALYSIS_PROMPT = """Aşağıdaki e-ticaret operasyon verilerini analiz et:
+ANALYSIS_PROMPT = """Analyze the following e-commerce operations data:
 
-=== SİPARİŞ HAZIRLAMA SÜRESİ ===
-- Ortalama: {fulfillment_mean} saat
-- Medyan: {fulfillment_median} saat
-- P95 (en yavaş %5): {fulfillment_p95} saat
-- 72 saatten uzun sipariş sayısı: {orders_over_72h} adet ({orders_over_72h_pct}%)
-- Durum: {fulfillment_status}
+=== ORDER FULFILLMENT TIME ===
+- Mean: {fulfillment_mean} hours
+- Median: {fulfillment_median} hours
+- P95: {fulfillment_p95} hours
+- Orders over 72 hours: {orders_over_72h} ({orders_over_72h_pct}%)
+- Status: {fulfillment_status}
 
-=== STOK ANALİZİ ===
-- Ortalama stok devir hızı: {avg_turnover}x
+=== INVENTORY ANALYSIS ===
+- Average inventory turnover: {avg_turnover}x
 - Number of critical stock products: {critical_items_count}
 - Critical products: {critical_items}
-- Toplam ürün sayısı: {total_products}
+- Total products: {total_products}
 
-=== GELİR METRİKLERİ ===
-- Toplam gelir (90 gün): €{total_revenue}
-- Toplam sipariş: {total_orders}
-- Geçerli sipariş: {valid_orders}
-- Ortalama sepet tutarı (AOV): €{aov}
-- İptal oranı: %{cancellation_rate}
-- İade oranı: %{refund_rate}
+=== REVENUE METRICS ===
+- Total revenue: €{total_revenue}
+- Total orders: {total_orders}
+- Valid orders: {valid_orders}
+- Average order value: €{aov}
+- Cancellation rate: {cancellation_rate}%
+- Refund rate: {refund_rate}%
 - Average items per order: {avg_items}
 
-=== BAĞLAM ===
-- Hedef pazar: AB (Öncelikle Almanya)
-- Sektör: Kozmetik / Lüks bakım ürünleri
-- Kanal: Shopify D2C + Meta Ads
+=== CONTEXT ===
+- Target market: EU
+- Channel: D2C e-commerce
 
-Bu verilere dayanarak kapsamlı operasyonel analiz yap ve JSON formatında döndür."""
+Base every statement on the data above. If data is missing, state the limitation explicitly in JSON."""
 
 
 # ─────────────────────────────────────────────
@@ -206,6 +204,193 @@ MOCK_AI_RESPONSE = {
 }
 
 
+def _clean_number(value, default=0):
+    try:
+        if value is None:
+            return default
+        if isinstance(value, float) and np.isnan(value):
+            return default
+        return float(value)
+    except Exception:
+        return default
+
+
+def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
+    """Fast deterministic fallback that writes only from the supplied store data."""
+    ft = report.get("fulfillment_time", {}) or {}
+    inv = report.get("inventory", {}) or {}
+    rev = report.get("revenue", {}) or {}
+    products = inv.get("details")
+    critical = inv.get("critical_items")
+
+    total_orders = int(_clean_number(rev.get("total_orders"), 0))
+    valid_orders = int(_clean_number(rev.get("valid_orders"), total_orders))
+    revenue = _clean_number(rev.get("total_revenue"), 0)
+    aov = _clean_number(rev.get("aov"), 0)
+    cancel_rate = _clean_number(rev.get("cancellation_rate"), 0)
+    refund_rate = _clean_number(rev.get("refund_rate"), 0)
+    median_fulfillment = _clean_number(ft.get("median"), 0)
+    fulfilled_count = int(_clean_number(ft.get("total_fulfilled"), 0))
+    over72 = int(_clean_number(ft.get("orders_over_72h"), 0))
+    critical_count = int(len(critical)) if critical is not None else 0
+    product_count = int(len(products)) if products is not None else 0
+
+    critical_names = []
+    if critical is not None and len(critical) > 0:
+        for _, row in critical.head(5).iterrows():
+            critical_names.append(f"{row.get('title', 'Unknown product')} ({int(row.get('inventory', 0) or 0)} in stock)")
+    critical_text = ", ".join(critical_names) if critical_names else "No products below the critical stock threshold"
+
+    score = 100
+    if critical_count:
+        score -= min(35, 8 + critical_count * 2)
+    if cancel_rate > 2.5:
+        score -= min(20, (cancel_rate - 2.5) * 3)
+    if refund_rate > 4:
+        score -= min(15, (refund_rate - 4) * 2)
+    if fulfilled_count == 0:
+        score -= 10
+    elif median_fulfillment > 24:
+        score -= min(20, (median_fulfillment - 24) / 2)
+    if total_orders < 30:
+        score -= 8
+    score = int(max(15, min(95, round(score))))
+    label = "Excellent" if score >= 85 else "Good" if score >= 70 else "Average" if score >= 50 else "Critical"
+
+    findings = []
+    if critical_count:
+        findings.append({
+            "area": "Inventory",
+            "severity": "critical",
+            "title": f"{critical_count} products are below critical stock",
+            "root_cause": f"Shopify inventory shows low or zero stock for: {critical_text}. This is calculated from the products and variants returned by Shopify.",
+            "impact": "Products with low stock can lose sales and waste paid traffic if campaigns continue sending customers to unavailable items.",
+            "recommendation": "Restock the listed SKUs, set reorder points, and pause campaigns for products with zero inventory until inventory is replenished.",
+            "priority": 1,
+            "estimated_effort": "Medium",
+            "estimated_impact": "High",
+        })
+    else:
+        findings.append({
+            "area": "Inventory",
+            "severity": "ok",
+            "title": "No critical stockouts detected",
+            "root_cause": f"OPS reviewed {product_count} Shopify products/variants and did not find stock below the critical threshold.",
+            "impact": "Current inventory health supports continued selling without immediate stockout risk.",
+            "recommendation": "Keep reorder alerts active and review slow-moving products weekly.",
+            "priority": 4,
+            "estimated_effort": "Low",
+            "estimated_impact": "Medium",
+        })
+
+    if fulfilled_count == 0:
+        findings.append({
+            "area": "Fulfillment",
+            "severity": "warning",
+            "title": "Fulfillment timestamps are missing",
+            "root_cause": "Shopify orders do not include enough fulfillment timestamps to calculate processing time reliably.",
+            "impact": "OPS cannot benchmark pick-pack-ship speed until fulfillments are recorded on orders.",
+            "recommendation": "Confirm that fulfillments are created in Shopify when orders are shipped and rerun the analysis.",
+            "priority": 2,
+            "estimated_effort": "Low",
+            "estimated_impact": "High",
+        })
+    elif median_fulfillment > 24:
+        findings.append({
+            "area": "Fulfillment",
+            "severity": "warning",
+            "title": f"Median fulfillment is {median_fulfillment:.1f} hours",
+            "root_cause": f"{over72} fulfilled orders took longer than 72 hours.",
+            "impact": "Long fulfillment times can reduce customer satisfaction and increase cancellation/refund pressure.",
+            "recommendation": "Create a daily pick list, prioritize paid orders older than 24 hours, and review warehouse handoff delays.",
+            "priority": 2,
+            "estimated_effort": "Medium",
+            "estimated_impact": "High",
+        })
+    else:
+        findings.append({
+            "area": "Fulfillment",
+            "severity": "ok",
+            "title": "Fulfillment speed is healthy",
+            "root_cause": f"Median fulfillment is {median_fulfillment:.1f} hours across {fulfilled_count} fulfilled orders.",
+            "impact": "Fast fulfillment is a conversion and retention advantage.",
+            "recommendation": "Use this as a trust signal on product pages and keep monitoring orders older than 24 hours.",
+            "priority": 4,
+            "estimated_effort": "Low",
+            "estimated_impact": "Medium",
+        })
+
+    if cancel_rate > 2.5 or refund_rate > 4:
+        findings.append({
+            "area": "Revenue Quality",
+            "severity": "warning",
+            "title": "Cancellation or refund rate needs attention",
+            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% from Shopify order data.",
+            "impact": "Refunds and cancellations reduce net revenue and can signal product, stock, or fulfillment expectation gaps.",
+            "recommendation": "Audit the latest cancelled/refunded orders by reason, tighten product descriptions, and trigger proactive messages for delayed orders.",
+            "priority": 3,
+            "estimated_effort": "Medium",
+            "estimated_impact": "Medium",
+        })
+    else:
+        findings.append({
+            "area": "Revenue Quality",
+            "severity": "ok",
+            "title": "Cancellation and refund rates are controlled",
+            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% across {total_orders} Shopify orders.",
+            "impact": "Low leakage means most gross revenue is retained.",
+            "recommendation": "Keep tracking refund reasons and compare this rate after each campaign push.",
+            "priority": 5,
+            "estimated_effort": "Low",
+            "estimated_impact": "Low",
+        })
+
+    quick_wins = [
+        f"Review and restock the first critical SKU: {critical_names[0]}" if critical_names else "Export low-stock products weekly and keep reorder points updated.",
+        "Check the oldest unfulfilled Shopify orders and resolve any orders older than 24 hours.",
+        f"Use the current AOV of €{aov:.2f} as the baseline for bundle and upsell tests.",
+    ]
+
+    return {
+        "executive_summary": (
+            f"OPS analyzed {total_orders} Shopify orders, {valid_orders} valid orders, and {product_count} products/variants. "
+            f"The store generated €{revenue:,.2f} with an AOV of €{aov:.2f}. "
+            f"The main operational priority is {'critical inventory coverage' if critical_count else 'maintaining fulfillment and revenue quality'}."
+        ),
+        "overall_health_score": score,
+        "overall_health_label": label,
+        "findings": findings,
+        "quick_wins": quick_wins,
+        "kpi_targets": {
+            "fulfillment_target_hours": 24,
+            "inventory_reorder_point": 10,
+            "target_cancellation_rate_pct": 2.5,
+        },
+        "swot": {
+            "strengths": [
+                f"€{revenue:,.0f} revenue captured in the analyzed period",
+                f"Average order value of €{aov:.2f}",
+                "Connected Shopify data is available for operational monitoring",
+            ],
+            "weaknesses": [
+                f"{critical_count} products below critical stock" if critical_count else "No major inventory weakness detected",
+                "Fulfillment timestamp coverage is limited" if fulfilled_count == 0 else f"Median fulfillment is {median_fulfillment:.1f} hours",
+                f"{total_orders} orders may be a small sample" if total_orders < 30 else "Ongoing weekly monitoring is still required",
+            ],
+            "opportunities": [
+                "Build bundles around high-AOV products",
+                "Automate low-stock alerts before paid traffic is wasted",
+                "Use churn and forecast tabs to time retention campaigns",
+            ],
+            "threats": [
+                "Stockouts can push customers to competitors",
+                "Campaign spend can be wasted on unavailable products",
+                "Refund/cancellation spikes can reduce net margin",
+            ],
+        },
+    }
+
+
 # ─────────────────────────────────────────────
 # AI ANALİZ MOTORU
 # ─────────────────────────────────────────────
@@ -268,14 +453,13 @@ class AIAnalysisEngine:
         """
 
         if self.config.use_mock_ai:
-            print("🤖 [MOCK AI] Analiz yapılıyor... (gerçek API çağrısı yok)")
-            time.sleep(1.2)  # API gecikme simülasyonu
+            print("🤖 [FAST AI] Veri bazlı analiz yapılıyor...")
             return {
                 "success": True,
-                "model": "mock-gpt-4o",
+                "model": "ops-rules-real-data",
                 "prompt_tokens": 850,
                 "completion_tokens": 620,
-                "analysis": MOCK_AI_RESPONSE,
+                "analysis": build_data_driven_analysis(report, self.config.language),
                 "generated_at": datetime.now().isoformat(),
             }
 
@@ -480,7 +664,7 @@ def run_price_elasticity(orders_df, products_df) -> dict:
         for _, product in products_df.iterrows():
             title = product.get("title", "Unknown")
             price = float(product.get("price", 0))
-            stock = float(product.get("stock", 0))
+            stock = float(product.get("inventory", product.get("stock", 0)))
             cost  = float(product.get("cost", 0))
             margin = ((price - cost) / price * 100) if price > 0 else 0
 

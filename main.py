@@ -31,8 +31,8 @@ from datetime import datetime, timedelta, date
 # ── Analiz modülleri
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from data_layer import ShopifyConfig, run_pipeline
-from ai_engine import AIConfig, AIAnalysisEngine
+from data_layer import ShopifyConfig, WooCommerceConfig, run_pipeline, run_woocommerce_pipeline
+from ai_engine import AIConfig, AIAnalysisEngine, run_extended_analysis
 from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
 
@@ -158,7 +158,10 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 # ── Shopify OAuth
 SHOPIFY_API_KEY = os.environ.get("SHOPIFY_API_KEY", "")
 SHOPIFY_API_SECRET = os.environ.get("SHOPIFY_API_SECRET", "")
-SHOPIFY_SCOPES = os.environ.get("SHOPIFY_SCOPES", "read_orders,read_products,read_inventory")
+SHOPIFY_SCOPES = os.environ.get(
+    "SHOPIFY_SCOPES",
+    "read_orders,read_all_orders,read_products,read_inventory,read_fulfillments,read_locations",
+)
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
@@ -182,6 +185,7 @@ class LoginRequest(BaseModel):
 
 class AnalysisRequest(BaseModel):
     use_mock: bool = True
+    platform: str = "shopify"
     shopify_domain: Optional[str] = None
     shopify_token: Optional[str] = None
     connected_shop: Optional[str] = None
@@ -840,10 +844,14 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
     ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
+    extended = run_extended_analysis(report)
     return make_json_safe({
         "success": True,
         "shop_name": shop,
         "analysis": ai_result.get("analysis", {}),
+        "model": ai_result.get("model", "ops-rules-real-data"),
+        "user_plan": connected.get("plan", "pro"),
+        "extended": extended,
         "metrics": {
             "revenue": {
                 "total": report["revenue"]["total_revenue"],
@@ -1061,8 +1069,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     if used >= limit:
         raise HTTPException(status_code=429, detail=f"Aylık limit doldu ({used}/{limit}). Güncel plan: {plan_key}.")
 
+    platform = (req.platform or "shopify").lower()
     connected_store = None
-    if not req.use_mock and not req.shopify_token:
+    if platform == "shopify" and not req.use_mock and not req.shopify_token:
         connected_store = get_connected_shop(email, req.connected_shop or req.shopify_domain)
         if not connected_store:
             raise HTTPException(
@@ -1073,17 +1082,25 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     shop_domain = (connected_store or {}).get("domain") or req.shopify_domain or ""
     shop_token = (connected_store or {}).get("access_token") or req.shopify_token or ""
 
-    # Shopify config
-    shopify_cfg = ShopifyConfig(
-        shop_domain=shop_domain,
-        access_token=shop_token,
-        use_mock=req.use_mock,
-        mock_order_count=200,
-    )
-
     # Veri çek
     try:
-        report = run_pipeline(shopify_cfg)
+        if platform == "woocommerce":
+            if "::" not in (shop_token or ""):
+                raise HTTPException(status_code=400, detail="WooCommerce Consumer Key and Secret are required.")
+            consumer_key, consumer_secret = shop_token.split("::", 1)
+            report = run_woocommerce_pipeline(WooCommerceConfig(
+                store_url=shop_domain,
+                consumer_key=consumer_key,
+                consumer_secret=consumer_secret,
+                use_mock=req.use_mock,
+            ))
+        else:
+            report = run_pipeline(ShopifyConfig(
+                shop_domain=shop_domain,
+                access_token=shop_token,
+                use_mock=req.use_mock,
+                mock_order_count=200,
+            ))
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else 502
         if status_code in (401, 403):
@@ -1135,6 +1152,8 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             "campaign_summary": meta_result["campaign_summary"].to_dict("records"),
         }
 
+    extended = run_extended_analysis(report)
+
     # Kullanım sayacını artır
     db.table("users").update({
         "analyses_this_month": used + 1,
@@ -1149,6 +1168,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     result_data = make_json_safe({
         "analysis": ai_result.get("analysis", {}),
         "shop_name": shop_domain or "Demo Mağaza",
+        "extended": extended,
         "metrics": {
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
             "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
@@ -1198,6 +1218,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             },
         },
         "meta": meta_data,
+        "extended": extended,
+        "user_plan": plan_key,
+        "data_source": "demo" if req.use_mock else platform,
         "shop_name": shop_domain or "Demo Mağaza",
     })
 
