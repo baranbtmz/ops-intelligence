@@ -9,7 +9,7 @@ pip install fastapi uvicorn python-jose passlib bcrypt supabase openai pandas nu
 uvicorn main:app --reload
 """
 
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
@@ -426,6 +426,41 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "meta": meta_data,
         "shop_name": req.shopify_domain or "Demo Mağaza",
     }
+
+
+# ─────────────────────────────────────────────
+# CSV / EXCEL UPLOAD ENDPOINTİ
+# ─────────────────────────────────────────────
+
+@app.post("/analysis/upload")
+async def upload_analysis(
+    file: UploadFile = File(...),
+    platform: str = Form("generic"),
+    language: str = Form("tr"),
+    payload: dict = Depends(verify_token),
+):
+    filename = file.filename or "upload"
+    allowed_ext = (".csv", ".xlsx", ".xls")
+    if not filename.lower().endswith(allowed_ext):
+        raise HTTPException(status_code=400, detail="CSV veya Excel dosyası yükleyin.")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Dosya boş görünüyor.")
+
+    result = await run_analysis(
+        AnalysisRequest(
+            use_mock=True,
+            shopify_domain=f"{platform.title()} Upload",
+            use_mock_meta=True,
+            language=language,
+        ),
+        payload,
+    )
+    result["shop_name"] = f"{platform.title()} Upload"
+    result["uploaded_file"] = filename
+    result["model"] = result.get("model") or "mock-upload"
+    return result
 
 
 # ─────────────────────────────────────────────

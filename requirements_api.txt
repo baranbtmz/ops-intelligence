@@ -13,3 +13,4 @@ reportlab
 requests
 pyyaml
 httpx
+python-multipart

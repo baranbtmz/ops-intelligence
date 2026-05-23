@@ -188,6 +188,13 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
 
 /* Main */
 .main-content{margin-left:var(--sidebar-w);flex:1;padding:34px 38px;min-height:100vh;position:relative;overflow:hidden}
+#sec-ledger,#sec-compare,#sec-team{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;bottom:0;
+  z-index:20;background:var(--cream);overflow-y:auto
+}
+#sec-ledger>div,#sec-compare>div,#sec-team>div{
+  margin-left:0!important;width:100%;min-height:100%;box-sizing:border-box
+}
 
 /* Header */
 .pg-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px}
@@ -464,6 +471,7 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
   .main-content{margin-left:0;padding:20px}
+  #sec-ledger,#sec-compare,#sec-team{left:0}
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
   .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr 1fr}
   .mobile-menu-btn{display:flex!important}
@@ -600,47 +608,47 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
 
       <nav class="sb-nav">
         <div class="sb-section">Overview</div>
-        <div class="nav-item active" onclick="nav('home')">
+        <div class="nav-item active" data-nav="home" onclick="nav('home')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Dashboard
         </div>
 
         <div class="sb-section">Analysis</div>
-        <div class="nav-item" onclick="nav('connect')">
+        <div class="nav-item" data-nav="connect" onclick="nav('connect')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
           Connect Store
         </div>
-        <div class="nav-item" onclick="nav('analysis')">
+        <div class="nav-item" data-nav="analysis" onclick="nav('analysis')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Run Analysis
         </div>
-        <div class="nav-item" onclick="nav('results')">
+        <div class="nav-item" data-nav="results" onclick="nav('results')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           Results
         </div>
 
         <div class="sb-section">Tools</div>
-        <div class="nav-item" onclick="nav('compare')">
+        <div class="nav-item" data-nav="compare" onclick="nav('compare')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
           Compare Periods
         </div>
-        <div class="nav-item" onclick="nav('team')">
+        <div class="nav-item" data-nav="team" onclick="nav('team')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           Team
           <span id="team-badge" style="margin-left:auto;background:rgba(201,150,58,.25);color:var(--gold-l);font-size:9px;font-weight:600;padding:1px 7px;border-radius:100px">1</span>
         </div>
-        <div class="nav-item" onclick="nav('ledger')">
+        <div class="nav-item" data-nav="ledger" onclick="nav('ledger')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           Ledger
         </div>
 
         <div class="sb-section">Account</div>
-        <div class="nav-item" onclick="nav('plans')">
+        <div class="nav-item" data-nav="plans" onclick="nav('plans')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
           Plans &amp; Billing
         </div>
-        <div class="nav-item" onclick="logout()" style="margin-top:4px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <div onclick="logout()" style="margin-top:4px;display:flex;align-items:center;gap:10px;margin:4px 8px 0;padding:9px 12px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;border-radius:9px;transition:all .18s;border:1px solid transparent" onmouseover="this.style.color='rgba(220,80,70,.8)';this.style.borderColor='rgba(184,50,50,.3)'" onmouseout="this.style.color='rgba(255,255,255,.3)';this.style.borderColor='transparent'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:16px;height:16px;opacity:.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Log out
         </div>
       </nav>
@@ -1444,7 +1452,8 @@ function switchTab(tab) {
 }
 
 function onLoginInput() {
-  // Keep this hook for password managers, but never auto-submit.
+  // Password managers can fire input events while filling fields.
+  // Keep login explicit so the user can edit email/password before submitting.
 }
 
 async function login() {
@@ -1642,6 +1651,9 @@ function showApp() {
 
 function nav(section) {
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const toolSections=['compare','team','ledger'];
+  const mainContent=document.querySelector('#page-app .main-content');
+  if(mainContent) mainContent.style.display=toolSections.includes(section)?'none':'block';
   // Hide main sections
   ['home','connect','analysis','results','plans'].forEach(s=>{
     const el=document.getElementById('sec-'+s);
@@ -1655,10 +1667,11 @@ function nav(section) {
   if(teamEl) teamEl.style.display=section==='team'?'flex':'none';
   if(ledgerEl) ledgerEl.style.display=section==='ledger'?'flex':'none';
   // Active nav item
-  const navMap={home:0,connect:1,analysis:2,results:3,compare:4,team:5,plans:6,ledger:7};
-  const items=document.querySelectorAll('.nav-item');
-  if(items[navMap[section]]) items[navMap[section]].classList.add('active');
+  const active=document.querySelector(`.nav-item[data-nav="${section}"]`);
+  if(active) active.classList.add('active');
   document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+  [cmpEl,teamEl,ledgerEl].forEach(el=>{if(el) el.scrollTop=0;});
   if(section==='team') renderTeamList();
   if(section==='ledger') ledgerRender();
 }
@@ -1860,29 +1873,49 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
   },1200);
   try {
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),25000);
-    const r=await fetch(`${API}/analysis/run`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,use_mock_meta:true,language:'en'}),
-      signal:controller.signal
-    });
-    clearTimeout(timeout);
-    const text=await r.text();
-    let d;
-    try{d=JSON.parse(text);}catch(e){d={detail:'Server returned invalid response: '+text.slice(0,120)};}
-    clearInterval(interval); loadEl.classList.remove('show');
-    if(!r.ok){
-      // Real error — show it, don't silently mock
+    const timeout=setTimeout(()=>controller.abort(),40000);
+    let r, text, d;
+    try {
+      r=await fetch(`${API}/analysis/run`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,use_mock_meta:true,language:'en'}),
+        signal:controller.signal
+      });
+      clearTimeout(timeout);
+      text=await r.text();
+      try{d=JSON.parse(text);}catch(e){d={detail:'Bad response: '+text.slice(0,100)};}
+    } catch(fetchErr) {
+      clearTimeout(timeout);
+      clearInterval(interval); loadEl.classList.remove('show');
       if(mock){
-        // Demo mode error is ok — use local mock
         const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
       } else {
-        showToast('Analysis failed: '+(d.detail||'HTTP '+r.status));
+        var errMsg = fetchErr.name==='AbortError'
+          ? 'Request timed out (40s). Railway may be sleeping — try again in 30 seconds.'
+          : 'Network error: '+fetchErr.message+'. Check that Railway is running.';
+        showToast('❌ '+errMsg);
         nav('connect');
       }
       if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
       return;
+    }
+    clearInterval(interval); loadEl.classList.remove('show');
+    if(!r.ok){
+      if(mock){
+        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
+      } else {
+        showToast('❌ '+(d.detail||'HTTP '+r.status+' — check your Shopify domain and token.'));
+        nav('connect');
+      }
+      if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
+      return;
+    }
+    if(mock){
+      const demoExt=buildLocalMock().extended||{};
+      d.extended=Object.assign({}, demoExt, d.extended||{});
+      d.user_plan=d.user_plan||'pro';
+      d.model=d.model||'mock-demo';
     }
     lastResult=d; renderResults(d); renderOverview(d); nav('results');
     if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
@@ -1891,7 +1924,7 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
     if(mock){
       const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
     } else {
-      showToast('Connection error: '+(e.name==='AbortError'?'Request timed out (25s). Check your domain/token.':e.message));
+      showToast('❌ Unexpected error: '+e.message);
       nav('connect');
     }
     if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
@@ -1900,6 +1933,12 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
 
 // ── RENDER RESULTS
 function renderResults(data) {
+  const isDemoResult=(data.shop_name==='Demo Store')||(data.shop_name==='Demo Mağaza')||String(data.model||'').includes('mock')||String(data.model||'').includes('demo');
+  if(isDemoResult){
+    const demoExt=buildLocalMock().extended||{};
+    data.extended=Object.assign({}, demoExt, data.extended||{});
+    data.user_plan=data.user_plan||'pro';
+  }
   const an=data.analysis||{};
   const m=data.metrics||{};
   const score=an.overall_health_score||0;
@@ -1933,8 +1972,8 @@ function renderResults(data) {
   const tagMap={critical:'tag-critical',warning:'tag-warning',ok:'tag-ok',info:'tag-info'};
   const cardMap={critical:'critical',warning:'warning',ok:'good',info:''};
   document.getElementById('r-findings').innerHTML=findings.length?findings.map(f=>`
-    <div class="finding-card ${cardMap[f.severity]||''}">
-      <div class="finding-header"><span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span><span class="finding-title">${f.title||''}</span></div>
+      <div class="finding-card ${cardMap[f.severity]||''}">
+        <div class="finding-header"><span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span><span class="finding-title">${f.title||''}</span></div>
       <div class="finding-desc">${f.description||f.root_cause||''}</div>
       ${f.impact?`<div class="finding-impact">💸 ${f.impact}</div>`:''}
       ${f.recommendation?`<div class="finding-rec">💡 ${f.recommendation}</div>`:''}
@@ -1952,11 +1991,11 @@ function renderResults(data) {
     </table>`;
 
   const products=inv.products||[];
-  const stockOf=p=>p.current_stock??p.inventory??0;
+  const stockOf=p=>Number(p.current_stock??p.inventory??0);
   document.getElementById('r-inventory-table').innerHTML=products.length?`
     <table class="data-table">
       <tr><th>Product</th><th>Stock</th><th>Turnover</th><th>Status</th></tr>
-      ${products.slice(0,10).map(p=>{const stock=stockOf(p);return `<tr><td>${p.title||p.product_id||'—'}</td><td>${stock}</td><td>${(p.turnover_rate||0).toFixed(2)}x</td><td><span class="badge ${stock<=0?'badge-danger':stock<=10?'badge-warn':'badge-success'}">${stock<=0?'Out of Stock':stock<=10?'Critical':'Normal'}</span></td></tr>`}).join('')}
+      ${products.slice(0,10).map(p=>`<tr><td>${p.title||p.product_id||'—'}</td><td>${stockOf(p)}</td><td>${(p.turnover_rate||0).toFixed(2)}x</td><td><span class="badge ${stockOf(p)<=0?'badge-danger':stockOf(p)<=10?'badge-warn':'badge-success'}">${stockOf(p)<=0?'Out of Stock':stockOf(p)<=10?'Critical':'Normal'}</span></td></tr>`).join('')}
     </table>`:'<div style="color:var(--muted);font-size:14px">No product data found.</div>';
 
   document.getElementById('r-actions').innerHTML=quickWins.length?quickWins.map((qw,i)=>`
@@ -1974,7 +2013,7 @@ function renderResults(data) {
     }
     const invCtx=document.getElementById('chart-inventory');
     if(invCtx&&products.length){
-      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{data:products.slice(0,8).map(stockOf),backgroundColor:products.slice(0,8).map(p=>{const stock=stockOf(p);return stock<=0?'rgba(192,57,43,0.7)':stock<=10?'rgba(184,109,10,0.7)':'rgba(201,150,58,0.7)'}),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f'}},x:{grid:{display:false},ticks:{color:'#96907f'}}}}});
+      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{data:products.slice(0,8).map(p=>stockOf(p)),backgroundColor:products.slice(0,8).map(p=>stockOf(p)<=0?'rgba(192,57,43,0.7)':stockOf(p)<=10?'rgba(184,109,10,0.7)':'rgba(201,150,58,0.7)'),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f'}},x:{grid:{display:false},ticks:{color:'#96907f'}}}}});
     }
     const roasCtx=document.getElementById('chart-roas');
     if(roasCtx){
@@ -1995,7 +2034,7 @@ function renderResults(data) {
     return `<div style="background:${bg};border:1px solid ${color}25;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:600;color:${color};margin-bottom:10px">${swotLabels[key]}</div>${items.length?items.map(item=>`<div style="font-size:13px;color:var(--ink2);margin-bottom:6px;padding-left:8px;border-left:2px solid ${color}40">• ${item}</div>`).join(''):'<div style="color:var(--muted);font-size:13px">Run analysis to see data</div>'}</div>`;
   }).join('');
 
-  const isPro=(data.user_plan==='pro')||(user&&user.plan==='pro');
+  const isPro=isDemoResult||(data.user_plan==='pro')||(user&&user.plan==='pro');
   ['churn','pricing','forecast'].forEach(feature=>{
     const lockEl=document.getElementById(`${feature}-lock`); if(lockEl) lockEl.style.display=isPro?'none':'flex';
   });
@@ -2257,11 +2296,24 @@ async function addTeamMember() {
   errEl.textContent = '';
   if(!name || !email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
   if(password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if(teamMembers.find(function(m){return String(m.email||'').toLowerCase()===email.toLowerCase();})) {
+    errEl.textContent = 'This email is already in the team.';
+    return;
+  }
   try {
     var r = await fetch(API + '/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password})});
     var d = await r.json();
-    if(!r.ok) { errEl.textContent = d.detail || 'Registration failed.'; return; }
-    teamMembers.push({name:name, email:email, role:role, plan:d.user&&d.user.plan||'free', token:d.token});
+    if(!r.ok) {
+      var detail=String(d.detail||'Registration failed.');
+      if(detail.toLowerCase().includes('already')||detail.toLowerCase().includes('zaten')) {
+        teamMembers.push({name:name, email:email, role:role, plan:'free'});
+      } else {
+        errEl.textContent = detail;
+        return;
+      }
+    } else {
+      teamMembers.push({name:name, email:email, role:role, plan:d.user&&d.user.plan||'free', token:d.token});
+    }
   } catch(e) {
     // Offline: add locally
     teamMembers.push({name:name, email:email, role:role, plan:'free'});
@@ -2698,8 +2750,16 @@ function ldgRenderPL() {
     '<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px">Generated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div>';
 }
 
+function ldgDataKey(type) {
+  return {customer:'customers',product:'products',sale:'sales',expense:'expenses',invoice:'invoices'}[type]||type;
+}
+function ldgSingular(type) {
+  return {customers:'customer',products:'product',sales:'sale',expenses:'expense',invoices:'invoice'}[type]||type;
+}
+
 // ── Modal open/close
 function ldgOpenModal(type, id) {
+  type=ldgSingular(type);
   var today=new Date().toISOString().slice(0,10);
   // reset
   if(type==='customer'){document.getElementById('cust-id').value='';document.getElementById('cust-name').value='';document.getElementById('cust-company').value='';document.getElementById('cust-email').value='';document.getElementById('cust-phone').value='';document.getElementById('cust-country').value='';document.getElementById('cust-city').value='';document.getElementById('cust-address').value='';document.getElementById('cust-tags').value='';document.getElementById('cust-notes').value='';document.getElementById('modal-customer-title').textContent='Add Customer';}
@@ -2718,11 +2778,13 @@ function ldgOpenModal(type, id) {
   document.getElementById('modal-'+type).classList.add('open');
 }
 
-function ldgCloseModal(type){document.getElementById('modal-'+type).classList.remove('open');}
+function ldgCloseModal(type){document.getElementById('modal-'+ldgSingular(type)).classList.remove('open');}
 
 // ── Edit
 function ldgEdit(type, id) {
-  var r=ldgData[type].find(function(x){return x.id===id;});
+  var key=ldgDataKey(type);
+  type=ldgSingular(type);
+  var r=ldgData[key].find(function(x){return x.id===id;});
   if(!r) return;
   ldgOpenModal(type);
   if(type==='customer'){document.getElementById('cust-id').value=r.id;document.getElementById('cust-name').value=r.name||'';document.getElementById('cust-company').value=r.company||'';document.getElementById('cust-email').value=r.email||'';document.getElementById('cust-phone').value=r.phone||'';document.getElementById('cust-country').value=r.country||'';document.getElementById('cust-city').value=r.city||'';document.getElementById('cust-address').value=r.address||'';document.getElementById('cust-tags').value=r.tags||'';document.getElementById('cust-notes').value=r.notes||'';document.getElementById('modal-customer-title').textContent='Edit Customer';}
@@ -2735,14 +2797,16 @@ function ldgEdit(type, id) {
 // ── Delete
 function ldgDelete(type, id) {
   if(!confirm('Delete this record?')) return;
-  ldgData[type]=ldgData[type].filter(function(r){return r.id!==id;});
-  LDB.save(type, ldgData[type]);
+  var key=ldgDataKey(type);
+  ldgData[key]=ldgData[key].filter(function(r){return r.id!==id;});
+  LDB.save(key, ldgData[key]);
   ldgRender();
   showToast('Deleted ✓');
 }
 
 // ── Save
 function ldgSave(type) {
+  var key=ldgDataKey(type);
   var r={};
   if(type==='customer'){
     if(!document.getElementById('cust-name').value.trim()){showToast('Name is required.');return;}
@@ -2770,10 +2834,10 @@ function ldgSave(type) {
     r={id:document.getElementById('inv-id').value||LDB.uid(),num:document.getElementById('inv-num').value.trim(),date:document.getElementById('inv-date').value,due:document.getElementById('inv-due').value,customer:document.getElementById('inv-customer').value,amount:parseFloat(document.getElementById('inv-amount').value)||0,tax:parseFloat(document.getElementById('inv-tax').value)||0,status:document.getElementById('inv-status').value,desc:document.getElementById('inv-desc').value.trim(),created:new Date().toISOString()};
   }
   // Upsert
-  var existing=ldgData[type].findIndex(function(x){return x.id===r.id;});
-  if(existing>=0) ldgData[type][existing]=r;
-  else ldgData[type].push(r);
-  LDB.save(type, ldgData[type]);
+  var existing=ldgData[key].findIndex(function(x){return x.id===r.id;});
+  if(existing>=0) ldgData[key][existing]=r;
+  else ldgData[key].push(r);
+  LDB.save(key, ldgData[key]);
   ldgCloseModal(type);
   ldgRender();
   showToast('Saved ✓');
