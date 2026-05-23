@@ -921,16 +921,19 @@ async def shopify_status(payload: dict = Depends(verify_token)):
 async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_token)):
     db = get_supabase()
     email = payload["sub"]
-    plan_key = payload.get("plan", "free")
-    plan = PLANS.get(plan_key, PLANS["free"])
 
-    # Limit kontrolü
-    user_data = db.table("users").select("analyses_this_month").eq("email", email).execute()
-    used = user_data.data[0]["analyses_this_month"] if user_data.data else 0
+    user_data = db.table("users").select("plan,analyses_this_month").eq("email", email).execute()
+    if not user_data.data:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+
+    # JWT plan bilgisi eski kalabilir; kullanım ve limit için her zaman DB'deki güncel planı esas al.
+    plan_key = user_data.data[0].get("plan") or payload.get("plan", "free")
+    plan = PLANS.get(plan_key, PLANS["free"])
+    used = user_data.data[0].get("analyses_this_month") or 0
     limit = plan["max_orders"] // 100
 
     if used >= limit:
-        raise HTTPException(status_code=429, detail=f"Aylık limit doldu ({used}/{limit}). Plan yükselt.")
+        raise HTTPException(status_code=429, detail=f"Aylık limit doldu ({used}/{limit}). Güncel plan: {plan_key}.")
 
     connected_store = None
     if not req.use_mock and not req.shopify_token:
