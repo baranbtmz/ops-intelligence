@@ -11,6 +11,7 @@ uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -19,6 +20,11 @@ import jwt
 import bcrypt
 import json
 import requests
+import hmac
+import hashlib
+import secrets
+import re
+from urllib.parse import urlencode, quote
 from datetime import datetime, timedelta
 
 # ── Analiz modülleri
@@ -148,6 +154,14 @@ JWT_EXPIRE_HOURS = 24 * 7  # 7 gün
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://zyygkcknlcnoabwqbfij.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
+# ── Shopify OAuth
+SHOPIFY_API_KEY = os.environ.get("SHOPIFY_API_KEY", "")
+SHOPIFY_API_SECRET = os.environ.get("SHOPIFY_API_SECRET", "")
+SHOPIFY_SCOPES = os.environ.get("SHOPIFY_SCOPES", "read_orders,read_products,read_inventory")
+BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
+FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
+SHOPIFY_STATE_EXPIRE_MINUTES = 10
+
 security = HTTPBearer()
 
 
@@ -168,10 +182,14 @@ class AnalysisRequest(BaseModel):
     use_mock: bool = True
     shopify_domain: Optional[str] = None
     shopify_token: Optional[str] = None
+    connected_shop: Optional[str] = None
     meta_token: Optional[str] = None
     meta_account: Optional[str] = None
     use_mock_meta: bool = True
     language: str = "tr"
+
+class ShopifyConnectStartRequest(BaseModel):
+    shop: str
 
 
 # ─────────────────────────────────────────────
@@ -204,6 +222,120 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         raise HTTPException(status_code=401, detail="Token süresi doldu")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Geçersiz token")
+
+
+def normalize_shop_domain(shop: str) -> str:
+    shop = (shop or "").strip().lower()
+    shop = shop.replace("https://", "").replace("http://", "").split("/")[0]
+    if shop and "." not in shop:
+        shop = f"{shop}.myshopify.com"
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*\.myshopify\.com", shop or ""):
+        raise HTTPException(status_code=400, detail="Geçerli bir Shopify mağaza domain'i girin.")
+    return shop
+
+
+def create_shopify_state(email: str, shop: str) -> str:
+    payload = {
+        "sub": email,
+        "shop": shop,
+        "nonce": secrets.token_urlsafe(16),
+        "exp": datetime.utcnow() + timedelta(minutes=SHOPIFY_STATE_EXPIRE_MINUTES),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def verify_shopify_state(state: str, shop: str) -> dict:
+    try:
+        payload = jwt.decode(state, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Shopify bağlantı oturumu süresi doldu. Tekrar deneyin.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=400, detail="Shopify bağlantı oturumu geçersiz.")
+    if payload.get("shop") != shop:
+        raise HTTPException(status_code=400, detail="Shopify mağaza doğrulaması başarısız.")
+    return payload
+
+
+def verify_shopify_hmac(query_params: dict) -> bool:
+    if not SHOPIFY_API_SECRET:
+        return False
+    provided_hmac = query_params.get("hmac", "")
+    if not provided_hmac:
+        return False
+    params = []
+    for key in sorted(query_params.keys()):
+        if key in ("hmac", "signature"):
+            continue
+        params.append(f"{key}={query_params[key]}")
+    message = "&".join(params)
+    digest = hmac.new(SHOPIFY_API_SECRET.encode(), message.encode(), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(digest, provided_hmac)
+
+
+def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> dict:
+    db = get_supabase()
+    user_result = db.table("users").select("stores").eq("email", email).execute()
+    if not user_result.data:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+
+    stores = user_result.data[0].get("stores") or []
+    if not isinstance(stores, list):
+        stores = []
+
+    now = datetime.utcnow().isoformat()
+    store_record = {
+        "platform": "shopify",
+        "domain": shop,
+        "access_token": access_token,
+        "scope": scope,
+        "connected_at": now,
+        "updated_at": now,
+        "status": "connected",
+    }
+
+    replaced = False
+    for idx, store in enumerate(stores):
+        if store.get("platform") == "shopify" and store.get("domain") == shop:
+            store_record["connected_at"] = store.get("connected_at", now)
+            stores[idx] = store_record
+            replaced = True
+            break
+    if not replaced:
+        stores.append(store_record)
+
+    db.table("users").update({"stores": stores}).eq("email", email).execute()
+    safe_record = {k: v for k, v in store_record.items() if k != "access_token"}
+    return safe_record
+
+
+def get_connected_shop(email: str, requested_shop: Optional[str] = None) -> Optional[dict]:
+    db = get_supabase()
+    result = db.table("users").select("stores").eq("email", email).execute()
+    if not result.data:
+        return None
+    stores = result.data[0].get("stores") or []
+    if not isinstance(stores, list):
+        return None
+    requested = normalize_shop_domain(requested_shop) if requested_shop else None
+    for store in stores:
+        if store.get("platform") != "shopify" or store.get("status") != "connected":
+            continue
+        if requested and store.get("domain") != requested:
+            continue
+        if store.get("access_token"):
+            return store
+    return None
+
+
+def public_store(store: dict) -> dict:
+    return {
+        "platform": store.get("platform", "shopify"),
+        "domain": store.get("domain", ""),
+        "scope": store.get("scope", ""),
+        "connected_at": store.get("connected_at", ""),
+        "updated_at": store.get("updated_at", ""),
+        "status": store.get("status", "connected"),
+    }
 
 
 # ─────────────────────────────────────────────
@@ -294,11 +426,102 @@ async def me(payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
 
     user = result.data[0]
+    user["stores"] = [
+        public_store(store)
+        for store in (user.get("stores") or [])
+        if isinstance(store, dict)
+    ]
     plan = PLANS.get(user["plan"], PLANS["free"])
     return {
         "user": user,
         "plan": plan,
     }
+
+
+# ─────────────────────────────────────────────
+# SHOPIFY APP INSTALL / OAUTH
+# ─────────────────────────────────────────────
+
+@app.post("/shopify/connect/start")
+async def start_shopify_connect(req: ShopifyConnectStartRequest, payload: dict = Depends(verify_token)):
+    if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
+        raise HTTPException(
+            status_code=500,
+            detail="Shopify OAuth ayarları eksik. Railway env içinde SHOPIFY_API_KEY ve SHOPIFY_API_SECRET tanımlanmalı.",
+        )
+
+    shop = normalize_shop_domain(req.shop)
+    state = create_shopify_state(payload["sub"], shop)
+    redirect_uri = f"{BACKEND_PUBLIC_URL}/shopify/callback"
+    params = {
+        "client_id": SHOPIFY_API_KEY,
+        "scope": SHOPIFY_SCOPES,
+        "redirect_uri": redirect_uri,
+        "state": state,
+        "grant_options[]": "offline",
+    }
+    install_url = f"https://{shop}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+    return {"success": True, "install_url": install_url, "shop": shop, "scopes": SHOPIFY_SCOPES}
+
+
+@app.get("/shopify/callback")
+async def shopify_callback(request: Request):
+    params = dict(request.query_params)
+    shop = normalize_shop_domain(params.get("shop", ""))
+    state = params.get("state", "")
+    code = params.get("code", "")
+
+    if not code:
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=missing_code")
+    if not verify_shopify_hmac(params):
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=bad_hmac")
+
+    try:
+        state_payload = verify_shopify_state(state, shop)
+    except HTTPException:
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=bad_state")
+
+    try:
+        token_response = requests.post(
+            f"https://{shop}/admin/oauth/access_token",
+            json={
+                "client_id": SHOPIFY_API_KEY,
+                "client_secret": SHOPIFY_API_SECRET,
+                "code": code,
+            },
+            timeout=30,
+        )
+        token_response.raise_for_status()
+        token_data = token_response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Shopify token exchange failed for {shop}: {e}")
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=token_exchange_failed")
+
+    access_token = token_data.get("access_token")
+    if not access_token:
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=no_access_token")
+
+    save_shopify_store(
+        state_payload["sub"],
+        shop,
+        access_token,
+        token_data.get("scope", SHOPIFY_SCOPES),
+    )
+
+    return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_connected=1&shop={quote(shop)}")
+
+
+@app.get("/shopify/status")
+async def shopify_status(payload: dict = Depends(verify_token)):
+    db = get_supabase()
+    result = db.table("users").select("stores").eq("email", payload["sub"]).execute()
+    stores = result.data[0].get("stores", []) if result.data else []
+    shopify_stores = [
+        public_store(store)
+        for store in stores
+        if isinstance(store, dict) and store.get("platform") == "shopify"
+    ]
+    return {"success": True, "stores": shopify_stores}
 
 
 # ─────────────────────────────────────────────
@@ -320,10 +543,22 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     if used >= limit:
         raise HTTPException(status_code=429, detail=f"Aylık limit doldu ({used}/{limit}). Plan yükselt.")
 
+    connected_store = None
+    if not req.use_mock and not req.shopify_token:
+        connected_store = get_connected_shop(email, req.connected_shop or req.shopify_domain)
+        if not connected_store:
+            raise HTTPException(
+                status_code=400,
+                detail="Bu hesapta bağlı Shopify mağazası bulunamadı. Önce Connect Shopify ile uygulamayı mağazaya kurun.",
+            )
+
+    shop_domain = (connected_store or {}).get("domain") or req.shopify_domain or ""
+    shop_token = (connected_store or {}).get("access_token") or req.shopify_token or ""
+
     # Shopify config
     shopify_cfg = ShopifyConfig(
-        shop_domain=req.shopify_domain or "",
-        access_token=req.shopify_token or "",
+        shop_domain=shop_domain,
+        access_token=shop_token,
         use_mock=req.use_mock,
         mock_order_count=200,
     )
@@ -393,7 +628,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     # Analiz sonucu
     result_data = {
         "analysis": ai_result.get("analysis", {}),
-        "shop_name": req.shopify_domain or "Demo Mağaza",
+        "shop_name": shop_domain or "Demo Mağaza",
         "metrics": {
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
             "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
@@ -443,7 +678,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             },
         },
         "meta": meta_data,
-        "shop_name": req.shopify_domain or "Demo Mağaza",
+        "shop_name": shop_domain or "Demo Mağaza",
     }
 
 

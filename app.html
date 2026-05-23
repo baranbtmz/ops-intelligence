@@ -806,26 +806,42 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                 Shopify Store
               </div>
+              <div id="shopify-connection-status" style="font-size:12px;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
+                No Shopify store connected yet.
+              </div>
               <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
-              <div class="field"><label>Admin API Token</label><input type="password" id="connect-token" placeholder="shpat_..." autocomplete="off"></div>
-              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">
-                Shopify Admin → Settings → Apps and sales channels → Develop apps → Create app → Admin API access token
+              <button class="btn btn-ink" style="width:100%;justify-content:center;margin-bottom:10px" onclick="connectShopifyApp()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                Install OPS on Shopify
+              </button>
+              <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
+                Analyze Connected Store
+              </button>
+              <details style="margin-top:14px">
+                <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
+                <div style="margin-top:12px">
+                  <div class="field"><label>Admin API Token</label><input type="password" id="connect-token" placeholder="shpat_..." autocomplete="off"></div>
+                  <button class="btn btn-outline" onclick="saveAndAnalyze()">Analyze with manual token</button>
+                </div>
+              </details>
+              <div style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">
+                Recommended: install OPS through Shopify OAuth so the merchant does not copy API tokens manually.
               </div>
             </div>
             <div class="connect-card" style="background:var(--cream2)">
-              <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:12px">How to get your token</div>
+              <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:12px">How the Shopify app connection works</div>
               <div style="display:flex;flex-direction:column;gap:9px">
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Shopify Admin → Settings</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Apps and sales channels → Develop apps</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>Create app → Configure Admin API scopes</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>Enable: orders, products, inventory → Install → Copy token</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Enter the merchant's Shopify store domain.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Shopify opens the OPS install permission screen.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>The merchant approves orders, products, and inventory access.</div>
+                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>OPS stores the connection and analyzes the shop automatically.</div>
               </div>
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="btn btn-ink" onclick="saveAndAnalyze()">
+            <button class="btn btn-ink" onclick="analyzeConnectedShopify()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Connect &amp; Analyze
+              Analyze Shopify
             </button>
             <button class="btn btn-outline" onclick="startDemo()">Try Demo</button>
           </div>
@@ -1435,11 +1451,45 @@ let token = null;
 let user = null;
 let lastResult = null;
 let charts = {};
+let connectedShops = [];
 
 // ── INIT
 window.onload = () => {
+  const params = new URLSearchParams(window.location.search);
+  if(params.has('shopify_connected') || params.has('shopify_error')) {
+    resumeAfterShopifyCallback(params);
+    return;
+  }
   showPage('auth');
 };
+
+async function resumeAfterShopifyCallback(params) {
+  token = localStorage.getItem('ops_token');
+  if(!token) {
+    showPage('auth');
+    showToast('Please sign in again to finish Shopify connection.');
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/auth/me`, {headers:{'Authorization':`Bearer ${token}`}});
+    if(!r.ok) throw new Error('Session expired');
+    const d = await r.json();
+    user = d.user;
+    showApp();
+    nav('connect');
+    history.replaceState({}, document.title, window.location.pathname);
+    if(params.has('shopify_connected')) {
+      showToast('✅ Shopify store connected.');
+    } else {
+      const err = params.get('shopify_error') || 'connection_failed';
+      showToast('❌ Shopify connection failed: '+err.replaceAll('_',' '));
+    }
+    loadShopifyStatus();
+  } catch(e) {
+    showPage('auth');
+    showToast('Please sign in again to finish Shopify connection.');
+  }
+}
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -1638,6 +1688,7 @@ function showApp() {
 
     renderPlanFeatures(user.plan);
     updatePlanBtns(user.plan);
+    loadShopifyStatus();
     // Sync team — add current user if not present
     if(!teamMembers.find(function(m){return m.email===user.email;})) {
       teamMembers.unshift({name:user.name,email:user.email,role:'admin',plan:user.plan||'free',token:token});
@@ -1846,6 +1897,71 @@ function startDemo() {
   runAnalysis(true,'','');
 }
 
+function normalizeShopInput(v) {
+  v=(v||'').trim().toLowerCase().replace(/^https?:\/\//,'').split('/')[0];
+  if(v && !v.includes('.')) v += '.myshopify.com';
+  return v;
+}
+
+function renderShopifyStatus() {
+  const el=document.getElementById('shopify-connection-status');
+  if(!el) return;
+  const active=connectedShops.find(s=>s.status==='connected') || connectedShops[0];
+  if(active) {
+    el.innerHTML='<strong style="color:var(--ink)">Connected:</strong> '+active.domain+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Scopes: '+(active.scope||'orders, products, inventory')+'</div>';
+    if(document.getElementById('connect-domain') && !document.getElementById('connect-domain').value) {
+      document.getElementById('connect-domain').value=active.domain;
+    }
+  } else {
+    el.textContent='No Shopify store connected yet.';
+  }
+}
+
+async function loadShopifyStatus() {
+  if(!token) return;
+  try {
+    const r=await fetch(`${API}/shopify/status`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!r.ok) return;
+    const d=await r.json();
+    connectedShops=d.stores||[];
+    renderShopifyStatus();
+  } catch(e) {}
+}
+
+async function connectShopifyApp() {
+  const raw=document.getElementById('connect-domain').value.trim() || document.getElementById('shopify-domain').value.trim();
+  const shop=normalizeShopInput(raw);
+  if(!shop){showToast('Please enter your Shopify store domain.');return;}
+  if(!token){showToast('Please sign in first.');return;}
+  try {
+    const r=await fetch(`${API}/shopify/connect/start`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({shop})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){showToast('❌ '+(d.detail||'Could not start Shopify connection.'));return;}
+    window.location.href=d.install_url;
+  } catch(e) {
+    showToast('❌ Could not start Shopify connection: '+e.message);
+  }
+}
+
+async function analyzeConnectedShopify() {
+  await loadShopifyStatus();
+  const shop=normalizeShopInput(document.getElementById('connect-domain').value.trim());
+  const active=(shop && connectedShops.find(s=>s.domain===shop)) || connectedShops.find(s=>s.status==='connected') || connectedShops[0];
+  if(!active){
+    showToast('Install OPS on Shopify first, or use manual token fallback.');
+    return;
+  }
+  document.getElementById('connect-domain').value=active.domain;
+  document.getElementById('shopify-domain').value=active.domain;
+  nav('analysis');
+  runAnalysis(false,active.domain,'',active.domain);
+}
+
 function saveAndAnalyze() {
   var domain=(document.getElementById('connect-domain').value.trim()||document.getElementById('shopify-domain').value.trim());
   var st=(document.getElementById('connect-token').value.trim()||document.getElementById('shopify-token').value.trim());
@@ -1856,7 +1972,7 @@ function saveAndAnalyze() {
   runAnalysis(false,domain,st);
 }
 
-async function runAnalysis(mock=true,domain='',shopToken='') {
+async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
   const loadEl=document.getElementById('analysis-loading');
   loadEl.classList.add('show');
   document.getElementById('analysis-shop-name').textContent=mock?'Demo Store':'Starting analysis...';
@@ -1879,7 +1995,7 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,use_mock_meta:true,language:'en'}),
+        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,use_mock_meta:true,language:'en'}),
         signal:controller.signal
       });
       clearTimeout(timeout);
