@@ -11,7 +11,7 @@ uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -191,6 +191,10 @@ class AnalysisRequest(BaseModel):
 class ShopifyConnectStartRequest(BaseModel):
     shop: str
 
+class ShopifyEmbeddedAnalyzeRequest(BaseModel):
+    shop: str
+    app_token: str
+
 
 # ─────────────────────────────────────────────
 # VERİTABANI (Supabase)
@@ -234,10 +238,11 @@ def normalize_shop_domain(shop: str) -> str:
     return shop
 
 
-def create_shopify_state(email: str, shop: str) -> str:
+def create_shopify_state(email: str, shop: str, mode: str = "user") -> str:
     payload = {
         "sub": email,
         "shop": shop,
+        "mode": mode,
         "nonce": secrets.token_urlsafe(16),
         "exp": datetime.utcnow() + timedelta(minutes=SHOPIFY_STATE_EXPIRE_MINUTES),
     }
@@ -270,6 +275,82 @@ def verify_shopify_hmac(query_params: dict) -> bool:
     message = "&".join(params)
     digest = hmac.new(SHOPIFY_API_SECRET.encode(), message.encode(), hashlib.sha256).hexdigest()
     return hmac.compare_digest(digest, provided_hmac)
+
+
+def create_shopify_embedded_token(email: str, shop: str) -> str:
+    payload = {
+        "sub": email,
+        "shop": shop,
+        "purpose": "shopify_embedded",
+        "exp": datetime.utcnow() + timedelta(minutes=30),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def verify_shopify_embedded_token(token: str, shop: str) -> dict:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Shopify app session expired. Reopen OPS in Shopify.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid Shopify app session.")
+    if payload.get("purpose") != "shopify_embedded" or payload.get("shop") != shop:
+        raise HTTPException(status_code=401, detail="Invalid Shopify app session.")
+    return payload
+
+
+def fetch_shop_profile(shop: str, access_token: str) -> dict:
+    response = requests.get(
+        f"https://{shop}/admin/api/2024-01/shop.json",
+        headers={"X-Shopify-Access-Token": access_token, "Content-Type": "application/json"},
+        timeout=20,
+    )
+    response.raise_for_status()
+    return response.json().get("shop", {})
+
+
+def find_shopify_store_by_domain(shop: str) -> Optional[dict]:
+    db = get_supabase()
+    result = db.table("users").select("email,name,plan,analyses_this_month,stores").execute()
+    for user in result.data or []:
+        stores = user.get("stores") or []
+        if not isinstance(stores, list):
+            continue
+        for store in stores:
+            if (
+                isinstance(store, dict)
+                and store.get("platform") == "shopify"
+                and store.get("status") == "connected"
+                and store.get("domain") == shop
+                and store.get("access_token")
+            ):
+                return {"user": user, "store": store}
+    return None
+
+
+def ensure_shopify_user(shop: str, access_token: str, scope: str) -> dict:
+    db = get_supabase()
+    try:
+        profile = fetch_shop_profile(shop, access_token)
+    except requests.exceptions.RequestException:
+        profile = {}
+
+    email = (profile.get("email") or profile.get("customer_email") or f"shopify-{shop}@ops.local").lower().strip()
+    name = profile.get("name") or profile.get("shop_owner") or shop
+    existing = db.table("users").select("email,name,plan,stores").eq("email", email).execute()
+    if not existing.data:
+        db.table("users").insert({
+            "email": email,
+            "name": name,
+            "password_hash": hash_password(secrets.token_urlsafe(24)),
+            "plan": "free",
+            "stores": [],
+            "analyses_this_month": 0,
+            "is_active": True,
+        }).execute()
+
+    safe_store = save_shopify_store(email, shop, access_token, scope)
+    return {"email": email, "name": name, "store": safe_store}
 
 
 def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> dict:
@@ -442,6 +523,170 @@ async def me(payload: dict = Depends(verify_token)):
 # SHOPIFY APP INSTALL / OAUTH
 # ─────────────────────────────────────────────
 
+@app.get("/shopify/install")
+async def shopify_install(shop: str):
+    if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
+        raise HTTPException(status_code=500, detail="Shopify OAuth env ayarları eksik.")
+
+    shop_domain = normalize_shop_domain(shop)
+    state = create_shopify_state(f"shopify:{shop_domain}", shop_domain, mode="embedded")
+    redirect_uri = f"{BACKEND_PUBLIC_URL}/shopify/callback"
+    params = {
+        "client_id": SHOPIFY_API_KEY,
+        "scope": SHOPIFY_SCOPES,
+        "redirect_uri": redirect_uri,
+        "state": state,
+        "grant_options[]": "offline",
+    }
+    install_url = f"https://{shop_domain}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+    return RedirectResponse(install_url)
+
+
+@app.get("/shopify/app", response_class=HTMLResponse)
+async def shopify_app_home(request: Request):
+    params = dict(request.query_params)
+    shop = normalize_shop_domain(params.get("shop", ""))
+    connected = find_shopify_store_by_domain(shop)
+    if not connected:
+        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/install?shop={quote(shop)}")
+
+    user = connected["user"]
+    store = connected["store"]
+    plan_key = user.get("plan", "free")
+    plan = PLANS.get(plan_key, PLANS["free"])
+    app_token = create_shopify_embedded_token(user["email"], shop)
+    safe_scope = (store.get("scope") or "").replace("<", "").replace(">", "")
+    used = int(user.get("analyses_this_month") or 0)
+    max_analyses = max(1, plan["max_orders"] // 100)
+
+    return HTMLResponse(f"""
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OPS Intelligence</title>
+  <style>
+    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
+    .wrap{{padding:28px;max-width:1180px;margin:0 auto}}
+    h1{{font-family:Georgia,serif;font-size:34px;font-weight:400;margin:0 0 6px}}
+    .muted{{color:#887f70}} .grid{{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:22px}}
+    .card{{background:#fff;border:1px solid #e0d8cc;border-radius:14px;padding:20px;box-shadow:0 14px 34px rgba(30,24,10,.06)}}
+    .row{{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eee7dc}}
+    .row:last-child{{border-bottom:0}} .pill{{display:inline-flex;border-radius:999px;background:#d09b36;color:#fff;padding:5px 10px;font-size:12px;font-weight:700}}
+    button,a.btn{{appearance:none;border:0;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}}
+    button.secondary{{background:#fff;color:#11100c;border:1px solid #ded5c8}} .plans{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}}
+    .plan{{border:1px solid #e0d8cc;border-radius:12px;padding:14px;background:#faf8f4}} .price{{font-size:24px;font-weight:800;margin-top:8px}}
+    #result{{white-space:pre-wrap;background:#11100c;color:#f8f1df;border-radius:12px;padding:14px;font-size:13px;min-height:90px;margin-top:14px}}
+    @media(max-width:800px){{.grid,.plans{{grid-template-columns:1fr}}}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>OPS Intelligence</h1>
+    <div class="muted">Shopify admin app home for {shop}</div>
+    <div class="grid">
+      <section class="card">
+        <span class="pill">Connected</span>
+        <h2>Store overview</h2>
+        <div class="row"><span>Shop</span><strong>{shop}</strong></div>
+        <div class="row"><span>Plan</span><strong>{plan_key.title()}</strong></div>
+        <div class="row"><span>Usage</span><strong>{used}/{max_analyses} analyses</strong></div>
+        <div class="row"><span>Permissions</span><span class="muted">{safe_scope}</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button onclick="runAnalysis()">Analyze Shopify data</button>
+          <a class="btn secondary" href="{FRONTEND_PUBLIC_URL}/app.html?shop={quote(shop)}" target="_blank">Open full OPS dashboard</a>
+        </div>
+        <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a summary.</div>
+      </section>
+      <section class="card">
+        <h2>Plans</h2>
+        <div class="plans">
+          <div class="plan"><strong>Free</strong><div class="price">€0</div><div class="muted">100 orders</div></div>
+          <div class="plan"><strong>Starter</strong><div class="price">€29</div><div class="muted">AI + PDF</div></div>
+          <div class="plan"><strong>Pro</strong><div class="price">€79</div><div class="muted">Forecast, churn, pricing</div></div>
+        </div>
+        <p class="muted">Shopify Billing checkout is the next step. For App Store distribution, plan payments should use Shopify Billing API.</p>
+      </section>
+    </div>
+  </div>
+  <script>
+    const shop = {json.dumps(shop)};
+    const appToken = {json.dumps(app_token)};
+    async function runAnalysis(){{
+      const box=document.getElementById('result');
+      box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
+      try{{
+        const res=await fetch('/shopify/app/analyze',{{
+          method:'POST',
+          headers:{{'Content-Type':'application/json'}},
+          body:JSON.stringify({{shop,app_token:appToken}})
+        }});
+        const data=await res.json();
+        if(!res.ok) throw new Error(data.detail||'Analysis failed');
+        const rev=data.metrics.revenue||{{}};
+        const inv=data.metrics.inventory||{{}};
+        box.textContent =
+          `Health score: ${{data.analysis.overall_health_score || 0}}/100\\n`+
+          `Revenue: €${{Number(rev.total || 0).toLocaleString()}}\\n`+
+          `Orders: ${{rev.orders || 0}}\\n`+
+          `AOV: €${{Number(rev.aov || 0).toFixed(2)}}\\n`+
+          `Critical inventory items: ${{inv.critical_count || 0}}\\n\\n`+
+          `${{data.analysis.executive_summary || 'Analysis completed.'}}`;
+      }}catch(e){{
+        box.textContent='Error: '+e.message;
+      }}
+    }}
+  </script>
+</body>
+</html>
+""")
+
+
+@app.post("/shopify/app/analyze")
+async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
+    shop = normalize_shop_domain(req.shop)
+    payload = verify_shopify_embedded_token(req.app_token, shop)
+    connected = get_connected_shop(payload["sub"], shop)
+    if not connected:
+        raise HTTPException(status_code=404, detail="Connected Shopify store not found.")
+
+    try:
+        report = run_pipeline(ShopifyConfig(
+            shop_domain=shop,
+            access_token=connected["access_token"],
+            use_mock=False,
+            mock_order_count=200,
+        ))
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else 502
+        if status_code in (401, 403):
+            raise HTTPException(status_code=status_code, detail="Shopify permissions are missing or expired. Reinstall OPS from Shopify.")
+        raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Shopify API timed out. Please retry.")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
+    ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
+    return {
+        "success": True,
+        "shop_name": shop,
+        "analysis": ai_result.get("analysis", {}),
+        "metrics": {
+            "revenue": {
+                "total": report["revenue"]["total_revenue"],
+                "orders": report["revenue"]["total_orders"],
+                "aov": report["revenue"]["aov"],
+                "cancel_rate": report["revenue"]["cancellation_rate"],
+            },
+            "inventory": {
+                "total_products": len(report["inventory"]["details"]),
+                "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0,
+            },
+        },
+    }
+
+
 @app.post("/shopify/connect/start")
 async def start_shopify_connect(req: ShopifyConnectStartRequest, payload: dict = Depends(verify_token)):
     if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
@@ -500,6 +745,14 @@ async def shopify_callback(request: Request):
     access_token = token_data.get("access_token")
     if not access_token:
         return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=no_access_token")
+
+    if state_payload.get("mode") == "embedded":
+        ensure_shopify_user(
+            shop,
+            access_token,
+            token_data.get("scope", SHOPIFY_SCOPES),
+        )
+        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop)}&shopify_connected=1")
 
     save_shopify_store(
         state_payload["sub"],
