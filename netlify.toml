@@ -1,0 +1,3 @@
+[build]
+  command = "mkdir -p netlify-public && cp index.html app.html netlify-public/"
+  publish = "netlify-public"
