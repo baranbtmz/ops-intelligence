@@ -18,6 +18,7 @@ import os
 import jwt
 import bcrypt
 import json
+import requests
 from datetime import datetime, timedelta
 
 # ── Analiz modülleri
@@ -328,7 +329,25 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     )
 
     # Veri çek
-    report = run_pipeline(shopify_cfg)
+    try:
+        report = run_pipeline(shopify_cfg)
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else 502
+        if status_code in (401, 403):
+            raise HTTPException(
+                status_code=status_code,
+                detail=(
+                    "Shopify bağlantısı yetkisiz. Token'ın doğru olduğundan ve "
+                    "read_orders, read_products, read_inventory scope'larının açık olduğundan emin olun."
+                ),
+            )
+        raise HTTPException(status_code=502, detail=f"Shopify API hata döndürdü: HTTP {status_code}")
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Shopify API yanıtı zaman aşımına uğradı. Birazdan tekrar deneyin.")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Shopify bağlantı hatası: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analiz başlatılamadı: {str(e)}")
 
     # AI analiz
     openai_key = os.environ.get("OPENAI_API_KEY", "")

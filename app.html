@@ -1873,7 +1873,7 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
   },1200);
   try {
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),40000);
+    const timeout=setTimeout(()=>controller.abort(),90000);
     let r, text, d;
     try {
       r=await fetch(`${API}/analysis/run`,{
@@ -1891,9 +1891,10 @@ async function runAnalysis(mock=true,domain='',shopToken='') {
       if(mock){
         const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
       } else {
-        var errMsg = fetchErr.name==='AbortError'
-          ? 'Request timed out (40s). Railway may be sleeping — try again in 30 seconds.'
-          : 'Network error: '+fetchErr.message+'. Check that Railway is running.';
+        var loadFailed=String(fetchErr.message||'').toLowerCase().includes('load failed');
+        var errMsg = (fetchErr.name==='AbortError'||loadFailed)
+          ? 'Request timed out or was blocked by the browser. Shopify can take up to 90 seconds — please try again.'
+          : 'Network error: '+fetchErr.message+'. Backend health is OK; please retry.';
         showToast('❌ '+errMsg);
         nav('connect');
       }
