@@ -184,6 +184,7 @@ class AnalysisRequest(BaseModel):
     shopify_domain: Optional[str] = None
     shopify_token: Optional[str] = None
     connected_shop: Optional[str] = None
+    fast_ai: bool = False
     meta_token: Optional[str] = None
     meta_account: Optional[str] = None
     use_mock_meta: bool = True
@@ -978,7 +979,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     # AI analiz
     openai_key = os.environ.get("OPENAI_API_KEY", "")
-    if openai_key and plan["ai"]:
+    if req.fast_ai:
+        ai_cfg = AIConfig(use_mock_ai=True, language=req.language)
+    elif openai_key and plan["ai"]:
         ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=False, language=req.language)
     else:
         ai_cfg = AIConfig(use_mock_ai=True, language=req.language)

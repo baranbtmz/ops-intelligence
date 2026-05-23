@@ -684,7 +684,7 @@ body{background:var(--cream);color:var(--ink2);font-family:'DM Sans',sans-serif;
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               Last 30 days
             </div>
-            <button class="btn btn-ink btn-sm" onclick="startDemo()">
+            <button class="btn btn-ink btn-sm" onclick="startSmartAnalysis()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Run Analysis
             </button>
@@ -1897,6 +1897,15 @@ function startDemo() {
   runAnalysis(true,'','');
 }
 
+async function startSmartAnalysis() {
+  await loadShopifyStatus();
+  if(connectedShops.some(s=>s.status==='connected')) {
+    analyzeConnectedShopify();
+  } else {
+    startDemo();
+  }
+}
+
 function normalizeShopInput(v) {
   v=(v||'').trim().toLowerCase().replace(/^https?:\/\//,'').split('/')[0];
   if(v && !v.includes('.')) v += '.myshopify.com';
@@ -1995,7 +2004,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,use_mock_meta:true,language:'en'}),
+        body:JSON.stringify({use_mock:mock,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:true,language:'en'}),
         signal:controller.signal
       });
       clearTimeout(timeout);
