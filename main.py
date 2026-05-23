@@ -129,16 +129,11 @@ async def download_fonts():
             except Exception as e:
                 print(f"⚠️ Font indirilemedi: {fname} — {e}")
 
-# ── CORS — Netlify'dan gelen isteklere izin ver
+# ── CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://opswebsitedot.netlify.app",
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "*",  # Geliştirme için
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -372,6 +367,10 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "last_analysis": datetime.now().isoformat(),
     }).eq("email", email).execute()
 
+    inventory_products = report["inventory"]["details"].to_dict("records")
+    for product in inventory_products:
+        product["current_stock"] = product.get("inventory", 0)
+
     # Analiz sonucu
     result_data = {
         "analysis": ai_result.get("analysis", {}),
@@ -379,7 +378,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "metrics": {
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
             "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
-            "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": report["inventory"]["details"].to_dict("records")},
+            "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": inventory_products},
         },
     }
 
@@ -421,7 +420,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             "inventory": {
                 "avg_turnover":   inv["avg_turnover"],
                 "critical_count": len(inv["critical_items"]) if inv["critical_items"] is not None else 0,
-                "products": inv["details"].to_dict("records"),
+                "products": inventory_products,
             },
         },
         "meta": meta_data,
@@ -532,6 +531,47 @@ async def stripe_webhook(request: Request):
             print(f"✅ Plan güncellendi: {email} → {plan}")
 
     return {"status": "ok"}
+
+async def cancel_subscription_for_user(payload: dict) -> dict:
+    email = payload["sub"]
+
+    try:
+        import stripe
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+        if stripe.api_key:
+            customers = stripe.Customer.list(email=email, limit=1)
+            if customers.data:
+                subscriptions = stripe.Subscription.list(
+                    customer=customers.data[0].id,
+                    status="active",
+                    limit=10,
+                )
+                for subscription in subscriptions.data:
+                    stripe.Subscription.modify(
+                        subscription.id,
+                        cancel_at_period_end=True,
+                    )
+    except Exception as e:
+        print(f"Stripe iptal uyarısı: {e}")
+
+    db = get_supabase()
+    db.table("users").update({"plan": "free"}).eq("email", email).execute()
+
+    new_token = create_token(email, "free")
+    return {
+        "success": True,
+        "token": new_token,
+        "plan": "free",
+        "message": "Abonelik iptal edildi, plan Free olarak güncellendi.",
+    }
+
+@app.post("/payments/cancel")
+async def cancel_payment(payload: dict = Depends(verify_token)):
+    return await cancel_subscription_for_user(payload)
+
+@app.post("/payments/cancel-subscription")
+async def cancel_subscription(payload: dict = Depends(verify_token)):
+    return await cancel_subscription_for_user(payload)
 
 @app.put("/user/plan")
 async def update_plan(plan: str, payload: dict = Depends(verify_token)):

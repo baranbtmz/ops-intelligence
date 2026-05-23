@@ -758,8 +758,8 @@ function renderResults(data) {
   document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Mağaza'} — ${new Date().toLocaleDateString('tr-TR')}`;
 
   // Metrics
-  const cancelRate=((rev.cancel_rate||0)*100).toFixed(1);
-  const refundRate=((rev.refund_rate||0)*100).toFixed(1);
+  const cancelRate=(rev.cancel_rate||0).toFixed(1);
+  const refundRate=(rev.refund_rate||0).toFixed(1);
   document.getElementById('r-metrics').innerHTML=`
     <div class="metric-card">
       <div class="metric-label">Toplam Gelir</div>
@@ -793,7 +793,7 @@ function renderResults(data) {
         <span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span>
         <span class="finding-title">${f.title||''}</span>
       </div>
-      <div class="finding-desc">${f.description||''}</div>
+      <div class="finding-desc">${f.description||f.root_cause||''}</div>
       ${f.impact?`<div class="finding-impact">💸 ${f.impact}</div>`:''}
       ${f.recommendation?`<div class="finding-rec">💡 ${f.recommendation}</div>`:''}
     </div>`).join(''):'<div style="color:var(--muted);font-size:14px;padding:20px 0">Bulgu bulunamadı.</div>';
@@ -812,16 +812,19 @@ function renderResults(data) {
 
   // Inventory table
   const products=inv.products||[];
+  const stockOf=p=>p.current_stock??p.inventory??0;
   document.getElementById('r-inventory-table').innerHTML=products.length?`
     <table class="data-table">
       <tr><th>Ürün</th><th>Stok</th><th>Devir Hızı</th><th>Durum</th></tr>
-      ${products.slice(0,10).map(p=>`
+      ${products.slice(0,10).map(p=>{
+        const stock=stockOf(p);
+        return `
         <tr>
           <td>${p.title||p.product_id||'—'}</td>
-          <td>${p.current_stock??'—'}</td>
+          <td>${stock}</td>
           <td>${(p.turnover_rate||0).toFixed(2)}x</td>
-          <td><span class="badge ${p.current_stock<=0?'badge-danger':p.current_stock<=10?'badge-warn':'badge-success'}">${p.current_stock<=0?'Tükendi':p.current_stock<=10?'Kritik':'Normal'}</span></td>
-        </tr>`).join('')}
+          <td><span class="badge ${stock<=0?'badge-danger':stock<=10?'badge-warn':'badge-success'}">${stock<=0?'Tükendi':stock<=10?'Kritik':'Normal'}</span></td>
+        </tr>`}).join('')}
     </table>`:'<div style="color:var(--muted);font-size:14px">Ürün verisi bulunamadı.</div>';
 
   // Quick wins / actions
@@ -849,7 +852,7 @@ function renderResults(data) {
     // Inventory chart
     const invCtx=document.getElementById('chart-inventory');
     if(invCtx&&products.length) {
-      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{label:'Mevcut Stok',data:products.slice(0,8).map(p=>p.current_stock||0),backgroundColor:products.slice(0,8).map(p=>p.current_stock<=0?'rgba(192,57,43,0.7)':p.current_stock<=10?'rgba(212,172,13,0.7)':'rgba(201,150,58,0.7)'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e0d8cc'},ticks:{color:'#8a8070'}},x:{grid:{display:false},ticks:{color:'#8a8070'}}}}});
+      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{label:'Mevcut Stok',data:products.slice(0,8).map(stockOf),backgroundColor:products.slice(0,8).map(p=>{const stock=stockOf(p);return stock<=0?'rgba(192,57,43,0.7)':stock<=10?'rgba(212,172,13,0.7)':'rgba(201,150,58,0.7)'}),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e0d8cc'},ticks:{color:'#8a8070'}},x:{grid:{display:false},ticks:{color:'#8a8070'}}}}});
     }
 
     // ROAS chart (mock)
