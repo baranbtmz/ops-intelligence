@@ -222,7 +222,7 @@ class AIAnalysisEngine:
             api_key = config.api_key or os.environ.get("OPENAI_API_KEY", "")
             if not api_key:
                 raise ValueError("OPENAI_API_KEY bulunamadı. AIConfig.api_key veya env var set edin.")
-            self.client = OpenAI(api_key=api_key)
+            self.client = OpenAI(api_key=api_key, timeout=25.0, max_retries=0)
 
     def _build_prompt(self, report: dict) -> str:
         """Metriklerden analiz prompt'u oluşturur"""

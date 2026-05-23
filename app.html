@@ -1989,7 +1989,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
   },1200);
   try {
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),90000);
+    const timeout=setTimeout(()=>controller.abort(),180000);
     let r, text, d;
     try {
       r=await fetch(`${API}/analysis/run`,{
@@ -2009,7 +2009,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='') {
       } else {
         var loadFailed=String(fetchErr.message||'').toLowerCase().includes('load failed');
         var errMsg = (fetchErr.name==='AbortError'||loadFailed)
-          ? 'Request timed out or was blocked by the browser. Shopify can take up to 90 seconds — please try again.'
+          ? 'Request timed out or was blocked by the browser. Shopify analysis can take up to 3 minutes — please try again.'
           : 'Network error: '+fetchErr.message+'. Backend health is OK; please retry.';
         showToast('❌ '+errMsg);
         nav('connect');
