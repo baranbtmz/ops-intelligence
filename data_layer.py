@@ -213,7 +213,7 @@ class ShopifyClient:
         response.raise_for_status()
         return response
 
-    def fetch_orders(self, limit: int = 250, status: str = "any") -> list[dict]:
+    def fetch_orders(self, limit: int = 250, status: str = "any", max_pages: int = 2) -> list[dict]:
         """Siparişleri getir (gerçek veya mock)"""
         if self.config.use_mock:
             print("📦 [MOCK] Sipariş verisi üretiliyor...")
@@ -223,11 +223,13 @@ class ShopifyClient:
         all_orders = []
         params = {"limit": limit, "status": status, "order": "created_at desc"}
 
-        while True:
+        pages = 0
+        while pages < max_pages:
             response = self._get("orders", params)
             data = response.json()
             orders = data.get("orders", [])
             all_orders.extend(orders)
+            pages += 1
 
             next_url = response.links.get("next", {}).get("url")
             if not next_url:
@@ -239,7 +241,7 @@ class ShopifyClient:
 
         return all_orders
 
-    def fetch_products(self) -> list[dict]:
+    def fetch_products(self, max_pages: int = 2) -> list[dict]:
         """Ürünleri getir (gerçek veya mock)"""
         if self.config.use_mock:
             print("🛍️ [MOCK] Ürün verisi üretiliyor...")
@@ -248,10 +250,12 @@ class ShopifyClient:
         print("🔗 [API] Shopify'dan ürünler çekiliyor...")
         all_products = []
         params = {"limit": 250}
-        while True:
+        pages = 0
+        while pages < max_pages:
             response = self._get("products", params)
             data = response.json()
             all_products.extend(data.get("products", []))
+            pages += 1
             next_url = response.links.get("next", {}).get("url")
             if not next_url:
                 break
