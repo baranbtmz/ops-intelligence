@@ -1,0 +1,33 @@
+name = "OPS Intelligence"
+handle = "ops-intelligence"
+client_id = "44393245e87ba1dc8b68fb2265277536"
+application_url = "https://ops-intelligence-production.up.railway.app/shopify/app"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+include_config_on_deploy = true
+
+[access_scopes]
+scopes = "read_orders,read_all_orders,read_products,read_inventory,read_fulfillments,read_locations"
+use_legacy_install_flow = false
+
+[access.admin]
+embedded_app_direct_api_access = false
+direct_api_mode = "offline"
+
+[auth]
+redirect_urls = [
+  "https://ops-intelligence-production.up.railway.app/shopify/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[[webhooks.subscriptions]]
+topics = [ "app/uninstalled" ]
+uri = "https://ops-intelligence-production.up.railway.app/shopify/webhooks/app-uninstalled"
+
+[[webhooks.subscriptions]]
+compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+uri = "https://ops-intelligence-production.up.railway.app/shopify/webhooks/privacy"

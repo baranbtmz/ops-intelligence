@@ -22,6 +22,7 @@ import json
 import requests
 import hmac
 import hashlib
+import base64
 import secrets
 import re
 from urllib.parse import urlencode, quote
@@ -285,6 +286,14 @@ def verify_shopify_hmac(query_params: dict) -> bool:
     return hmac.compare_digest(digest, provided_hmac)
 
 
+def verify_shopify_webhook(raw_body: bytes, hmac_header: str) -> bool:
+    if not SHOPIFY_API_SECRET or not hmac_header:
+        return False
+    digest = hmac.new(SHOPIFY_API_SECRET.encode(), raw_body, hashlib.sha256).digest()
+    computed = base64.b64encode(digest).decode()
+    return hmac.compare_digest(computed, hmac_header)
+
+
 def build_shopify_install_url(shop: str) -> str:
     shop_domain = normalize_shop_domain(shop)
     state = create_shopify_state(f"shopify:{shop_domain}", shop_domain, mode="embedded")
@@ -297,6 +306,31 @@ def build_shopify_install_url(shop: str) -> str:
         "grant_options[]": "offline",
     }
     return f"https://{shop_domain}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+
+
+def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
+    if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
+        raise HTTPException(status_code=500, detail="Shopify app credentials are missing.")
+    response = requests.post(
+        f"https://{shop}/admin/oauth/access_token",
+        data={
+            "client_id": SHOPIFY_API_KEY,
+            "client_secret": SHOPIFY_API_SECRET,
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token": id_token,
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "requested_token_type": "urn:shopify:params:oauth:token-type:offline-access-token",
+            "expiring": "0",
+        },
+        headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"},
+        timeout=30,
+    )
+    response.raise_for_status()
+    token_data = response.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=502, detail="Shopify token exchange did not return an access token.")
+    return ensure_shopify_user(shop, access_token, token_data.get("scope", SHOPIFY_SCOPES))
 
 
 def render_shopify_install_required(shop: str) -> HTMLResponse:
@@ -445,6 +479,24 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
     db.table("users").update({"stores": stores}).eq("email", email).execute()
     safe_record = {k: v for k, v in store_record.items() if k != "access_token"}
     return safe_record
+
+
+def disconnect_shopify_store(shop: str) -> None:
+    db = get_supabase()
+    result = db.table("users").select("email,stores").execute()
+    for user in result.data or []:
+        stores = user.get("stores") or []
+        if not isinstance(stores, list):
+            continue
+        changed = False
+        for store in stores:
+            if isinstance(store, dict) and store.get("platform") == "shopify" and store.get("domain") == shop:
+                store["status"] = "uninstalled"
+                store.pop("access_token", None)
+                store["updated_at"] = datetime.utcnow().isoformat()
+                changed = True
+        if changed:
+            db.table("users").update({"stores": stores}).eq("email", user["email"]).execute()
 
 
 def get_connected_shop(email: str, requested_shop: Optional[str] = None) -> Optional[dict]:
@@ -602,6 +654,17 @@ async def shopify_install(shop: str):
 async def shopify_app_home(request: Request):
     params = dict(request.query_params)
     shop = normalize_shop_domain(params.get("shop", ""))
+    id_token = params.get("id_token", "")
+    if id_token and verify_shopify_hmac(params):
+        try:
+            exchange_shopify_id_token(shop, id_token)
+        except requests.exceptions.HTTPError as e:
+            print(f"Shopify token exchange HTTP error for {shop}: {e}")
+        except requests.exceptions.RequestException as e:
+            print(f"Shopify token exchange failed for {shop}: {e}")
+        except HTTPException as e:
+            print(f"Shopify token exchange rejected for {shop}: {e.detail}")
+
     connected = find_shopify_store_by_domain(shop)
     if not connected:
         return render_shopify_install_required(shop)
@@ -919,6 +982,24 @@ async def shopify_status(payload: dict = Depends(verify_token)):
         if isinstance(store, dict) and store.get("platform") == "shopify"
     ]
     return {"success": True, "stores": shopify_stores}
+
+
+@app.post("/shopify/webhooks/app-uninstalled")
+async def shopify_app_uninstalled(request: Request):
+    raw_body = await request.body()
+    if not verify_shopify_webhook(raw_body, request.headers.get("X-Shopify-Hmac-Sha256", "")):
+        raise HTTPException(status_code=401, detail="Invalid Shopify webhook signature.")
+    shop = normalize_shop_domain(request.headers.get("X-Shopify-Shop-Domain", ""))
+    disconnect_shopify_store(shop)
+    return {"success": True}
+
+
+@app.post("/shopify/webhooks/privacy")
+async def shopify_privacy_webhook(request: Request):
+    raw_body = await request.body()
+    if not verify_shopify_webhook(raw_body, request.headers.get("X-Shopify-Hmac-Sha256", "")):
+        raise HTTPException(status_code=401, detail="Invalid Shopify webhook signature.")
+    return {"success": True}
 
 
 # ─────────────────────────────────────────────
