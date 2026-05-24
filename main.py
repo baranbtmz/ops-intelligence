@@ -621,13 +621,44 @@ def build_daily_revenue_points(report: dict) -> list[dict]:
     return points
 
 
+def build_metrics_payload(report: dict) -> dict:
+    ft = report["fulfillment_time"]
+    rev = report["revenue"]
+    inv = report["inventory"]
+    inventory_products = report["inventory"]["details"].to_dict("records")
+    for product in inventory_products:
+        product["current_stock"] = product.get("inventory", 0)
+    return {
+        "fulfillment": {
+            "mean": ft["mean"],
+            "median": ft["median"],
+            "p95": ft["p95"],
+            "over72h": ft["orders_over_72h"],
+            "status": ft["status"],
+            "total": ft["total_fulfilled"],
+        },
+        "revenue": {
+            "total": rev["total_revenue"],
+            "orders": rev["total_orders"],
+            "aov": rev["aov"],
+            "cancel_rate": rev["cancellation_rate"],
+            "refund_rate": rev["refund_rate"],
+        },
+        "inventory": {
+            "avg_turnover": inv["avg_turnover"],
+            "critical_count": len(inv["critical_items"]) if inv["critical_items"] is not None else 0,
+            "products": inventory_products,
+        },
+    }
+
+
 # ─────────────────────────────────────────────
 # PLAN TANIMLARI
 # ─────────────────────────────────────────────
 
 PLANS = {
     "free":    {"name": "Free", "price": 0,  "max_stores": 1,  "max_orders": 100,  "ai": False, "pdf": False, "meta": False},
-    "starter": {"name": "Starter",  "price": 29, "max_stores": 2,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": False},
+    "starter": {"name": "Starter",  "price": 29, "max_stores": 2,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": True},
     "pro":     {"name": "Pro",      "price": 79, "max_stores": 10, "max_orders": 10000,"ai": True,  "pdf": True,  "meta": True},
 }
 
@@ -870,6 +901,9 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     connected = get_connected_shop(payload["sub"], shop)
     if not connected:
         raise HTTPException(status_code=404, detail="Connected Shopify store not found.")
+    db = get_supabase()
+    user_result = db.table("users").select("plan").eq("email", payload["sub"]).execute()
+    plan_key = user_result.data[0].get("plan", "free") if user_result.data else "free"
 
     try:
         report = run_pipeline(ShopifyConfig(
@@ -899,20 +933,9 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         ),
         "analysis": ai_result.get("analysis", {}),
         "generated_at": ai_result.get("generated_at", datetime.now().isoformat()),
-        "user_plan": connected.get("plan", "pro"),
+        "user_plan": plan_key,
         "extended": extended,
-        "metrics": {
-            "revenue": {
-                "total": report["revenue"]["total_revenue"],
-                "orders": report["revenue"]["total_orders"],
-                "aov": report["revenue"]["aov"],
-                "cancel_rate": report["revenue"]["cancellation_rate"],
-            },
-            "inventory": {
-                "total_products": len(report["inventory"]["details"]),
-                "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0,
-            },
-        },
+        "metrics": build_metrics_payload(report),
         "series": {
             "daily_revenue": build_daily_revenue_points(report),
         },
@@ -1118,7 +1141,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     used = user_data.data[0].get("analyses_this_month") or 0
     limit = plan["max_orders"] // 100
 
-    if used >= limit:
+    if not req.use_mock and used >= limit:
         raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
 
     platform = (req.platform or "shopify").lower()
@@ -1145,7 +1168,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
                 raise HTTPException(status_code=400, detail="A WooCommerce store URL is required for live analysis.")
             if "::" not in (shop_token or ""):
                 raise HTTPException(status_code=400, detail="WooCommerce Consumer Key and Secret are required.")
-        shop_domain = normalize_store_url(shop_domain)
+            shop_domain = normalize_store_url(shop_domain)
 
     # Veri çek
     try:
@@ -1231,15 +1254,11 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     extended = run_extended_analysis(report)
 
-    # Kullanım sayacını artır
-    db.table("users").update({
-        "analyses_this_month": used + 1,
-        "last_analysis": datetime.now().isoformat(),
-    }).eq("email", email).execute()
-
-    inventory_products = report["inventory"]["details"].to_dict("records")
-    for product in inventory_products:
-        product["current_stock"] = product.get("inventory", 0)
+    if not req.use_mock:
+        db.table("users").update({
+            "analyses_this_month": used + 1,
+            "last_analysis": datetime.now().isoformat(),
+        }).eq("email", email).execute()
 
     # Analiz sonucu
     result_data = make_json_safe({
@@ -1251,11 +1270,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             ai_result.get("model", "ops-rules-real-data"),
         ),
         "extended": extended,
-        "metrics": {
-            "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
-            "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
-            "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": inventory_products},
-        },
+        "metrics": build_metrics_payload(report),
         "series": {
             "daily_revenue": build_daily_revenue_points(report),
         },
@@ -1270,11 +1285,6 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     except Exception as e:
         print(f"📧 Analysis email error: {e}")
 
-    # Metrikleri hazırla
-    ft  = report["fulfillment_time"]
-    rev = report["revenue"]
-    inv = report["inventory"]
-
     return make_json_safe({
         "success": True,
         **make_analysis_context(
@@ -1285,28 +1295,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         ),
         "analysis": ai_result.get("analysis", {}),
         "generated_at": ai_result.get("generated_at", datetime.now().isoformat()),
-        "metrics": {
-            "fulfillment": {
-                "mean":   ft["mean"],
-                "median": ft["median"],
-                "p95":    ft["p95"],
-                "over72h": ft["orders_over_72h"],
-                "status": ft["status"],
-                "total":  ft["total_fulfilled"],
-            },
-            "revenue": {
-                "total":       rev["total_revenue"],
-                "orders":      rev["total_orders"],
-                "aov":         rev["aov"],
-                "cancel_rate": rev["cancellation_rate"],
-                "refund_rate": rev["refund_rate"],
-            },
-            "inventory": {
-                "avg_turnover":   inv["avg_turnover"],
-                "critical_count": len(inv["critical_items"]) if inv["critical_items"] is not None else 0,
-                "products": inventory_products,
-            },
-        },
+        "metrics": build_metrics_payload(report),
         "meta": meta_data,
         "extended": extended,
         "series": {
@@ -1351,7 +1340,9 @@ async def upload_analysis(
 @app.post("/analysis/pdf")
 async def get_pdf(req: AnalysisRequest, payload: dict = Depends(verify_token)):
     from fastapi.responses import Response
-    plan_key = payload.get("plan", "free")
+    db = get_supabase()
+    user_result = db.table("users").select("plan").eq("email", payload["sub"]).execute()
+    plan_key = user_result.data[0].get("plan", payload.get("plan", "free")) if user_result.data else payload.get("plan", "free")
     plan = PLANS.get(plan_key, PLANS["free"])
 
     if not plan["pdf"]:

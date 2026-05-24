@@ -288,7 +288,8 @@ class WooCommerceClient:
         all_orders = []
         page = 1
         while True:
-            rows = self._get("orders", {"per_page": per_page, "page": page, "status": "any"})
+            # WooCommerce does not consistently accept "status=any" across installs.
+            rows = self._get("orders", {"per_page": per_page, "page": page})
             if not rows:
                 break
             all_orders.extend(rows)

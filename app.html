@@ -12,6 +12,7 @@
   --cream:#fbf7ef;
   --cream2:#f4ecdd;
   --cream3:#eadfc9;
+  --cream4:#fff8ef;
   --white:#ffffff;
   --ink:#11120d;
   --ink2:#27251d;
@@ -25,10 +26,13 @@
   --border2:#d8c9ad;
   --danger:#c0392b;
   --danger-pale:rgba(192,57,43,.09);
+  --danger-mid:rgba(192,57,43,.14);
   --warn:#b86d0a;
   --warn-pale:rgba(184,109,10,.09);
+  --warn-mid:rgba(184,109,10,.14);
   --success:#1a7a4a;
   --success-pale:rgba(26,122,74,.09);
+  --success-mid:rgba(26,122,74,.14);
   --sidebar-w:228px;
   --serif-font:'Fraunces',Georgia,serif;
   --sans-font:'Manrope',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -98,7 +102,13 @@ body::before{
   font-size:14px;font-family:var(--sans-font);color:var(--ink);
   background:var(--cream2);outline:none;transition:all .2s
 }
+.field textarea,.field select{
+  width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:13px;font-family:var(--sans-font);color:var(--ink);
+  background:var(--cream2);outline:none;transition:all .2s
+}
 .field input:focus{border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(201,150,58,.13)}
+.field textarea:focus,.field select:focus{border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(201,150,58,.13)}
 .field input:-webkit-autofill,.field input:-webkit-autofill:hover,.field input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px var(--cream2) inset!important;-webkit-text-fill-color:var(--ink)!important;border-color:var(--border)!important}
 
 .auth-btn{
@@ -192,7 +202,7 @@ body::before{
 .sb-logout{
   width:100%;padding:9px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;
   font-size:12px;color:rgba(255,255,255,.32);background:transparent;
-  cursor:pointer;font-family:'DM Sans',sans-serif;
+  cursor:pointer;font-family:var(--sans-font);
   transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px
 }
 .sb-logout:hover{border-color:rgba(192,57,43,.45);color:rgba(220,80,70,.8);background:rgba(192,57,43,.08)}
@@ -354,6 +364,8 @@ body::before{
   border:1px solid rgba(214,155,45,.16);border-radius:20px;padding:20px 22px;
   box-shadow:var(--sh);position:relative;overflow:hidden;
 }
+.trust-card,.trust-mini,.result-proof-card,.connect-card,.card,.sec-card,.kpi{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease}
+.trust-card:hover,.trust-mini:hover,.result-proof-card:hover,.connect-card:hover,.card:hover,.sec-card:hover,.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
 .trust-card::before{
   content:"";position:absolute;top:0;left:24px;right:24px;height:1px;
   background:linear-gradient(90deg,transparent,rgba(214,155,45,.5),transparent);
@@ -396,8 +408,8 @@ body::before{
 
 .result-signal{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
-  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(244,236,221,.94));
-  border:1px solid rgba(214,155,45,.18);border-radius:18px;padding:14px 16px;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),var(--cream4));
+  border:1px solid rgba(214,155,45,.22);border-radius:20px;padding:14px 16px;
   box-shadow:var(--sh);margin-bottom:14px
 }
 .result-signal-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -413,7 +425,7 @@ body::before{
 .result-proof{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 16px}
 .result-proof-card{
   background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(244,236,221,.9));
-  border:1px solid var(--border);border-radius:14px;padding:14px 15px;box-shadow:var(--sh)
+  border:1px solid rgba(214,155,45,.16);border-radius:18px;padding:14px 15px;box-shadow:var(--sh)
 }
 .result-proof-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .result-proof-value{font-size:18px;font-weight:800;line-height:1.1;color:var(--ink);letter-spacing:-.03em}
@@ -472,7 +484,7 @@ body::before{
 /* Quick wins */
 .qw-item{background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;transition:all .2s}
 .qw-item:hover{transform:translateX(3px);border-color:rgba(201,150,58,.35)}
-.qw-num{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:300;color:var(--gold);min-width:28px;line-height:1;font-variant-numeric:tabular-nums lining-nums}
+.qw-num{font-family:var(--sans-font);font-size:18px;font-weight:300;color:var(--gold);min-width:28px;line-height:1;font-variant-numeric:tabular-nums lining-nums}
 .qw-text{font-size:13px;color:var(--ink2);line-height:1.6}
 
 /* Table */
@@ -515,7 +527,7 @@ body::before{
 .plan-card.featured .plan-features li{color:rgba(255,255,255,.62)}
 .plan-features li.off{opacity:.3}
 .chk{color:var(--gold);font-weight:600}.cx{color:var(--muted)}
-.plan-btn{display:block;width:100%;padding:11px;border-radius:11px;font-size:14px;font-weight:500;text-align:center;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;border:1px solid var(--border);background:transparent;color:var(--ink)}
+.plan-btn{display:block;width:100%;padding:11px;border-radius:11px;font-size:14px;font-weight:500;text-align:center;cursor:pointer;font-family:var(--sans-font);transition:all .2s;border:1px solid var(--border);background:transparent;color:var(--ink)}
 .plan-btn:hover{border-color:var(--ink)}
 .plan-btn.white{background:var(--white);color:var(--ink);border:none}
 .plan-btn.white:hover{background:var(--cream2)}
@@ -544,7 +556,7 @@ body::before{
 /* PDF strip */
 .pdf-strip{background:linear-gradient(135deg,var(--ink2),var(--ink));border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
 .pdf-strip::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:200px;background:radial-gradient(ellipse,rgba(201,150,58,.1) 0%,transparent 70%);pointer-events:none}
-.pdf-title{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--white);margin-bottom:3px}
+.pdf-title{font-family:var(--serif-font);font-size:18px;color:var(--white);margin-bottom:3px}
 .pdf-sub{font-size:12px;color:rgba(255,255,255,.32)}
 
 /* Buttons */
@@ -585,7 +597,7 @@ body::before{
   .main-content{margin-left:0;padding:20px}
   #sec-ledger,#sec-compare,#sec-team{left:0}
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
-  .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr 1fr}
+  .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr}
   .trust-strip,.trust-points,.result-proof{grid-template-columns:1fr}
   .mobile-menu-btn{display:flex!important}
 }
@@ -850,7 +862,7 @@ body::before{
                   <circle id="health-arc" cx="18" cy="18" r="15.9" fill="none" stroke="#c9963a" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"/>
                 </svg>
                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-                  <span id="health-num" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums lining-nums">—</span>
+                  <span id="health-num" style="font-family:var(--sans-font);font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums lining-nums">—</span>
                 </div>
               </div>
               <div>
@@ -871,14 +883,14 @@ body::before{
                 <div class="qnav-card" onclick="startDemo()">
                   <div class="qnav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
                   <div class="qnav-arr">→</div>
-                  <div class="qnav-t">Try Demo Analysis</div>
-                  <div class="qnav-d">Explore with sample data — no connection needed.</div>
+                  <div class="qnav-t">Preview The Operating Brief</div>
+                  <div class="qnav-d">Explore the full flow with labeled sample data before touching live store access.</div>
                 </div>
                 <div class="qnav-card" onclick="nav('connect')">
                   <div class="qnav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
                   <div class="qnav-arr">→</div>
-                  <div class="qnav-t">Connect Your Store</div>
-                  <div class="qnav-d">Link Shopify for real-time operational analysis.</div>
+                  <div class="qnav-t">Connect A Live Store</div>
+                  <div class="qnav-d">Link Shopify or WooCommerce and move from broad dashboards to weekly operator decisions.</div>
                 </div>
               </div>
             </div>
@@ -896,17 +908,17 @@ body::before{
       <!-- CONNECT -->
       <section id="sec-connect">
         <div class="pg-header">
-          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Start with Shopify OAuth or WooCommerce REST. Demo mode stays separate from live analysis.</div></div>
+          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Start with Shopify OAuth or WooCommerce REST, then move into a clearly labeled operating brief for every run.</div></div>
         </div>
 
         <div class="trust-strip">
           <div class="trust-card">
             <div class="trust-kicker">Founder-ready onboarding</div>
             <div class="trust-title">Get to an <em>operating brief</em>, not another dashboard.</div>
-            <div class="trust-copy">OPS turns raw commerce activity into a weekly decision layer: what is slipping, what it costs, and what to change next. Live results only use connected Shopify or WooCommerce data.</div>
+            <div class="trust-copy">OPS turns raw commerce activity into a weekly decision layer: what is slipping, what it costs, and what to change next. Live results only use authenticated Shopify or WooCommerce data, never demo findings.</div>
             <div class="trust-points">
               <div class="trust-point"><strong>Step 1</strong><span>Connect the store with read-only operational scopes.</span></div>
-              <div class="trust-point"><strong>Step 2</strong><span>OPS calculates fulfillment, revenue, inventory, churn and pricing signals.</span></div>
+              <div class="trust-point"><strong>Step 2</strong><span>OPS calculates fulfillment, revenue, inventory, churn, pricing, and benchmark signals.</span></div>
               <div class="trust-point"><strong>Step 3</strong><span>The result page labels live vs. demo data so findings stay credible.</span></div>
             </div>
             <div class="founder-note">
@@ -924,7 +936,7 @@ body::before{
             <div class="trust-mini">
               <div class="trust-mini-label">What OPS stores</div>
               <div class="trust-mini-value">Offline tokens</div>
-              <div class="trust-mini-copy">Shopify access remains on the backend. Live runs do not rely on browser-stored secrets.</div>
+              <div class="trust-mini-copy">Shopify access remains on the backend after OAuth. Live runs do not rely on browser-stored secrets.</div>
             </div>
             <div class="trust-mini">
               <div class="trust-mini-label">What OPS shows</div>
@@ -950,7 +962,7 @@ body::before{
               </div>
               <div id="shopify-connection-status" class="connect-state warn">
                 <span class="connect-dot"></span>
-                <div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div></div>
+                <div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, and result pages with explicit source labels.</div></div>
               </div>
               <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
               <button class="btn btn-ink" style="width:100%;justify-content:center;margin-bottom:10px" onclick="connectShopifyApp()">
@@ -1034,7 +1046,7 @@ body::before{
 
         <div class="card" style="margin-bottom:14px">
           <div class="card-title">Demo Analysis</div>
-          <div class="card-sub">Test the platform instantly with realistic sample data — no API needed.</div>
+          <div class="card-sub">Use realistic sample data to preview the OPS experience. Demo outputs stay visibly separated from production runs.</div>
           <button class="btn btn-ink" onclick="startDemo()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Run Demo Analysis
@@ -1043,7 +1055,7 @@ body::before{
 
         <div class="card" style="margin-bottom:14px">
           <div class="card-title">Production Analysis Rules</div>
-          <div class="card-sub">OPS keeps live analysis strict so results remain useful in real operating decisions.</div>
+          <div class="card-sub">OPS keeps live analysis strict so result pages stay credible in operator, founder, and investor conversations.</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
             <div class="trust-point"><strong>Live connectors</strong><span>Use Shopify OAuth or WooCommerce REST for production runs.</span></div>
             <div class="trust-point"><strong>Demo isolation</strong><span>Sample overlays only appear in demo mode and stay labeled as demo.</span></div>
@@ -1053,7 +1065,7 @@ body::before{
 
         <div class="card">
           <div class="card-title">Shopify Live Data</div>
-          <div class="card-sub">Connect directly and analyze your real store.</div>
+          <div class="card-sub">Run on your real store only after the connector and source labels are in place.</div>
           <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="storename.myshopify.com"></div>
           <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
           <button class="btn btn-gold" onclick="saveAndAnalyze()">
@@ -1375,7 +1387,7 @@ body::before{
     </div>
     <div class="field"><label>Address</label><input type="text" id="cust-address" placeholder="Street, postal code"></div>
     <div class="field"><label>Tags</label><input type="text" id="cust-tags" placeholder="vip, wholesale, retail (comma separated)"></div>
-    <div class="field"><label>Notes</label><textarea id="cust-notes" rows="2" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Internal notes..."></textarea></div>
+    <div class="field"><label>Notes</label><textarea id="cust-notes" rows="2" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--sans-font);font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Internal notes..."></textarea></div>
     <div class="ldg-modal-footer">
       <button class="btn btn-ink" onclick="ldgSave('customer')">Save Customer</button>
       <button class="btn btn-outline" onclick="ldgCloseModal('customer')">Cancel</button>
@@ -1399,7 +1411,7 @@ body::before{
       <div class="field"><label>Barcode / EAN</label><input type="text" id="prod-barcode" placeholder="1234567890123"></div>
       <div class="field"><label>Supplier</label><input type="text" id="prod-supplier" placeholder="Supplier name"></div>
     </div>
-    <div class="field"><label>Description</label><textarea id="prod-desc" rows="2" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Product description..."></textarea></div>
+    <div class="field"><label>Description</label><textarea id="prod-desc" rows="2" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--sans-font);font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Product description..."></textarea></div>
     <div class="ldg-modal-footer">
       <button class="btn btn-ink" onclick="ldgSave('product')">Save Product</button>
       <button class="btn btn-outline" onclick="ldgCloseModal('product')">Cancel</button>
@@ -1414,14 +1426,14 @@ body::before{
     <input type="hidden" id="sale-id">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="field"><label>Date *</label><input type="date" id="sale-date"></div>
-      <div class="field"><label>Customer</label><select id="sale-customer" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="">— Select customer —</option></select></div>
-      <div class="field" style="grid-column:1/-1"><label>Product</label><select id="sale-product" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none" onchange="ldgFillSalePrice()"><option value="">— Select product —</option></select></div>
+      <div class="field"><label>Customer</label><select id="sale-customer" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="">— Select customer —</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Product</label><select id="sale-product" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none" onchange="ldgFillSalePrice()"><option value="">— Select product —</option></select></div>
       <div class="field"><label>Quantity *</label><input type="number" id="sale-qty" placeholder="1" min="1" value="1" oninput="ldgCalcSaleTotal()"></div>
       <div class="field"><label>Unit Price (€) *</label><input type="number" id="sale-price" placeholder="0.00" step="0.01" oninput="ldgCalcSaleTotal()"></div>
       <div class="field"><label>Discount (€)</label><input type="number" id="sale-discount" placeholder="0.00" step="0.01" value="0" oninput="ldgCalcSaleTotal()"></div>
       <div class="field"><label>Total (€)</label><input type="number" id="sale-total" placeholder="0.00" step="0.01" style="font-weight:600;background:var(--cream3)"></div>
-      <div class="field"><label>Status</label><select id="sale-status" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="paid">Paid</option><option value="pending">Pending</option><option value="refunded">Refunded</option><option value="cancelled">Cancelled</option></select></div>
-      <div class="field"><label>Channel</label><select id="sale-channel" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="online">Online</option><option value="shopify">Shopify</option><option value="amazon">Amazon</option><option value="etsy">Etsy</option><option value="in-store">In Store</option><option value="wholesale">Wholesale</option></select></div>
+      <div class="field"><label>Status</label><select id="sale-status" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="paid">Paid</option><option value="pending">Pending</option><option value="refunded">Refunded</option><option value="cancelled">Cancelled</option></select></div>
+      <div class="field"><label>Channel</label><select id="sale-channel" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="online">Online</option><option value="shopify">Shopify</option><option value="amazon">Amazon</option><option value="etsy">Etsy</option><option value="in-store">In Store</option><option value="wholesale">Wholesale</option></select></div>
     </div>
     <div class="field"><label>Notes</label><input type="text" id="sale-notes" placeholder="Order ref, tracking number, etc."></div>
     <div class="ldg-modal-footer">
@@ -1439,10 +1451,10 @@ body::before{
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="field"><label>Date *</label><input type="date" id="exp-date"></div>
       <div class="field"><label>Amount (€) *</label><input type="number" id="exp-amount" placeholder="0.00" step="0.01" min="0"></div>
-      <div class="field"><label>Category *</label><select id="exp-category" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="inventory">Inventory / COGS</option><option value="shipping">Shipping</option><option value="marketing">Marketing / Ads</option><option value="software">Software / SaaS</option><option value="office">Office / Rent</option><option value="salary">Salary / Freelance</option><option value="packaging">Packaging</option><option value="tax">Tax / VAT</option><option value="bank">Bank / Payment fees</option><option value="other">Other</option></select></div>
+      <div class="field"><label>Category *</label><select id="exp-category" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="inventory">Inventory / COGS</option><option value="shipping">Shipping</option><option value="marketing">Marketing / Ads</option><option value="software">Software / SaaS</option><option value="office">Office / Rent</option><option value="salary">Salary / Freelance</option><option value="packaging">Packaging</option><option value="tax">Tax / VAT</option><option value="bank">Bank / Payment fees</option><option value="other">Other</option></select></div>
       <div class="field"><label>Vendor / Supplier</label><input type="text" id="exp-vendor" placeholder="Google Ads, DHL, etc."></div>
       <div class="field" style="grid-column:1/-1"><label>Description *</label><input type="text" id="exp-desc" placeholder="What was this expense for?"></div>
-      <div class="field"><label>Payment Method</label><select id="exp-method" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="bank">Bank Transfer</option><option value="card">Credit Card</option><option value="cash">Cash</option><option value="paypal">PayPal</option></select></div>
+      <div class="field"><label>Payment Method</label><select id="exp-method" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="bank">Bank Transfer</option><option value="card">Credit Card</option><option value="cash">Cash</option><option value="paypal">PayPal</option></select></div>
       <div class="field"><label>Receipt / Ref #</label><input type="text" id="exp-ref" placeholder="Invoice or receipt number"></div>
     </div>
     <div class="ldg-modal-footer">
@@ -1461,11 +1473,11 @@ body::before{
       <div class="field"><label>Invoice # *</label><input type="text" id="inv-num" placeholder="INV-001"></div>
       <div class="field"><label>Date *</label><input type="date" id="inv-date"></div>
       <div class="field"><label>Due Date</label><input type="date" id="inv-due"></div>
-      <div class="field"><label>Customer *</label><select id="inv-customer" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="">— Select customer —</option></select></div>
+      <div class="field"><label>Customer *</label><select id="inv-customer" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="">— Select customer —</option></select></div>
       <div class="field"><label>Amount (€) *</label><input type="number" id="inv-amount" placeholder="0.00" step="0.01"></div>
       <div class="field"><label>Tax / VAT (€)</label><input type="number" id="inv-tax" placeholder="0.00" step="0.01" value="0"></div>
-      <div class="field" style="grid-column:1/-1"><label>Status</label><select id="inv-status" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option><option value="overdue">Overdue</option><option value="cancelled">Cancelled</option></select></div>
-      <div class="field" style="grid-column:1/-1"><label>Description / Items</label><textarea id="inv-desc" rows="3" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Service description or item list..."></textarea></div>
+      <div class="field" style="grid-column:1/-1"><label>Status</label><select id="inv-status" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option><option value="overdue">Overdue</option><option value="cancelled">Cancelled</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Description / Items</label><textarea id="inv-desc" rows="3" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--sans-font);font-size:13px;resize:vertical;background:var(--cream2);outline:none" placeholder="Service description or item list..."></textarea></div>
     </div>
     <div class="ldg-modal-footer">
       <button class="btn btn-ink" onclick="ldgSave('invoice')">Save Invoice</button>
@@ -1538,14 +1550,14 @@ body::before{
 <!-- ═══ ADD USER MODAL ═══ -->
 <div id="modal-adduser" style="display:none;position:fixed;inset:0;background:rgba(24,22,15,.55);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
   <div style="background:var(--white);border-radius:20px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(24,22,15,.2);position:relative">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Add Team Member</div>
+    <div style="font-family:var(--serif-font);font-size:22px;color:var(--ink);margin-bottom:4px">Add Team Member</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px">They can switch accounts in the sidebar.</div>
     <div class="field"><label>Full Name</label><input type="text" id="add-name" placeholder="Team member name"></div>
     <div class="field"><label>Email</label><input type="email" id="add-email" placeholder="colleague@store.com"></div>
     <div class="field"><label>Password</label><input type="password" id="add-password" placeholder="At least 6 characters"></div>
     <div class="field">
       <label>Role</label>
-      <select id="add-role" style="width:100%;padding:11px 15px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none">
+      <select id="add-role" style="width:100%;padding:11px 15px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--sans-font);color:var(--ink);background:var(--cream2);outline:none">
         <option value="viewer">Viewer — read only</option>
         <option value="analyst">Analyst — run analyses</option>
         <option value="admin">Admin — full access</option>
@@ -1570,8 +1582,20 @@ let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
 
-function recordLocalAnalysis() {
-  if(user) user.analyses_this_month = (user.analyses_this_month || 0) + 1;
+function updateUsageMeter() {
+  if(!user) return;
+  const used=user.analyses_this_month||0;
+  const limit={free:1,starter:10,pro:100}[user.plan]||1;
+  const pct=Math.min(100,Math.round((used/limit)*100));
+  document.getElementById('usage-label').textContent=`${used} / ${limit} analyses`;
+  document.getElementById('usage-pct').textContent=`${pct}%`;
+  document.getElementById('usage-fill').style.width=`${pct}%`;
+}
+
+function recordLocalAnalysis(countTowardUsage) {
+  if(!user || !countTowardUsage) return;
+  user.analyses_this_month = (user.analyses_this_month || 0) + 1;
+  updateUsageMeter();
 }
 
 // ── INIT
@@ -1813,13 +1837,7 @@ function showApp() {
     const first=(user.name||'').split(' ')[0];
     document.getElementById('home-title').innerHTML=`${greet}, ${first}<em>.</em>`;
 
-    const used=user.analyses_this_month||0;
-    const limit={free:1,starter:10,pro:100}[user.plan]||1;
-    const pct=Math.min(100,Math.round((used/limit)*100));
-    document.getElementById('usage-label').textContent=`${used} / ${limit} analyses`;
-    document.getElementById('usage-pct').textContent=`${pct}%`;
-    document.getElementById('usage-fill').style.width=`${pct}%`;
-
+    updateUsageMeter();
     renderPlanFeatures(user.plan);
     updatePlanBtns(user.plan);
     loadShopifyStatus();
@@ -2010,7 +2028,6 @@ async function runCSVAnalysis() {
 
 function startDemo() {
   nav('analysis');
-  document.querySelectorAll('#sec-analysis .card').forEach(c=>c.style.display='none');
   runAnalysis(true,'','');
 }
 
@@ -2143,7 +2160,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:!!mock&&platform==='shopify',language:'en'}),
+        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:false,use_mock_meta:!!mock&&platform==='shopify',language:'en'}),
         signal:controller.signal
       });
       clearTimeout(timeout);
@@ -2153,7 +2170,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       clearTimeout(timeout);
       clearInterval(interval); loadEl.classList.remove('show');
       if(mock){
-        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
+        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis(false);
       } else {
         var loadFailed=String(fetchErr.message||'').toLowerCase().includes('load failed');
         var errMsg = (fetchErr.name==='AbortError'||loadFailed)
@@ -2167,7 +2184,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
     clearInterval(interval); loadEl.classList.remove('show');
     if(!r.ok){
       if(mock){
-        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
+        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis(false);
       } else {
         showToast('❌ '+(d.detail||'HTTP '+r.status+' — check your Shopify domain and token.'));
         nav('connect');
@@ -2180,11 +2197,11 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       d.user_plan=d.user_plan||'pro';
       d.model=d.model||'mock-demo';
     }
-    lastResult=d; renderResults(d); renderOverview(d); nav('results'); recordLocalAnalysis();
+    lastResult=d; renderResults(d); renderOverview(d); nav('results'); recordLocalAnalysis(!mock);
   } catch(e){
     clearInterval(interval); loadEl.classList.remove('show');
     if(mock){
-      const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
+      const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis(false);
     } else {
       showToast('❌ Unexpected error: '+e.message);
       nav('connect');
