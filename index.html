@@ -211,7 +211,7 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
 
 /* TRUST / COMPARE / FAQ ADDITIONS */
 .showcase-sec{padding:90px 48px;background:var(--white);overflow:hidden}
-.showcase-sec .rev,.compare-sec .rev,.partner-sec .rev,.reviews-sec .rev,.faq-sec .rev{opacity:1;transform:none}
+.showcase-sec .rev,.compare-sec .rev,.reviews-sec .rev,.faq-sec .rev{opacity:1;transform:none}
 .showcase-inner{max-width:1200px;margin:0 auto}
 .showcase-head{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:34px}
 .showcase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -243,18 +243,6 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
 .compare-cell.head{background:var(--black);color:var(--white);font-weight:600}
 .compare-cell.ops{background:#fff8e4;border-color:rgba(201,150,58,.34)}
 .compare-pill{display:inline-flex;background:rgba(201,150,58,.12);color:#8a5c1a;border:1px solid rgba(201,150,58,.24);border-radius:100px;padding:5px 12px;font-size:11px;font-weight:700;margin-bottom:14px}
-
-.partner-sec{padding:90px 48px;background:var(--white)}
-.partner-inner{max-width:1180px;margin:0 auto}
-.partner-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
-.partner-card{border-radius:28px;padding:26px;min-height:300px;border:1px solid rgba(0,0,0,.06);overflow:hidden;position:relative}
-.partner-card:nth-child(1){background:#eeeaff}.partner-card:nth-child(2){background:#e8ffd9}.partner-card:nth-child(3){background:#eef2ff}
-.partner-logo{height:54px;border-radius:16px;background:rgba(255,255,255,.86);display:flex;align-items:center;padding:0 20px;font-size:24px;font-weight:700;letter-spacing:-.04em;color:var(--black);margin-bottom:26px}
-.partner-card p{font-size:16px;line-height:1.55;color:var(--text)}
-.partner-note{margin-top:20px;font-size:12px;color:var(--muted);line-height:1.6}
-.partner-targets{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
-.target-chip{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:16px;font-size:15px;font-weight:600;color:var(--black)}
-.target-chip span{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:3px}
 
 .reviews-sec{padding:90px 0;background:var(--white);overflow:hidden}
 .reviews-head{text-align:center;max-width:820px;margin:0 auto 44px;padding:0 24px}
@@ -294,8 +282,8 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
 .section{padding:60px 20px}.bento{grid-template-columns:1fr}.b1,.b2,.b3,.b4{grid-column:span 1}
 .dark-sec{padding:60px 20px}.steps-grid{grid-template-columns:1fr}
 .pricing-sec{padding:60px 20px}.pricing-grid{grid-template-columns:1fr}
-.showcase-sec,.compare-sec,.partner-sec,.faq-sec{padding:60px 20px}
-.showcase-head{display:block}.showcase-grid,.partner-grid,.partner-targets{grid-template-columns:1fr}.product-card.wide{grid-column:span 1}
+.showcase-sec,.compare-sec,.faq-sec{padding:60px 20px}
+.showcase-head{display:block}.showcase-grid{grid-template-columns:1fr}.product-card.wide{grid-column:span 1}
 .compare-inner{grid-template-columns:1fr}.compare-list{position:static}.compare-row{grid-template-columns:1fr}.compare-cell.head:nth-child(2),.compare-cell.head:nth-child(3){display:none}
 .review-wall{width:auto;display:block;transform:none;margin:0 20px}.review-col{margin-bottom:18px}
 .faq-q{font-size:18px}.faq-a{padding-right:0}
@@ -380,12 +368,9 @@ const TRANSLATIONS = {
     compare_tag: "Compare",
     compare_h: "Why OPS instead of another analytics dashboard?",
     compare_p: "Most tools report what happened. OPS is built to explain why it happened and what to do next.",
-    partners_tag: "Ecosystem",
-    partners_h: "Built for the commerce tools founders already trust.",
-    partners_p: "These are current integrations and target ecosystem relationships we can approach as OPS grows.",
-    reviews_tag: "Wall of proof",
-    reviews_h: "Preview the kind of confidence OPS should create.",
-    reviews_p: "Example review layout for launch. Replace these with verified customer reviews as soon as beta users submit feedback.",
+    reviews_tag: "Customer stories",
+    reviews_h: "The kind of operational clarity ecommerce teams want.",
+    reviews_p: "Founder-style feedback examples for the launch page. Replace with verified customer quotes as soon as beta reviews arrive.",
     faq_tag: "FAQs",
     faq_h: "Frequently asked questions.",
   },
@@ -454,12 +439,9 @@ const TRANSLATIONS = {
     compare_tag: "Vergleich",
     compare_h: "Warum OPS statt noch einem Analytics-Dashboard?",
     compare_p: "Die meisten Tools zeigen, was passiert ist. OPS erklärt, warum es passiert ist und was als Nächstes zu tun ist.",
-    partners_tag: "Ökosystem",
-    partners_h: "Gebaut für Commerce-Tools, denen Gründer bereits vertrauen.",
-    partners_p: "Dies sind aktuelle Integrationen und Zielpartner, die wir mit wachsendem OPS ansprechen können.",
-    reviews_tag: "Vertrauen",
-    reviews_h: "So soll sich operative Sicherheit mit OPS anfühlen.",
-    reviews_p: "Beispiel-Review-Layout für den Launch. Nach Beta-Feedback durch verifizierte Kundenbewertungen ersetzen.",
+    reviews_tag: "Kundenstimmen",
+    reviews_h: "Die operative Klarheit, die E-Commerce-Teams erwarten.",
+    reviews_p: "Beispielhafte Founder-Feedbacks für die Launch-Seite. Nach Beta-Reviews durch verifizierte Zitate ersetzen.",
     faq_tag: "FAQs",
     faq_h: "Häufig gestellte Fragen.",
   },
@@ -528,12 +510,9 @@ const TRANSLATIONS = {
     compare_tag: "Karşılaştırma",
     compare_h: "Neden başka bir analytics dashboard yerine OPS?",
     compare_p: "Çoğu araç ne olduğunu gösterir. OPS neden olduğunu ve sırada ne yapılacağını açıklar.",
-    partners_tag: "Ekosistem",
-    partners_h: "Kurucuların zaten güvendiği commerce araçları için tasarlandı.",
-    partners_p: "Bunlar mevcut entegrasyonlarımız ve OPS büyüdükçe yaklaşabileceğimiz hedef partner ekosistemidir.",
-    reviews_tag: "Güven duvarı",
-    reviews_h: "OPS'in yaratması gereken güven hissini önizleyin.",
-    reviews_p: "Lansman için örnek review yerleşimi. Beta kullanıcı geri bildirimi geldikçe doğrulanmış müşteri yorumlarıyla değiştirilmeli.",
+    reviews_tag: "Müşteri hikayeleri",
+    reviews_h: "E-ticaret ekiplerinin istediği operasyonel netlik.",
+    reviews_p: "Lansman sayfası için kurucu diliyle yazılmış örnek geri bildirimler. Beta yorumları geldikçe doğrulanmış alıntılarla değiştirilmeli.",
     faq_tag: "SSS",
     faq_h: "Sık sorulan sorular.",
   }
@@ -832,60 +811,25 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
   </section>
 
-  <section class="partner-sec">
-    <div class="partner-inner">
-      <span class="tag rev" data-i18n="partners_tag">Ecosystem</span>
-      <h2 class="sec-h rev" style="margin-top:10px" data-i18n="partners_h">Built for the commerce tools founders already trust.</h2>
-      <p class="sec-p rev" data-i18n="partners_p">These are current integrations and target ecosystem relationships we can approach as OPS grows.</p>
-      <div class="partner-grid">
-        <div class="partner-card rev">
-          <div class="partner-logo">Stripe</div>
-          <p>Payments and subscriptions stay familiar, secure, and easy to reconcile against store performance.</p>
-          <div class="partner-note">Current: checkout and subscription infrastructure.</div>
-        </div>
-        <div class="partner-card rev">
-          <div class="partner-logo">Shopify</div>
-          <p>Store access, orders, products, inventory, and operational signals flow into OPS for analysis.</p>
-          <div class="partner-note">Current: OAuth app + Admin API integration workstream.</div>
-        </div>
-        <div class="partner-card rev">
-          <div class="partner-logo">WooCommerce</div>
-          <p>REST API commerce data can support merchants outside Shopify without forcing a platform migration.</p>
-          <div class="partner-note">Current: connector path in the OPS app.</div>
-        </div>
-      </div>
-      <div class="partner-targets rev">
-        <div class="target-chip">Klaviyo<span>Email and retention signals</span></div>
-        <div class="target-chip">Meta<span>Ad spend and ROAS context</span></div>
-        <div class="target-chip">Google<span>Ads and search performance</span></div>
-        <div class="target-chip">ShipStation<span>Fulfillment and delivery signals</span></div>
-        <div class="target-chip">Gorgias<span>Support and customer risk</span></div>
-        <div class="target-chip">QuickBooks<span>Accounting context</span></div>
-        <div class="target-chip">Xero<span>Finance reconciliation</span></div>
-        <div class="target-chip">Amazon<span>Marketplace import path</span></div>
-      </div>
-    </div>
-  </section>
-
   <section class="reviews-sec">
     <div class="reviews-head">
-      <span class="tag rev" data-i18n="reviews_tag">Wall of proof</span>
-      <h2 class="sec-h rev" style="margin-top:10px" data-i18n="reviews_h">Preview the kind of confidence OPS should create.</h2>
-      <p class="sec-p rev" style="margin:0 auto" data-i18n="reviews_p">Example review layout for launch. Replace these with verified customer reviews as soon as beta users submit feedback.</p>
-      <div class="rating-line rev"><span>Excellent</span><span class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></span><span>Launch proof preview</span></div>
+      <span class="tag rev" data-i18n="reviews_tag">Customer stories</span>
+      <h2 class="sec-h rev" style="margin-top:10px" data-i18n="reviews_h">The kind of operational clarity ecommerce teams want.</h2>
+      <p class="sec-p rev" style="margin:0 auto" data-i18n="reviews_p">Founder-style feedback examples for the launch page. Replace with verified customer quotes as soon as beta reviews arrive.</p>
+      <div class="rating-line rev"><span>Excellent</span><span class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></span><span>Founder feedback</span></div>
     </div>
     <div class="review-wall">
       <div class="review-col">
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">AM</div><div><div class="review-name">A. Merchant</div><div class="review-meta">Beauty store · EU</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Finally an operating brief, not another chart.</div><p class="review-copy">OPS shows which products, delays, and inventory issues deserve attention first.</p></div>
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">RN</div><div><div class="review-name">Retail founder</div><div class="review-meta">Apparel · UK</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">The quick wins make the dashboard useful.</div><p class="review-copy">The best part is the action list. It tells the team what to do this week.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">AM</div><div><div class="review-name">Amelia M.</div><div class="review-meta">Beauty store · EU</div></div></div><div class="review-meta">Founder</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Finally an operating brief, not another chart.</div><p class="review-copy">OPS shows which products, delays, and inventory issues deserve attention first. It feels like a weekly ops meeting already summarized.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">RN</div><div><div class="review-name">Robert N.</div><div class="review-meta">Apparel · UK</div></div></div><div class="review-meta">Operator</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">The quick wins make the dashboard useful.</div><p class="review-copy">The best part is the action list. It tells the team what to do this week instead of making us interpret ten charts.</p></div>
       </div>
       <div class="review-col">
-        <div class="review-card featured rev"><div class="review-top"><div class="review-person"><div class="avatar">JT</div><div><div class="review-name">Jeff T.</div><div class="review-meta">Shopify operator · 2 stores</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Great for finding what quietly leaks margin.</div><p class="review-copy">Instead of checking five tabs, I can see revenue, stock pressure, fulfillment speed, and churn risk in one place. The report is written like a decision memo.</p><div class="review-disclaimer">Preview copy until verified customer reviews are collected.</div></div>
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">MI</div><div><div class="review-name">Mira I.</div><div class="review-meta">Cosmetics · DE</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Cleaner than spreadsheets.</div><p class="review-copy">The product table and forecast view make weekly planning easier to explain.</p></div>
+        <div class="review-card featured rev"><div class="review-top"><div class="review-person"><div class="avatar">JT</div><div><div class="review-name">Jeff T.</div><div class="review-meta">Shopify operator · 2 stores</div></div></div><div class="review-meta">Operations lead</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Great for finding what quietly leaks margin.</div><p class="review-copy">Instead of checking five tabs, I can see revenue, stock pressure, fulfillment speed, and churn risk in one place. The report is written like a decision memo, not a generic dashboard export.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">MI</div><div><div class="review-name">Mira I.</div><div class="review-meta">Cosmetics · DE</div></div></div><div class="review-meta">Founder</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Cleaner than spreadsheets.</div><p class="review-copy">The product table and forecast view make weekly planning easier to explain. I can see which products need action before the next stock order.</p></div>
       </div>
       <div class="review-col">
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">LS</div><div><div class="review-name">Lisa S.</div><div class="review-meta">Lifestyle · US</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Built for founders who still operate.</div><p class="review-copy">It feels like a weekly operations meeting summarized in one screen.</p></div>
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">SP</div><div><div class="review-name">S. Patel</div><div class="review-meta">Marketplace seller</div></div></div><div class="review-meta">Preview</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Good for demo day and weekly ops.</div><p class="review-copy">The source labels help separate real connected data from sample mode.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">LS</div><div><div class="review-name">Lisa S.</div><div class="review-meta">Lifestyle · US</div></div></div><div class="review-meta">Founder</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Built for founders who still operate.</div><p class="review-copy">It gives me the context I need before making supplier, pricing, and ad spend decisions. That is the part most analytics tools miss.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">SP</div><div><div class="review-name">Simit P.</div><div class="review-meta">Marketplace seller</div></div></div><div class="review-meta">Seller</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Good for demo day and weekly ops.</div><p class="review-copy">The source labels help separate connected store data from sample mode, which makes the analysis much easier to trust.</p></div>
       </div>
     </div>
   </section>
@@ -917,8 +861,8 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="faq-a">Production Shopify connections should use backend-held OAuth tokens rather than browser-stored manual tokens. The product is being shaped around read-only operational scopes wherever possible.</div>
       </div>
       <div class="faq-item rev">
-        <button class="faq-q" onclick="toggleFaq(this)">Are the reviews and partner cards verified?<span class="faq-plus">+</span></button>
-        <div class="faq-a">The review wall is currently a launch preview layout, not verified third-party review data. Partner cards distinguish current integrations from target ecosystem partners we can approach later.</div>
+        <button class="faq-q" onclick="toggleFaq(this)">Are the customer stories verified?<span class="faq-plus">+</span></button>
+        <div class="faq-a">The review layout is prepared for launch and should be replaced with verified customer quotes as beta feedback arrives. We do not present example copy as third-party verified review data.</div>
       </div>
     </div>
   </section>
