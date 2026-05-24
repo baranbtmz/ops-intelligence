@@ -163,7 +163,6 @@ SHOPIFY_API_KEY = os.environ.get("SHOPIFY_API_KEY", "")
 SHOPIFY_API_SECRET = os.environ.get("SHOPIFY_API_SECRET", "")
 SHOPIFY_REQUIRED_SCOPES = [
     "read_orders",
-    "read_all_orders",
     "read_products",
     "read_inventory",
     "read_fulfillments",
@@ -175,7 +174,7 @@ SHOPIFY_API_VERSION = os.environ.get("SHOPIFY_API_VERSION", "2026-01")
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 SHOPIFY_BILLING_ENABLED = os.environ.get("SHOPIFY_BILLING_ENABLED", "false").lower() in ("1", "true", "yes")
 SHOPIFY_BILLING_MODE = os.environ.get("SHOPIFY_BILLING_MODE", "shopify_app_pricing").strip().lower()
-SHOPIFY_APP_HANDLE = os.environ.get("SHOPIFY_APP_HANDLE", "ops-intelligence").strip()
+SHOPIFY_APP_HANDLE = os.environ.get("SHOPIFY_APP_HANDLE", "ops-intelligence-aurellia").strip()
 SHOPIFY_APP_PRICING_HANDLE = os.environ.get("SHOPIFY_APP_PRICING_HANDLE", SHOPIFY_APP_HANDLE).strip()
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")

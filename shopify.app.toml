@@ -1,6 +1,6 @@
 name = "OPS Intelligence"
-handle = "ops-intelligence"
-client_id = "44393245e87ba1dc8b68fb2265277536"
+handle = "ops-intelligence-aurellia"
+client_id = "56bd549e8292a5a3ebbe356f40e2be63"
 application_url = "https://ops-intelligence-production.up.railway.app/shopify/app"
 embedded = true
 
@@ -8,7 +8,7 @@ embedded = true
 automatically_update_urls_on_dev = false
 
 [access_scopes]
-scopes = "read_orders,read_all_orders,read_products,read_inventory,read_fulfillments,read_locations"
+scopes = "read_orders,read_products,read_inventory,read_fulfillments,read_locations"
 use_legacy_install_flow = false
 
 [access.admin]

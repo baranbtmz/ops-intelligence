@@ -9,7 +9,7 @@
 - Uninstall webhook: https://ops-intelligence-production.up.railway.app/shopify/webhooks/app-uninstalled
 - Privacy webhook: https://ops-intelligence-production.up.railway.app/shopify/webhooks/privacy
 - API version: 2026-01
-- Scopes: read_orders, read_all_orders, read_products, read_inventory, read_fulfillments, read_locations
+- Scopes: read_orders, read_products, read_inventory, read_fulfillments, read_locations
 
 ## Shopify Dev Dashboard
 
@@ -28,8 +28,8 @@
 - `SHOPIFY_SCOPES`
 - `SHOPIFY_API_VERSION=2026-01`
 - `SHOPIFY_BILLING_MODE=shopify_app_pricing`
-- `SHOPIFY_APP_HANDLE=ops-intelligence`
-- `SHOPIFY_APP_PRICING_HANDLE=ops-intelligence`
+- `SHOPIFY_APP_HANDLE=ops-intelligence-aurellia`
+- `SHOPIFY_APP_PRICING_HANDLE=ops-intelligence-aurellia`
 - `BACKEND_PUBLIC_URL=https://ops-intelligence-production.up.railway.app`
 - `FRONTEND_PUBLIC_URL=https://opsintelligence.org`
 - `JWT_SECRET` with a strong production-only random value
@@ -53,7 +53,7 @@
 ## App Store submission notes
 
 - Explain `read_orders`, `read_products`, `read_inventory`, `read_fulfillments`, and `read_locations` as required for operational analysis, inventory health, fulfillment delay detection, and store-level KPI reporting.
-- Keep `read_all_orders` only if OPS needs historical order analysis beyond the default order access window. If not strictly needed, remove it before review.
+- `read_all_orders` is intentionally not requested in the first public submission to avoid unnecessary historical order access. Add it only if OPS later needs historical analysis beyond Shopify's standard order access window and after Shopify approves the protected scope.
 - State that OPS stores Shopify access tokens, store connection metadata, and aggregate analysis output, but does not persist Shopify customer profiles.
 - Provide reviewer instructions with a development store that has orders, products, inventory, and fulfillment data.
 - Include privacy policy, terms, support email, and support URL in the listing.
