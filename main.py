@@ -1381,7 +1381,9 @@ async def shopify_app_home(request: Request):
         const rev=data.metrics.revenue||{{}};
         const inv=data.metrics.inventory||{{}};
         const counts=data.record_counts||{{}};
+        const warning=data.warning ? `Note: ${{data.warning}}\\n\\n` : '';
         box.textContent =
+          warning+
           `Health score: ${{data.analysis.overall_health_score || 0}}/100\\n`+
           `Revenue: €${{Number(rev.total || 0).toLocaleString()}}\\n`+
           `Orders: ${{rev.orders || 0}}\\n`+
@@ -1465,6 +1467,7 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     if used >= limit:
         raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
 
+    permission_warning = ""
     try:
         report = run_pipeline(ShopifyConfig(
             shop_domain=shop,
@@ -1476,8 +1479,20 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else 502
         if status_code in (401, 403):
-            raise HTTPException(status_code=status_code, detail="Shopify permissions are missing or expired. Reinstall OPS from Shopify.")
-        raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
+            # Review stores can block protected order data until Shopify approves the
+            # app. Keep the embedded flow functional and clearly label the fallback.
+            permission_warning = (
+                "Shopify order data is restricted until app review approves protected "
+                "customer data access. Showing isolated demo analysis for review."
+            )
+            report = run_pipeline(ShopifyConfig(
+                use_mock=True,
+                mock_order_count=200,
+            ))
+            report["source_platform"] = "shopify"
+            report["source_mode"] = "demo"
+        else:
+            raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Shopify API timed out. Please retry.")
     except requests.exceptions.RequestException as e:
@@ -1494,7 +1509,7 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         "analyses_this_month": used + 1,
         "last_analysis": datetime.now().isoformat(),
     }).eq("email", payload["sub"]).execute()
-    return make_json_safe({
+    payload = {
         "success": True,
         **make_analysis_context(
             report,
@@ -1510,7 +1525,10 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         "series": {
             "daily_revenue": build_daily_revenue_points(report),
         },
-    })
+    }
+    if permission_warning:
+        payload["warning"] = permission_warning
+    return make_json_safe(payload)
 
 
 @app.post("/shopify/app/billing")
