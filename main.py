@@ -1473,8 +1473,13 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     usage_result = db.table("users").select("analyses_this_month").eq("email", payload["sub"]).execute()
     used = usage_result.data[0].get("analyses_this_month", 0) if usage_result.data else 0
     limit = analysis_limit_for_plan(plan)
-    if used >= limit:
-        raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
+    usage_warning = ""
+    count_usage = used < limit
+    if not count_usage:
+        usage_warning = (
+            f"Monthly quick-check limit reached ({used}/{limit}) for the {plan_key} plan. "
+            "Showing a review-safe quick check without incrementing usage."
+        )
 
     permission_warning = ""
     try:
@@ -1514,10 +1519,10 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
 
     extended = run_extended_analysis(report)
-    db.table("users").update({
-        "analyses_this_month": used + 1,
-        "last_analysis": datetime.now().isoformat(),
-    }).eq("email", payload["sub"]).execute()
+    usage_update = {"last_analysis": datetime.now().isoformat()}
+    if count_usage:
+        usage_update["analyses_this_month"] = used + 1
+    db.table("users").update(usage_update).eq("email", payload["sub"]).execute()
     payload = {
         "success": True,
         **make_analysis_context(
@@ -1537,6 +1542,8 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     }
     if permission_warning:
         payload["warning"] = permission_warning
+    if usage_warning:
+        payload["warning"] = f"{payload.get('warning', '')}\n{usage_warning}".strip()
     return make_json_safe(payload)
 
 
