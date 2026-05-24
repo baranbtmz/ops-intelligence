@@ -330,7 +330,7 @@ const TRANSLATIONS = {
     step3_title: "Take action", step3_desc: "Prioritized action plan with estimated revenue impact. Clear list of what to do this week.",
     pricing_tag: "Pricing",
     pricing_h: "A plan for your <em>size.</em>",
-    pricing_p: "Start free. 7-day money-back guarantee.",
+    pricing_p: "Start free. Starter covers 1 store; Pro covers 3 stores from one account.",
     free_period: "/ month, forever",
     starter_period: "/ month",
     pro_period: "/ month",
@@ -401,7 +401,7 @@ const TRANSLATIONS = {
     step3_title: "Handeln", step3_desc: "Priorisierter Aktionsplan mit geschätztem Umsatzeinfluss. Klare Liste, was diese Woche zu tun ist.",
     pricing_tag: "Preise",
     pricing_h: "Ein Plan für Ihre <em>Größe.</em>",
-    pricing_p: "Kostenlos starten. 7-tägige Geld-zurück-Garantie.",
+    pricing_p: "Kostenlos starten. Starter umfasst 1 Shop; Pro umfasst 3 Shops in einem Konto.",
     free_period: "/ Monat, für immer",
     starter_period: "/ Monat",
     pro_period: "/ Monat",
@@ -472,7 +472,7 @@ const TRANSLATIONS = {
     step3_title: "Aksiyona Geç", step3_desc: "Önceliklendirilmiş aksiyon planı ve tahmini gelir etkisi.",
     pricing_tag: "Fiyatlandırma",
     pricing_h: "Büyüklüğünüze göre <em>plan.</em>",
-    pricing_p: "Ücretsiz başlayın. 7 gün iade garantisi.",
+    pricing_p: "Ücretsiz başlayın. Starter 1 mağaza; Pro aynı hesapta 3 mağaza içerir.",
     free_period: "/ month, forever",
     starter_period: "/ month",
     pro_period: "/ month",
@@ -854,7 +854,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="faq-item rev">
         <button class="faq-q" onclick="toggleFaq(this)">Can I connect more than one store?<span class="faq-plus">+</span></button>
-        <div class="faq-a">Free accounts are designed for one connected store. More stores are available on paid plans or through separate accounts, so reporting stays clean and each workspace has a clear data source.</div>
+        <div class="faq-a">Starter accounts include one connected store in the same workspace. Pro accounts can analyze up to three connected stores from the same account, while separate brands can also use separate accounts when reporting needs to stay fully isolated.</div>
       </div>
       <div class="faq-item rev">
         <button class="faq-q" onclick="toggleFaq(this)">How does OPS protect store access?<span class="faq-plus">+</span></button>
@@ -871,7 +871,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="pricing-inner">
       <span class="tag rev" data-i18n="pricing_tag">Pricing</span>
       <h2 class="sec-h rev" style="margin-top:10px" data-i18n="pricing_h">A plan for your <em>size.</em></h2>
-      <p class="sec-p rev" data-i18n="pricing_p">Start free. 7-day money-back guarantee.</p>
+      <p class="sec-p rev" data-i18n="pricing_p">Start free. Starter covers 1 store; Pro covers 3 stores from one account.</p>
 
       <!-- LAUNCH OFFER CARD -->
       <div style="background:linear-gradient(135deg,#1a1916 0%,#2c2418 100%);border:1px solid rgba(201,150,58,.3);border-radius:16px;padding:20px 28px;margin:24px 0 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;overflow:hidden">
@@ -894,8 +894,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
       <div class="pricing-grid">
         <div class="pcard rev"><div class="pname">Free</div><div class="pamount">€0</div><div class="pperiod">/ month, forever</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 1 store connection</li><li>✓ 100 orders / month</li><li>✓ Basic metrics dashboard</li><li class="off">× AI Analysis Report</li><li class="off">× PDF Export</li><li class="off">× Meta Ads + ROAS</li><li class="off">× SWOT Analysis</li></ul><a href="/app.html" class="pbtn" data-i18n="free_btn">Get started free</a></div>
-        <div class="pcard feat rev"><div class="popular" data-i18n="most_popular">Most popular</div><div class="pname">Starter</div><div class="pamount">€29</div><div class="pperiod">/ month</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 2 store connections</li><li>✓ 1,000 orders / month</li><li>✓ AI Analysis Report (GPT-4o)</li><li>✓ PDF Export</li><li>✓ Meta Ads + ROAS Analysis</li><li>✓ SWOT Analysis</li><li>✓ Competitor Benchmarking</li><li>✓ Email support</li><li class="off">× Churn Prediction</li><li class="off">× Price Elasticity</li><li class="off">× 30-Day Forecast</li></ul><a href="/app.html" class="pbtn white" data-i18n="starter_btn">Get Starter</a></div>
-        <div class="pcard rev"><div class="pname">Pro</div><div class="pamount">€79</div><div class="pperiod">/ month</div><div style="background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--gold);text-align:center">🎁 7-day free trial — no card required</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 10 store connections</li><li>✓ 10,000 orders / month</li><li>✓ Everything in Starter</li><li>✓ 🔮 Churn Prediction (RFM AI)</li><li>✓ 💰 Price Elasticity Analysis</li><li>✓ 📅 30-Day Revenue Forecast</li><li>✓ Full Competitor Benchmarking</li><li>✓ Priority support</li></ul><a href="/app.html" class="pbtn" data-i18n="pro_btn">Start Free Trial →</a></div>
+        <div class="pcard feat rev"><div class="popular" data-i18n="most_popular">Most popular</div><div class="pname">Starter</div><div class="pamount">€29</div><div class="pperiod">/ month</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 1 store connection</li><li>✓ 1,000 orders / month</li><li>✓ AI Analysis Report (GPT-4o)</li><li>✓ PDF Export</li><li>✓ Meta Ads + ROAS Analysis</li><li>✓ SWOT Analysis</li><li>✓ Competitor Benchmarking</li><li>✓ Email support</li><li class="off">× Churn Prediction</li><li class="off">× Price Elasticity</li><li class="off">× 30-Day Forecast</li></ul><a href="/app.html" class="pbtn white" data-i18n="starter_btn">Get Starter</a></div>
+        <div class="pcard rev"><div class="pname">Pro</div><div class="pamount">€79</div><div class="pperiod">/ month</div><div style="background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--gold);text-align:center">🎁 7-day free trial — no card required</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 3 store connections from one account</li><li>✓ 10,000 orders / month</li><li>✓ Everything in Starter</li><li>✓ 🔮 Churn Prediction (RFM AI)</li><li>✓ 💰 Price Elasticity Analysis</li><li>✓ 📅 30-Day Revenue Forecast</li><li>✓ Full Competitor Benchmarking</li><li>✓ Priority support</li></ul><a href="/app.html" class="pbtn" data-i18n="pro_btn">Start Free Trial →</a></div>
       </div>
     </div>
   </div>

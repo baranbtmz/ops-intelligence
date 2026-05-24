@@ -1403,7 +1403,7 @@ body::before{
               <div class="connect-proof-label">Store policy</div>
               <div>
                 <div class="connect-proof-value">1 free</div>
-                <div class="connect-proof-copy">More connected stores require a paid plan.</div>
+                <div class="connect-proof-copy">Multiple connected stores require Pro.</div>
               </div>
             </div>
           </div>
@@ -1769,7 +1769,7 @@ body::before{
             <div class="plan-period">/ month</div>
             <div class="plan-divider"></div>
             <ul class="plan-features">
-              <li><span class="chk">✓</span> 2 store connections</li>
+              <li><span class="chk">✓</span> 1 store connection</li>
               <li><span class="chk">✓</span> 1,000 orders / month</li>
               <li><span class="chk">✓</span> AI Analysis (GPT-4o)</li>
               <li><span class="chk">✓</span> PDF Export</li>
@@ -1789,7 +1789,7 @@ body::before{
             <div style="background:rgba(201,150,58,.1);border:1px solid rgba(201,150,58,.25);border-radius:8px;padding:6px 12px;margin:10px 0;font-size:11px;color:var(--gold);text-align:center;font-weight:500">7-day free trial included</div>
             <div class="plan-divider"></div>
             <ul class="plan-features">
-              <li><span class="chk">✓</span> 10 store connections</li>
+              <li><span class="chk">✓</span> 3 store connections from one account</li>
               <li><span class="chk">✓</span> 10,000 orders / month</li>
               <li><span class="chk">✓</span> Everything in Starter</li>
               <li><span class="chk">✓</span> Churn Prediction</li>
@@ -2444,7 +2444,7 @@ function nav(section) {
 // ── PLAN FEATURES
 function renderPlanFeatures(plan) {
   const feats=[
-    ['Store Connections',`Max ${{free:1,starter:2,pro:10}[plan]||1}`,true],
+    ['Store Connections',`Max ${{free:1,starter:1,pro:3}[plan]||1}`,true],
     ['Monthly Orders',`${{free:100,starter:1000,pro:10000}[plan]||100}`,true],
     ['AI Analysis Report','GPT-4o powered',plan!=='free'],
     ['PDF Export','Professional report',plan!=='free'],
@@ -2688,7 +2688,7 @@ async function loadShopifyStatus() {
     connectedShops=d.stores||[];
     storeLimit={
       plan:d.plan || user?.plan || 'free',
-      max:d.max_stores || ({free:1,starter:2,pro:10}[user?.plan]||1),
+      max:d.max_stores || ({free:1,starter:1,pro:3}[user?.plan]||1),
       used:d.connected_count ?? connectedShops.filter(s=>s.status==='connected').length,
       canAdd:d.can_add_store !== false
     };

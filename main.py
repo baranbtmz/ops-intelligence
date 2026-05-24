@@ -853,8 +853,8 @@ def build_report_from_upload(df: pd.DataFrame, platform: str, filename: str) -> 
 
 PLANS = {
     "free":    {"name": "Free", "price": 0,  "max_stores": 1,  "max_orders": 100,  "ai": False, "pdf": False, "meta": False},
-    "starter": {"name": "Starter",  "price": 29, "max_stores": 2,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": True},
-    "pro":     {"name": "Pro",      "price": 79, "max_stores": 10, "max_orders": 10000,"ai": True,  "pdf": True,  "meta": True},
+    "starter": {"name": "Starter",  "price": 29, "max_stores": 1,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": True},
+    "pro":     {"name": "Pro",      "price": 79, "max_stores": 3,  "max_orders": 10000,"ai": True,  "pdf": True,  "meta": True},
 }
 
 
@@ -1095,8 +1095,8 @@ async def shopify_app_home(request: Request):
         <div class="card-head"><div><h2>Plans & Shopify Billing</h2><div class="small muted">Merchants can upgrade without leaving Shopify.</div></div></div>
         <div class="plan-grid">
           <div class="plan {'active' if plan_key == 'free' else ''}"><div class="plan-name">Free</div><div class="price">€0</div><div class="plan-copy">1 store, basic live check.</div></div>
-          <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
-          <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">Forecast, churn, pricing, more stores.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
+          <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">1 store, AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
+          <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">3 stores, forecast, churn, pricing.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
         <p class="small muted">Billing status: {billing_status}. Shopify Billing opens inside Shopify after the app is migrated to the Shopify Partner area; until then, upgrades open OPS billing.</p>
       </section>
