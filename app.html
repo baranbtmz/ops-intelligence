@@ -66,7 +66,7 @@ body::before{
 ════════════════════════════════════════ */
 .auth-wrap{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:var(--cream);padding:24px;position:relative;overflow:hidden;
+  background:var(--cream);padding:32px;position:relative;overflow:hidden;
 }
 .auth-wrap::before{
   content:"";position:absolute;inset:0;pointer-events:none;
@@ -79,7 +79,68 @@ body::before{
 .blob-3{width:72px;height:72px;top:26%;left:9%;background:radial-gradient(135deg at 30% 30%,#e8c97a,#c9963a);box-shadow:inset -6px -6px 14px rgba(0,0,0,.18),0 8px 20px rgba(201,150,58,.15);animation-delay:-4s;animation-duration:7s;border-radius:30%}
 @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-16px) rotate(4deg)}66%{transform:translateY(8px) rotate(-3deg)}}
 
-.auth-box{width:100%;max-width:400px;position:relative;z-index:1}
+.auth-shell{
+  width:min(1160px,100%);display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.82fr);
+  gap:30px;align-items:stretch;position:relative;z-index:1;
+}
+.auth-trust-panel{
+  min-height:650px;border-radius:30px;padding:42px;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;justify-content:space-between;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.48),rgba(255,255,255,0) 34%),
+    linear-gradient(150deg,#fff2bb 0%,#f7dc7a 48%,#efc447 100%);
+  border:1px solid rgba(201,150,58,.28);box-shadow:0 24px 80px rgba(154,116,39,.22);
+}
+.auth-trust-panel::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(24,22,15,.05) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(24,22,15,.04) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.22),transparent 62%);
+}
+.auth-trust-panel>*{position:relative;z-index:1}
+.auth-trust-logo{
+  display:inline-flex;align-items:center;gap:10px;font-family:var(--serif-font);font-size:28px;font-weight:650;color:var(--ink);
+}
+.auth-trust-logo::before{
+  content:"";width:26px;height:26px;border-radius:8px;background:var(--ink);
+  box-shadow:inset 8px 0 0 var(--gold),0 8px 18px rgba(24,22,15,.12);
+}
+.auth-trust-logo span{color:var(--gold)}
+.auth-trust-title{
+  margin:48px 0 16px;max-width:560px;font-size:58px;line-height:.98;font-weight:650;
+  letter-spacing:0;color:var(--ink);
+}
+.auth-trust-title span{color:#9f7a15}
+.auth-trust-copy{
+  max-width:560px;font-size:18px;line-height:1.6;color:rgba(24,22,15,.72);
+}
+.auth-trust-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.auth-trust-badge{
+  display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:9px 13px;
+  background:rgba(255,255,255,.58);border:1px solid rgba(24,22,15,.12);
+  font-size:12px;font-weight:650;color:rgba(24,22,15,.72);
+}
+.auth-testimonials{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:34px;
+}
+.auth-testimonial{
+  min-height:178px;background:rgba(255,255,255,.86);border:1px solid rgba(24,22,15,.1);
+  border-radius:18px;padding:22px;box-shadow:0 18px 42px rgba(24,22,15,.08);
+}
+.auth-testimonial-label{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.12em;color:#9f7a15;margin-bottom:12px}
+.auth-testimonial-copy{font-size:17px;line-height:1.48;color:var(--ink)}
+.auth-testimonial-name{margin-top:22px;font-size:13px;color:rgba(24,22,15,.58)}
+.auth-rating{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:26px;
+  padding-top:24px;border-top:1px solid rgba(24,22,15,.14);color:rgba(24,22,15,.68);font-size:13px;
+}
+.auth-rating-steps{display:flex;gap:5px}
+.auth-rating-step{
+  width:28px;height:28px;border-radius:7px;background:rgba(26,110,66,.92);color:#fff;
+  display:grid;place-items:center;font-size:13px;font-weight:700;
+}
+.auth-box{width:100%;max-width:430px;position:relative;z-index:1;align-self:center;justify-self:center}
 .auth-logo{text-align:center;margin-bottom:30px}
 .auth-logotype{font-family:var(--serif-font);font-size:28px;font-weight:650;color:var(--ink);letter-spacing:-.02em}
 .auth-logotype .dot{color:var(--gold)}
@@ -633,6 +694,18 @@ body::before{
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
   .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr}
   .trust-strip,.trust-points,.result-proof,.auth-proof{grid-template-columns:1fr}
+  .auth-wrap{padding:18px;align-items:flex-start}
+  .auth-shell{grid-template-columns:1fr;gap:18px}
+  .auth-trust-panel{min-height:auto;border-radius:24px;padding:26px;order:2}
+  .auth-trust-title{margin-top:24px;font-size:34px;line-height:1.02}
+  .auth-trust-copy{font-size:15px;line-height:1.55}
+  .auth-trust-badges{margin-top:18px}
+  .auth-trust-badge{font-size:11px;padding:8px 11px}
+  .auth-testimonials{grid-template-columns:1fr;margin-top:24px}
+  .auth-testimonial{min-height:auto;padding:18px}
+  .auth-testimonial-copy{font-size:15px}
+  .auth-rating{align-items:flex-start;flex-direction:column}
+  .auth-box{max-width:460px;order:1}
   .mobile-menu-btn{display:flex!important}
 }
 
@@ -702,44 +775,81 @@ body::before{
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
-    <div class="auth-box">
-      <div class="auth-logo">
-        <div class="auth-logotype">OPS<span class="dot">.</span></div>
-        <div class="auth-rule"></div>
-        <div class="auth-tagline">Founder-ready commerce operations intelligence</div>
-      </div>
-      <div class="auth-card">
-        <div class="auth-tabs">
-          <div class="auth-tab active" onclick="switchTab('login')">Log In</div>
-          <div class="auth-tab" onclick="switchTab('register')">Sign Up</div>
-        </div>
-        <div class="auth-form active" id="form-login">
-          <form id="login-form" onsubmit="event.preventDefault();login()" style="display:contents">
-          <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="hello@yourstore.com" autocomplete="email" onchange="onLoginInput()" oninput="onLoginInput()"></div>
-          <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onchange="onLoginInput()" oninput="onLoginInput()"></div>
-          <button class="auth-btn" id="login-btn" type="submit">Log In →</button>
-          </form>
-          <div class="auth-error" id="login-error"></div>
-        </div>
-        <div class="auth-form" id="form-register">
-          <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your name"></div>
-          <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="hello@yourstore.com"></div>
-          <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters"></div>
-          <button class="auth-btn" onclick="register()">Create Account →</button>
-          <div class="auth-error" id="reg-error"></div>
-        </div>
-        <div class="auth-proof">
-          <div class="auth-proof-item">
-            <div class="auth-proof-label">Connectors</div>
-            <div class="auth-proof-copy">Shopify OAuth and WooCommerce REST stay clearly separated.</div>
+    <div class="auth-shell">
+      <section class="auth-trust-panel" aria-label="OPS trust panel">
+        <div>
+          <div class="auth-trust-logo">OPS<span>.</span></div>
+          <h1 class="auth-trust-title">Run your store with <span>operational confidence</span></h1>
+          <p class="auth-trust-copy">Connect live commerce data, catch margin and inventory risk early, and turn every analysis into a clear founder action plan.</p>
+          <div class="auth-trust-badges">
+            <div class="auth-trust-badge">Shopify OAuth ready</div>
+            <div class="auth-trust-badge">WooCommerce REST</div>
+            <div class="auth-trust-badge">Live data labeling</div>
           </div>
-          <div class="auth-proof-item">
-            <div class="auth-proof-label">Credibility</div>
-            <div class="auth-proof-copy">Every run names its source, coverage, and analysis engine.</div>
+        </div>
+        <div>
+          <div class="auth-testimonials">
+            <div class="auth-testimonial">
+              <div class="auth-testimonial-label">For operators</div>
+              <div class="auth-testimonial-copy">See stock pressure, fulfillment speed, cancel risk, and revenue movement in one daily workspace.</div>
+              <div class="auth-testimonial-name">Built for lean ecommerce teams</div>
+            </div>
+            <div class="auth-testimonial">
+              <div class="auth-testimonial-label">For founders</div>
+              <div class="auth-testimonial-copy">Know what to fix before ad spend, supplier decisions, or customer promises start costing margin.</div>
+              <div class="auth-testimonial-name">Decision-ready analysis briefs</div>
+            </div>
           </div>
-          <div class="auth-proof-item">
-            <div class="auth-proof-label">Output</div>
-            <div class="auth-proof-copy">Founder-ready briefs focus on margin, stock, and customer promise risk.</div>
+          <div class="auth-rating">
+            <div class="auth-rating-steps">
+              <span class="auth-rating-step">1</span>
+              <span class="auth-rating-step">2</span>
+              <span class="auth-rating-step">3</span>
+              <span class="auth-rating-step">4</span>
+            </div>
+            <div>Secure install, clear source coverage, and reports that separate live results from demo mode.</div>
+          </div>
+        </div>
+      </section>
+      <div class="auth-box">
+        <div class="auth-logo">
+          <div class="auth-logotype">OPS<span class="dot">.</span></div>
+          <div class="auth-rule"></div>
+          <div class="auth-tagline">Founder-ready commerce operations intelligence</div>
+        </div>
+        <div class="auth-card">
+          <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchTab('login')">Log In</div>
+            <div class="auth-tab" onclick="switchTab('register')">Sign Up</div>
+          </div>
+          <div class="auth-form active" id="form-login">
+            <form id="login-form" onsubmit="event.preventDefault();login()" style="display:contents">
+            <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="hello@yourstore.com" autocomplete="email" onchange="onLoginInput()" oninput="onLoginInput()"></div>
+            <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onchange="onLoginInput()" oninput="onLoginInput()"></div>
+            <button class="auth-btn" id="login-btn" type="submit">Log In →</button>
+            </form>
+            <div class="auth-error" id="login-error"></div>
+          </div>
+          <div class="auth-form" id="form-register">
+            <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your name"></div>
+            <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="hello@yourstore.com"></div>
+            <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters"></div>
+            <button class="auth-btn" onclick="register()">Create Account →</button>
+            <div class="auth-error" id="reg-error"></div>
+          </div>
+          <div class="auth-proof">
+            <div class="auth-proof-item">
+              <div class="auth-proof-label">Connectors</div>
+              <div class="auth-proof-copy">Shopify OAuth and WooCommerce REST stay clearly separated.</div>
+            </div>
+            <div class="auth-proof-item">
+              <div class="auth-proof-label">Credibility</div>
+              <div class="auth-proof-copy">Every run names its source, coverage, and analysis engine.</div>
+            </div>
+            <div class="auth-proof-item">
+              <div class="auth-proof-label">Output</div>
+              <div class="auth-proof-copy">Founder-ready briefs focus on margin, stock, and customer promise risk.</div>
+            </div>
           </div>
         </div>
       </div>
