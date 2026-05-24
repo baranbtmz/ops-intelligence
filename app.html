@@ -602,6 +602,16 @@ body::before{
 .data-table td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--ink2)}
 .data-table tr:last-child td{border-bottom:none}
 .data-table tr:hover td{background:var(--cream2)}
+.table-scroll{
+  width:100%;max-height:560px;overflow:auto;border:1px solid var(--border);
+  border-radius:18px;background:var(--white);
+}
+.table-scroll .data-table{min-width:860px}
+.table-scroll .data-table th{
+  position:sticky;top:0;z-index:2;background:var(--white);box-shadow:0 1px 0 var(--border);
+}
+.table-meta{font-size:12px;color:var(--muted);margin:0 0 10px}
+.td-num{text-align:right;font-variant-numeric:tabular-nums lining-nums}
 .badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:500}
 .badge-danger{background:var(--danger-pale);color:var(--danger)}.badge-warn{background:var(--warn-pale);color:var(--warn)}.badge-success{background:var(--success-pale);color:var(--success)}
 
@@ -2827,6 +2837,7 @@ function renderResults(data) {
     </div>`).join(''):'<div style="color:var(--muted);font-size:14px;padding:20px 0">No findings found.</div>';
 
   document.getElementById('r-revenue-detail').innerHTML=`
+    <div class="table-scroll" style="max-height:360px">
     <table class="data-table">
       <tr><th>Metric</th><th>Value</th><th>Status</th></tr>
       <tr><td>Total Revenue</td><td>€${moneyFormat.format(rev.total||0)}</td><td><span class="badge badge-success">—</span></td></tr>
@@ -2835,15 +2846,39 @@ function renderResults(data) {
       <tr><td>Cancel Rate</td><td>${cancelRate}%</td><td><span class="badge ${parseFloat(cancelRate)<=3?'badge-success':'badge-danger'}">${parseFloat(cancelRate)<=3?'Normal':'High'}</span></td></tr>
       <tr><td>Refund Rate</td><td>${refundRate}%</td><td><span class="badge ${parseFloat(refundRate)<=5?'badge-success':'badge-warn'}">${parseFloat(refundRate)<=5?'Normal':'High'}</span></td></tr>
       <tr><td>P95 Fulfillment</td><td>${(ft.p95||0).toFixed(1)}h</td><td><span class="badge ${(ft.p95||0)<=72?'badge-success':'badge-danger'}">${(ft.p95||0)<=72?'Normal':'High'}</span></td></tr>
-    </table>`;
+    </table>
+    </div>`;
 
   const products=inv.products||[];
   const stockOf=p=>Number(p.current_stock??p.inventory??0);
+  const productRows=products.map((p,i)=>{
+    const stock=stockOf(p);
+    const sold=Number(p.sold_units??p.sold??p.quantity_sold??0);
+    const price=Number(p.price??p.unit_price??0);
+    const days=Number(p.days_of_stock??p.days_stock??0);
+    const status=stock<=0?'Out of Stock':stock<=10?'Critical':stock<=30?'Low':'Normal';
+    const badge=stock<=0?'badge-danger':stock<=10?'badge-warn':'badge-success';
+    return `<tr>
+      <td class="td-num">${i+1}</td>
+      <td>${p.title||p.name||p.product_id||'—'}</td>
+      <td>${p.sku||'—'}</td>
+      <td>${p.category||p.product_type||'—'}</td>
+      <td class="td-num">€${price?price.toFixed(2):'0.00'}</td>
+      <td class="td-num">${stock}</td>
+      <td class="td-num">${sold}</td>
+      <td class="td-num">${Number(p.turnover_rate||0).toFixed(2)}x</td>
+      <td class="td-num">${Number.isFinite(days)&&days<999?Math.round(days):'999+'}</td>
+      <td><span class="badge ${badge}">${status}</span></td>
+    </tr>`;
+  }).join('');
   document.getElementById('r-inventory-table').innerHTML=products.length?`
+    <div class="table-meta">Showing all ${products.length.toLocaleString('en-GB')} products from this run. Scroll inside the table to inspect every row and column.</div>
+    <div class="table-scroll">
     <table class="data-table">
-      <tr><th>Product</th><th>Stock</th><th>Turnover</th><th>Status</th></tr>
-      ${products.slice(0,10).map(p=>`<tr><td>${p.title||p.product_id||'—'}</td><td>${stockOf(p)}</td><td>${(p.turnover_rate||0).toFixed(2)}x</td><td><span class="badge ${stockOf(p)<=0?'badge-danger':stockOf(p)<=10?'badge-warn':'badge-success'}">${stockOf(p)<=0?'Out of Stock':stockOf(p)<=10?'Critical':'Normal'}</span></td></tr>`).join('')}
-    </table>`:'<div style="color:var(--muted);font-size:14px">No product data found.</div>';
+      <tr><th>#</th><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Sold Units</th><th>Turnover</th><th>Days of Stock</th><th>Status</th></tr>
+      ${productRows}
+    </table>
+    </div>`:'<div style="color:var(--muted);font-size:14px">No product data found.</div>';
 
   document.getElementById('r-actions').innerHTML=quickWins.length?quickWins.map((qw,i)=>`
     <div class="qw-item"><div class="qw-num">${String(i+1).padStart(2,'0')}</div><div class="qw-text">${qw}</div></div>`).join(''):'<div style="color:var(--muted)">No actions found.</div>';
@@ -2870,7 +2905,8 @@ function renderResults(data) {
     }
     const invCtx=document.getElementById('chart-inventory');
     if(invCtx&&products.length){
-      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:products.slice(0,8).map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{data:products.slice(0,8).map(p=>stockOf(p)),backgroundColor:products.slice(0,8).map(p=>stockOf(p)<=0?'rgba(192,57,43,0.7)':stockOf(p)<=10?'rgba(184,109,10,0.7)':'rgba(201,150,58,0.7)'),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f'}},x:{grid:{display:false},ticks:{color:'#96907f'}}}}});
+      const chartProducts=products.slice(0,30);
+      charts.inventory=new Chart(invCtx,{type:'bar',data:{labels:chartProducts.map(p=>p.title||(p.product_id||'').slice(0,15)),datasets:[{data:chartProducts.map(p=>stockOf(p)),backgroundColor:chartProducts.map(p=>stockOf(p)<=0?'rgba(192,57,43,0.7)':stockOf(p)<=10?'rgba(184,109,10,0.7)':'rgba(201,150,58,0.7)'),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f'}},x:{grid:{display:false},ticks:{color:'#96907f',maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:12}}}}});
     }
     const roasCtx=document.getElementById('chart-roas');
     if(roasCtx){
@@ -2917,7 +2953,7 @@ function renderResults(data) {
     const segs=churn.segments||{};
     document.getElementById('r-churn-segments').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${Object.entries(segs).map(([k,v])=>`<div style="background:var(--cream2);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:20px;font-weight:600">${v}</div><div style="font-size:12px;color:var(--muted)">${k}</div></div>`).join('')}</div>`;
     const topRisk=churn.top_at_risk||[];
-    document.getElementById('r-churn-table').innerHTML=topRisk.length?`<div class="card-title" style="margin-bottom:8px">High Risk Customers</div><table style="width:100%;font-size:13px;border-collapse:collapse"><tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Email</th><th>Days Inactive</th><th>Total Spent</th><th>Risk Score</th></tr>${topRisk.map(c=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">${c.customer_email||'—'}</td><td style="text-align:center">${c.recency_days||0}d</td><td style="text-align:center">€${(c.monetary||0).toFixed(0)}</td><td style="text-align:center;color:var(--danger)">${c.churn_risk||0}%</td></tr>`).join('')}</table><div style="margin-top:12px;font-size:13px;color:var(--muted);background:var(--cream2);padding:12px;border-radius:8px;border:1px solid var(--border)">💡 ${churn.recommendation||''}</div>`:'<div style="color:var(--muted)">Not enough customer data for churn analysis.</div>';
+    document.getElementById('r-churn-table').innerHTML=topRisk.length?`<div class="card-title" style="margin-bottom:8px">High Risk Customers</div><div class="table-meta">Showing all ${topRisk.length.toLocaleString('en-GB')} at-risk customers.</div><div class="table-scroll" style="max-height:420px"><table class="data-table"><tr><th>Email</th><th>Days Inactive</th><th>Total Spent</th><th>Risk Score</th></tr>${topRisk.map(c=>`<tr><td>${c.customer_email||'—'}</td><td class="td-num">${c.recency_days||0}d</td><td class="td-num">€${(c.monetary||0).toFixed(0)}</td><td class="td-num" style="color:var(--danger)">${c.churn_risk||0}%</td></tr>`).join('')}</table></div><div style="margin-top:12px;font-size:13px;color:var(--muted);background:var(--cream2);padding:12px;border-radius:8px;border:1px solid var(--border)">💡 ${churn.recommendation||''}</div>`:'<div style="color:var(--muted)">Not enough customer data for churn analysis.</div>';
   } else {
     document.getElementById('r-churn-summary').innerHTML='<div style="color:var(--muted);font-size:14px;grid-column:1/-1">Run analysis with real data to see churn predictions.</div>';
   }
@@ -2925,7 +2961,7 @@ function renderResults(data) {
   const pricing=ext.price_elasticity||{};
   if(pricing.products?.length){
     document.getElementById('r-pricing-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">💡 ${pricing.insight||''} <strong style="color:var(--gold)">+€${moneyFormat.format(pricing.total_revenue_potential||0)} potential</strong></div>`;
-    document.getElementById('r-pricing-table').innerHTML='<table style="width:100%;font-size:13px;border-collapse:collapse"><tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Product</th><th>Current</th><th>Suggested</th><th>Margin</th><th>Action</th></tr>'+pricing.products.map(function(p){var bg=p.recommendation==='price_increase'?'var(--success-pale)':p.recommendation==='bundle'?'var(--gold-pale)':'var(--cream2)';var col=p.recommendation==='price_increase'?'var(--success)':p.recommendation==='bundle'?'var(--gold)':'var(--muted)';var tcol=p.recommendation==='price_increase'?'var(--success)':'var(--muted)';return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">'+p.product+'</td><td style="text-align:center">€'+p.current_price+'</td><td style="text-align:center;color:'+tcol+'">€'+p.suggested_price+'</td><td style="text-align:center">'+p.margin_pct+'%</td><td style="text-align:center"><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+p.recommendation.toUpperCase()+'</span></td></tr>';}).join('')+'</table>';
+    document.getElementById('r-pricing-table').innerHTML='<div class="table-meta">Showing all '+pricing.products.length.toLocaleString('en-GB')+' priced products.</div><div class="table-scroll" style="max-height:460px"><table class="data-table"><tr><th>Product</th><th>Current</th><th>Suggested</th><th>Margin</th><th>Action</th></tr>'+pricing.products.map(function(p){var bg=p.recommendation==='price_increase'?'var(--success-pale)':p.recommendation==='bundle'?'var(--gold-pale)':'var(--cream2)';var col=p.recommendation==='price_increase'?'var(--success)':p.recommendation==='bundle'?'var(--gold)':'var(--muted)';var tcol=p.recommendation==='price_increase'?'var(--success)':'var(--muted)';return '<tr><td>'+p.product+'</td><td class="td-num">€'+p.current_price+'</td><td class="td-num" style="color:'+tcol+'">€'+p.suggested_price+'</td><td class="td-num">'+p.margin_pct+'%</td><td><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+p.recommendation.toUpperCase()+'</span></td></tr>';}).join('')+'</table></div>';
   } else {
     document.getElementById('r-pricing-insight').innerHTML='<div style="color:var(--muted)">Pricing analysis requires product data.</div>';
   }
@@ -2953,7 +2989,7 @@ function renderResults(data) {
   if(bench.benchmarks?.length){
     const sc2=bench.overall_percentile>=80?'var(--success)':bench.overall_percentile>=60?'var(--gold)':'var(--danger)';
     document.getElementById('r-benchmark-score').innerHTML=`<div style="display:flex;align-items:center;gap:20px;background:var(--cream2);border-radius:12px;padding:16px;border:1px solid var(--border)"><div style="text-align:center;min-width:80px"><div style="font-family:var(--serif-font,serif);font-size:36px;font-weight:400;color:${sc2}">${bench.overall_percentile}%</div><div style="font-size:12px;color:var(--muted)">Percentile</div></div><div><div style="font-weight:600;margin-bottom:4px">${bench.overall_rating} — ${bench.industry}</div><div style="font-size:13px;color:var(--muted)">${bench.insight}</div><div style="font-size:12px;margin-top:6px">✓ Strongest: <strong>${bench.top_strength}</strong> &nbsp; ↑ Improve: <strong>${bench.top_weakness}</strong></div></div></div>`;
-    document.getElementById('r-benchmark-table').innerHTML='<table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:12px"><tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Metric</th><th>Yours</th><th>Industry Avg</th><th>Top 10%</th><th>Rating</th></tr>'+bench.benchmarks.map(function(b){var bg=b.rating==='Excellent'?'var(--success-pale)':b.rating==='Good'?'var(--gold-pale)':'var(--danger-pale)';var col=b.rating==='Excellent'?'var(--success)':b.rating==='Good'?'var(--gold)':'var(--danger)';return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">'+b.metric+'</td><td style="text-align:center;font-weight:600">'+b.your_value+'</td><td style="text-align:center;color:var(--muted)">'+b.industry_average+'</td><td style="text-align:center;color:var(--gold)">'+b.top_10_pct+'</td><td style="text-align:center"><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+b.rating+'</span></td></tr>';}).join('')+'</table>';
+    document.getElementById('r-benchmark-table').innerHTML='<div class="table-scroll" style="max-height:420px;margin-top:12px"><table class="data-table"><tr><th>Metric</th><th>Yours</th><th>Industry Avg</th><th>Top 10%</th><th>Rating</th></tr>'+bench.benchmarks.map(function(b){var bg=b.rating==='Excellent'?'var(--success-pale)':b.rating==='Good'?'var(--gold-pale)':'var(--danger-pale)';var col=b.rating==='Excellent'?'var(--success)':b.rating==='Good'?'var(--gold)':'var(--danger)';return '<tr><td>'+b.metric+'</td><td class="td-num" style="font-weight:600">'+b.your_value+'</td><td class="td-num" style="color:var(--muted)">'+b.industry_average+'</td><td class="td-num" style="color:var(--gold)">'+b.top_10_pct+'</td><td><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+b.rating+'</span></td></tr>';}).join('')+'</table></div>';
   } else {
     document.getElementById('r-benchmark-score').innerHTML='<div style="color:var(--muted);font-size:14px">Benchmark data is unavailable for this run.</div>';
     document.getElementById('r-benchmark-table').innerHTML='';

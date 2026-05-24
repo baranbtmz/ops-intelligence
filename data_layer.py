@@ -210,7 +210,7 @@ class ShopifyClient:
         response.raise_for_status()
         return response
 
-    def fetch_orders(self, limit: int = 250, status: str = "any", max_pages: int = 2) -> list[dict]:
+    def fetch_orders(self, limit: int = 250, status: str = "any", max_pages: int = 20) -> list[dict]:
         """Siparişleri getir (gerçek veya mock)"""
         if self.config.use_mock:
             print("📦 [MOCK] Sipariş verisi üretiliyor...")
@@ -238,7 +238,7 @@ class ShopifyClient:
 
         return all_orders
 
-    def fetch_products(self, max_pages: int = 2) -> list[dict]:
+    def fetch_products(self, max_pages: int = 20) -> list[dict]:
         """Ürünleri getir (gerçek veya mock)"""
         if self.config.use_mock:
             print("🛍️ [MOCK] Ürün verisi üretiliyor...")
