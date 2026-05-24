@@ -174,6 +174,9 @@ SHOPIFY_SCOPES = ",".join(dict.fromkeys(SHOPIFY_ENV_SCOPES + SHOPIFY_REQUIRED_SC
 SHOPIFY_API_VERSION = os.environ.get("SHOPIFY_API_VERSION", "2026-01")
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 SHOPIFY_BILLING_ENABLED = os.environ.get("SHOPIFY_BILLING_ENABLED", "false").lower() in ("1", "true", "yes")
+SHOPIFY_BILLING_MODE = os.environ.get("SHOPIFY_BILLING_MODE", "shopify_app_pricing").strip().lower()
+SHOPIFY_APP_HANDLE = os.environ.get("SHOPIFY_APP_HANDLE", "ops-intelligence").strip()
+SHOPIFY_APP_PRICING_HANDLE = os.environ.get("SHOPIFY_APP_PRICING_HANDLE", SHOPIFY_APP_HANDLE).strip()
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
 SHOPIFY_STATE_EXPIRE_MINUTES = 10
@@ -391,6 +394,28 @@ def build_shopify_app_launch_url(shop: str, app_token: str, section: str = "") -
     if section:
         params["section"] = section
     return f"{BACKEND_PUBLIC_URL}/shopify/app/launch?{urlencode(params)}"
+
+
+def shopify_store_handle(shop: str) -> str:
+    return normalize_shop_domain(shop).split(".myshopify.com")[0]
+
+
+def build_shopify_app_pricing_url(shop: str) -> str:
+    if not SHOPIFY_APP_PRICING_HANDLE:
+        raise HTTPException(status_code=500, detail="SHOPIFY_APP_PRICING_HANDLE is missing.")
+    return (
+        f"https://admin.shopify.com/store/{quote(shopify_store_handle(shop))}"
+        f"/charges/{quote(SHOPIFY_APP_PRICING_HANDLE)}/pricing_plans"
+    )
+
+
+def plan_from_shopify_handle(value: str) -> str:
+    normalized = (value or "").strip().lower()
+    if "pro" in normalized:
+        return "pro"
+    if "starter" in normalized:
+        return "starter"
+    return ""
 
 
 def shopify_billing_fallback_response(shop: str, app_token: str, message: str) -> JSONResponse:
@@ -639,6 +664,67 @@ def disconnect_shopify_store(shop: str) -> None:
                 changed = True
         if changed:
             db.table("users").update({"stores": stores}).eq("email", user["email"]).execute()
+
+
+def redact_shopify_store_data(shop: str) -> int:
+    db = get_supabase()
+    result = db.table("users").select("email,stores").execute()
+    changed_users = 0
+    for user in result.data or []:
+        stores = user.get("stores") or []
+        if not isinstance(stores, list):
+            continue
+        redacted_stores = []
+        changed = False
+        for store in stores:
+            if (
+                isinstance(store, dict)
+                and store.get("platform") == "shopify"
+                and store.get("domain") == shop
+            ):
+                changed = True
+                continue
+            redacted_stores.append(store)
+        if changed:
+            db.table("users").update({"stores": redacted_stores}).eq("email", user["email"]).execute()
+            changed_users += 1
+    return changed_users
+
+
+def parse_shopify_webhook_json(raw_body: bytes) -> dict:
+    try:
+        payload = json.loads(raw_body.decode("utf-8") or "{}")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        payload = {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def shop_domain_from_privacy_payload(payload: dict, request: Request) -> str:
+    shop = (
+        payload.get("shop_domain")
+        or payload.get("shop")
+        or request.headers.get("X-Shopify-Shop-Domain", "")
+    )
+    return normalize_shop_domain(shop)
+
+
+def redact_customer_data(payload: dict) -> dict:
+    customer = payload.get("customer") if isinstance(payload.get("customer"), dict) else {}
+    return {
+        "customer_id": customer.get("id") or payload.get("customer_id"),
+        "redacted": True,
+        "stored_customer_profiles": 0,
+        "note": "OPS stores Shopify tokens and aggregate analysis output, not Shopify customer profiles.",
+    }
+
+
+def customer_data_response(payload: dict) -> dict:
+    customer = payload.get("customer") if isinstance(payload.get("customer"), dict) else {}
+    return {
+        "customer_id": customer.get("id") or payload.get("customer_id"),
+        "data": [],
+        "note": "OPS stores aggregate operational analysis output and does not persist Shopify customer profiles.",
+    }
 
 
 def get_connected_shop(email: str, requested_shop: Optional[str] = None) -> Optional[dict]:
@@ -996,7 +1082,12 @@ async def shopify_app_home(request: Request):
     ops_launch_url = build_shopify_app_launch_url(shop, app_token)
     ops_plans_url = build_shopify_app_launch_url(shop, app_token, "plans")
     install_url = build_shopify_install_url(shop)
-    billing_status = "enabled" if SHOPIFY_BILLING_ENABLED else "pending Partner app migration"
+    if SHOPIFY_BILLING_MODE in ("shopify_app_pricing", "app_pricing", "managed_pricing"):
+        billing_status = "Shopify App Pricing"
+    elif SHOPIFY_BILLING_MODE == "billing_api" and SHOPIFY_BILLING_ENABLED:
+        billing_status = "Billing API enabled"
+    else:
+        billing_status = "pending Partner app migration"
 
     response = HTMLResponse(f"""
 <!doctype html>
@@ -1098,7 +1189,7 @@ async def shopify_app_home(request: Request):
           <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">1 store, AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
           <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">3 stores, forecast, churn, pricing.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
-        <p class="small muted">Billing status: {billing_status}. Shopify Billing opens inside Shopify after the app is migrated to the Shopify Partner area; until then, upgrades open OPS billing.</p>
+        <p class="small muted">Billing status: {billing_status}. Paid plan buttons open Shopify-hosted plan selection when the app has Partner-owned pricing configured; otherwise OPS opens its own billing page as a fallback.</p>
       </section>
     </div>
 
@@ -1179,7 +1270,7 @@ async def shopify_app_home(request: Request):
     }}
     async function startBilling(plan){{
       const box=document.getElementById('result');
-      box.textContent='Opening Shopify Billing confirmation...';
+      box.textContent='Opening Shopify plan selection...';
       try{{
         const res=await fetch('/shopify/app/billing',{{
           method:'POST',
@@ -1191,7 +1282,7 @@ async def shopify_app_home(request: Request):
           const fallbackUrl = readFallbackUrl(data);
           const msg = readApiError(data,'Billing failed');
           if(fallbackUrl){{
-            box.textContent=msg+' Opening OPS billing instead...';
+            box.textContent=msg+' Opening OPS billing fallback...';
             setTimeout(()=>leaveShopifyFrame(fallbackUrl), 700);
             return;
           }}
@@ -1306,11 +1397,23 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
     if req.plan not in ("starter", "pro"):
         raise HTTPException(status_code=400, detail="Only Starter and Pro can be purchased through Shopify Billing.")
 
-    if not SHOPIFY_BILLING_ENABLED:
+    if SHOPIFY_BILLING_MODE in ("shopify_app_pricing", "app_pricing", "managed_pricing"):
+        try:
+            pricing_url = build_shopify_app_pricing_url(shop)
+        except HTTPException as e:
+            return shopify_billing_fallback_response(shop, req.app_token, str(e.detail))
+        return {
+            "success": True,
+            "confirmation_url": pricing_url,
+            "billing_mode": "shopify_app_pricing",
+            "plan": req.plan,
+        }
+
+    if SHOPIFY_BILLING_MODE != "billing_api" or not SHOPIFY_BILLING_ENABLED:
         return shopify_billing_fallback_response(
             shop,
             req.app_token,
-            "Shopify Billing is not active for this app yet because the current Shopify app is shop-owned. OPS will open its own billing page until the app is migrated to a Shopify Partner-owned app.",
+            "Shopify Billing is not active for this app yet. OPS will open its own billing page until the app is Partner-owned and Shopify pricing is configured.",
         )
 
     amount = 29.0 if req.plan == "starter" else 79.0
@@ -1370,15 +1473,21 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
     if not confirmation_url:
         raise HTTPException(status_code=502, detail="Shopify did not return a billing confirmation URL.")
 
-    return {"success": True, "confirmation_url": confirmation_url, "test": SHOPIFY_BILLING_TEST}
+    return {"success": True, "confirmation_url": confirmation_url, "test": SHOPIFY_BILLING_TEST, "billing_mode": "billing_api"}
 
 
 @app.get("/shopify/billing/return")
-async def shopify_billing_return(shop: str, plan: str):
-    shop_domain = normalize_shop_domain(shop)
+async def shopify_billing_return(request: Request, shop: str = "", plan: str = "", plan_handle: str = ""):
+    params = dict(request.query_params)
+    shop_value = shop or params.get("shop_domain") or params.get("shop") or ""
+    if not shop_value:
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html#shopify_error=missing_shop")
+
+    shop_domain = normalize_shop_domain(shop_value)
+    selected_plan = plan if plan in ("starter", "pro") else plan_from_shopify_handle(plan_handle or params.get("plan_handle", ""))
     connected = find_shopify_store_by_domain(shop_domain)
-    if connected and plan in ("starter", "pro"):
-        set_user_plan(connected["user"]["email"], plan)
+    if connected and selected_plan in ("starter", "pro"):
+        set_user_plan(connected["user"]["email"], selected_plan)
     return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop_domain)}&billing_return=1")
 
 
@@ -1523,7 +1632,21 @@ async def shopify_privacy_webhook(request: Request):
     raw_body = await request.body()
     if not verify_shopify_webhook(raw_body, request.headers.get("X-Shopify-Hmac-Sha256", "")):
         raise HTTPException(status_code=401, detail="Invalid Shopify webhook signature.")
-    return {"success": True}
+    payload = parse_shopify_webhook_json(raw_body)
+    topic = (request.headers.get("X-Shopify-Topic") or "").strip().lower()
+
+    if topic == "customers/data_request":
+        return {"success": True, "request": customer_data_response(payload)}
+
+    if topic == "customers/redact":
+        return {"success": True, "request": redact_customer_data(payload)}
+
+    if topic == "shop/redact":
+        shop = shop_domain_from_privacy_payload(payload, request)
+        changed_users = redact_shopify_store_data(shop)
+        return {"success": True, "shop": shop, "redacted_users": changed_users}
+
+    return {"success": True, "topic": topic or "unknown"}
 
 
 # ─────────────────────────────────────────────
