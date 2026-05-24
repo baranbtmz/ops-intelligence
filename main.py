@@ -11,7 +11,8 @@ uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -40,6 +41,7 @@ from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
 
 app = FastAPI(title="OPS Intelligence API", version="1.0.0")
+app.mount("/assets", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "assets")), name="assets")
 
 # ── Mail gönderme (Resend)
 async def send_email(to: str, subject: str, html: str):
@@ -1160,6 +1162,11 @@ async def me(payload: dict = Depends(verify_token)):
 # ─────────────────────────────────────────────
 # SHOPIFY APP INSTALL / OAUTH
 # ─────────────────────────────────────────────
+
+@app.get("/screencast", response_class=HTMLResponse)
+async def app_review_screencast():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "screencast.html"))
+
 
 @app.get("/shopify/install")
 async def shopify_install(shop: str):
