@@ -697,6 +697,7 @@ def run_price_elasticity(orders_df, products_df) -> dict:
                 "recommendation": recommendation,
                 "suggested_price": price_increase_potential,
                 "additional_revenue_potential": additional_revenue,
+                "image_url": product.get("image_url", ""),
             })
 
         results.sort(key=lambda x: x["additional_revenue_potential"], reverse=True)

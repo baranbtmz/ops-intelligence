@@ -62,6 +62,30 @@ def _shopify_status(value: str | None, financial_status: str | None = None) -> s
     return value or "unfulfilled"
 
 
+def _product_image_url(product: dict, variant: Optional[dict] = None) -> str:
+    """Return the best available product image URL from Shopify/WooCommerce payloads."""
+    variant = variant or {}
+    variant_image_id = variant.get("image_id")
+    images = product.get("images") or []
+    if variant_image_id and isinstance(images, list):
+        for image in images:
+            if image.get("id") == variant_image_id and image.get("src"):
+                return image.get("src") or ""
+    for key in ("image", "featured_image"):
+        image = product.get(key)
+        if isinstance(image, dict) and (image.get("src") or image.get("url")):
+            return image.get("src") or image.get("url") or ""
+        if isinstance(image, str):
+            return image
+    if isinstance(images, list) and images:
+        first = images[0]
+        if isinstance(first, dict):
+            return first.get("src") or first.get("url") or ""
+        if isinstance(first, str):
+            return first
+    return ""
+
+
 # ─────────────────────────────────────────────
 # MOCK DATA ÜRETECİ
 # ─────────────────────────────────────────────
@@ -445,6 +469,7 @@ class DataTransformer:
                         "price":         _money(variant.get("price") or p.get("price")),
                         "cost":          _money(variant.get("cost") or p.get("cost_per_item")),
                         "inventory":     int(variant.get("inventory_quantity", p.get("inventory_quantity", 0)) or 0),
+                        "image_url":     _product_image_url(p, variant),
                         "created_at":    p.get("created_at"),
                     })
             else:
@@ -457,6 +482,7 @@ class DataTransformer:
                     "price":         _money(p.get("price")),
                     "cost":          _money(p.get("cost_per_item")),
                     "inventory":     int(p.get("inventory_quantity", 0) or 0),
+                    "image_url":     _product_image_url(p),
                     "created_at":    p.get("created_at"),
                 })
 
@@ -600,6 +626,7 @@ class MetricsEngine:
                 "sku":           prod.get("sku", ""),
                 "price":         prod.get("price", 0),
                 "inventory":     prod["inventory"],
+                "image_url":     prod.get("image_url", ""),
                 "sold_units":    int(total_sold),
                 "turnover_rate": turnover,
                 "days_of_stock": days_of_stock,

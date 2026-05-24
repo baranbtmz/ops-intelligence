@@ -40,8 +40,8 @@ class MetaMockGenerator:
     """
 
     CAMPAIGNS = [
-        {"id": "C001", "name": "Rose Serum — DE Kadın 25-44",     "objective": "CONVERSIONS", "product_sku": "SKN-001"},
-        {"id": "C002", "name": "Oud Perfume — DE Lüks Segment",   "objective": "CONVERSIONS", "product_sku": "PRF-001"},
+        {"id": "C001", "name": "Rose Serum — DE Women 25-44",     "objective": "CONVERSIONS", "product_sku": "SKN-001"},
+        {"id": "C002", "name": "Oud Perfume — DE Luxury Segment", "objective": "CONVERSIONS", "product_sku": "PRF-001"},
         {"id": "C003", "name": "Body Lotion — Retargeting DE",     "objective": "CONVERSIONS", "product_sku": "BDY-001"},
         {"id": "C004", "name": "Vitamin C Cream — Awareness",      "objective": "REACH",       "product_sku": "SKN-002"},
         {"id": "C005", "name": "Hair Mask — DE+AT+CH Broad",       "objective": "CONVERSIONS", "product_sku": "HRC-001"},
@@ -113,11 +113,11 @@ class MetaMockGenerator:
         """Reklam seti bazında hedefleme verisi"""
         ad_sets = []
         audiences = [
-            ("DE Kadın 25-34 — Skincare Interest", "DE", "25-34", "F"),
-            ("DE Kadın 35-44 — Premium Beauty",    "DE", "35-44", "F"),
-            ("DE Erkek 25-44 — Hediye Alıcılar",   "DE", "25-44", "M"),
-            ("AT+CH Kadın 25-44 — Lookalike",      "AT,CH", "25-44", "F"),
-            ("Retargeting — Site Ziyaretçileri",   "DE,AT,CH", "18-65", "ALL"),
+            ("DE Women 25-34 — Skincare Interest", "DE", "25-34", "F"),
+            ("DE Women 35-44 — Premium Beauty",    "DE", "35-44", "F"),
+            ("DE Men 25-44 — Gift Buyers",         "DE", "25-44", "M"),
+            ("AT+CH Women 25-44 — Lookalike",      "AT,CH", "25-44", "F"),
+            ("Retargeting — Site Visitors",        "DE,AT,CH", "18-65", "ALL"),
         ]
         for i, (name, countries, age, gender) in enumerate(audiences):
             ad_sets.append({
@@ -231,7 +231,7 @@ class MetaAnalyzer:
 
         # Performans renk kodu
         def perf_label(roas):
-            if roas >= self.BENCHMARKS["roas_good"]:    return "✅ İyi"
+            if roas >= self.BENCHMARKS["roas_good"]:    return "✅ Good"
             if roas >= self.BENCHMARKS["roas_critical"]: return "⚠️ Orta"
             return "🔴 Kritik"
 
@@ -275,22 +275,22 @@ class MetaAnalyzer:
             if inventory is not None and inventory < 15 and camp["spend"] > 5:
                 severity = "critical" if inventory == 0 else "warning"
                 alarms.append({
-                    "alarm_type": "STOK_REKLAM_UYUMSUZLUĞU",
+                    "alarm_type": "INVENTORY_AD_MISMATCH",
                     "severity":   severity,
                     "campaign":   camp["campaign_name"],
                     "sku":        sku,
                     "inventory":  inventory,
                     "daily_spend": round(camp["spend"] / 90, 2),
-                    "title": f"{'Stok Tükendi' if inventory == 0 else 'Kritik Stok'} — Reklam Aktif",
+                    "title": f"{'Out of Stock' if inventory == 0 else 'Critical Stock'} — Ads Still Active",
                     "description": (
-                        f"'{camp['campaign_name']}' kampanyası günde "
-                        f"€{round(camp['spend']/90,1)} harcıyor ancak "
-                        f"ürün stoğu {'tamamen tükenmiş' if inventory==0 else str(inventory)+' adet kalmış'}. "
-                        f"Bu reklam bütçesi boşa gidiyor ve kullanıcı deneyimini bozuyor."
+                        f"The '{camp['campaign_name']}' campaign is spending "
+                        f"€{round(camp['spend']/90,1)} per day, but "
+                        f"inventory is {'fully depleted' if inventory==0 else 'down to '+str(inventory)+' units'}. "
+                        f"This can waste ad budget and hurt the customer experience."
                     ),
                     "action": (
-                        "Kampanyayı hemen duraklat veya bütçeyi stoklu ürünlere yönlendir. "
-                        f"Acil tedarik siparişi ver. 30 adet stok altına inince otomatik duraklama kur."
+                        "Pause the campaign or shift budget to in-stock products. "
+                        f"Place an urgent replenishment order and set an automatic pause below 30 units."
                     ),
                     "estimated_waste_eur": round(camp["spend"] / 90 * 14, 0),  # 2 haftalık israf
                 })
@@ -298,21 +298,21 @@ class MetaAnalyzer:
             # ── ALARM 2: Düşük ROAS (zarar eden kampanya)
             if camp["roas"] < self.BENCHMARKS["roas_critical"] and camp["spend"] > 50:
                 alarms.append({
-                    "alarm_type": "DÜŞÜK_ROAS",
+                    "alarm_type": "LOW_ROAS",
                     "severity":   "critical",
                     "campaign":   camp["campaign_name"],
                     "sku":        sku,
                     "roas":       camp["roas"],
                     "spend":      camp["spend"],
                     "revenue":    camp["revenue"],
-                    "title": f"Zarar Eden Kampanya — ROAS {camp['roas']}x",
+                    "title": f"Loss-Making Campaign — ROAS {camp['roas']}x",
                     "description": (
-                        f"€{camp['spend']:.0f} harcandı, yalnızca €{camp['revenue']:.0f} gelir üretildi. "
-                        f"ROAS {camp['roas']}x, başabaş noktası ({self.BENCHMARKS['roas_critical']}x) altında."
+                        f"€{camp['spend']:.0f} was spent and only €{camp['revenue']:.0f} revenue was generated. "
+                        f"ROAS {camp['roas']}x is below the breakeven threshold ({self.BENCHMARKS['roas_critical']}x)."
                     ),
                     "action": (
-                        "Kampanya hedefleme kitlesini daralt (Broad → Lookalike). "
-                        "Reklam kreatiflerini değiştir. 7 gün ROAS iyileşmezse durdur."
+                        "Narrow the campaign audience from broad targeting to lookalikes. "
+                        "Refresh ad creatives and stop the campaign if ROAS does not improve within 7 days."
                     ),
                     "estimated_waste_eur": round(camp["spend"] - camp["revenue"] / 2, 0),
                 })
@@ -320,19 +320,19 @@ class MetaAnalyzer:
             # ── ALARM 3: Reklam yorgunluğu (yüksek frekans)
             if camp["avg_freq"] > self.BENCHMARKS["freq_max"]:
                 alarms.append({
-                    "alarm_type": "REKLAM_YORGUNLUĞU",
+                    "alarm_type": "AD_FATIGUE",
                     "severity":   "warning",
                     "campaign":   camp["campaign_name"],
                     "sku":        sku,
                     "frequency":  round(camp["avg_freq"], 1),
-                    "title": f"Reklam Yorgunluğu — Frekans {round(camp['avg_freq'],1)}x",
+                    "title": f"Ad Fatigue — Frequency {round(camp['avg_freq'],1)}x",
                     "description": (
-                        f"Hedef kitle bu reklamı ortalama {round(camp['avg_freq'],1)} kez gördü. "
-                        f"{self.BENCHMARKS['freq_max']}+ üzeri frekans CTR düşüşüne ve marka erozyonuna yol açar."
+                        f"The target audience has seen this ad {round(camp['avg_freq'],1)} times on average. "
+                        f"Frequency above {self.BENCHMARKS['freq_max']} can reduce CTR and weaken brand response."
                     ),
                     "action": (
-                        "Yeni reklam kreatifleri ekle (en az 3 farklı görsel/metin kombinasyonu). "
-                        "Kitleyi genişlet veya Lookalike oranını artır (%1 → %3)."
+                        "Add new creatives with at least 3 image and copy variations. "
+                        "Expand the audience or increase the lookalike range from 1% to 3%."
                     ),
                     "estimated_waste_eur": None,
                 })
@@ -340,19 +340,19 @@ class MetaAnalyzer:
             # ── ALARM 4: Yüksek CPC
             if camp["cpc"] > self.BENCHMARKS["cpc_max"] and camp["spend"] > 30:
                 alarms.append({
-                    "alarm_type": "YÜKSEK_CPC",
+                    "alarm_type": "HIGH_CPC",
                     "severity":   "warning",
                     "campaign":   camp["campaign_name"],
                     "sku":        sku,
                     "cpc":        camp["cpc"],
-                    "title": f"Yüksek Tıklama Maliyeti — €{camp['cpc']} CPC",
+                    "title": f"High Click Cost — €{camp['cpc']} CPC",
                     "description": (
-                        f"Tıklama başı maliyet €{camp['cpc']}, benchmark €{self.BENCHMARKS['cpc_max']} üzerinde. "
-                        f"Alman kozmetik sektöründe €0.40-0.80 arası CPC hedeflenmeli."
+                        f"Cost per click is €{camp['cpc']}, above the €{self.BENCHMARKS['cpc_max']} benchmark. "
+                        f"For German cosmetics campaigns, a €0.40-0.80 CPC range is a healthier target."
                     ),
                     "action": (
-                        "Reklam alaka puanını artır (görseli ürünle eşleştir). "
-                        "Manuel teklif stratejisini dene. Düşük CPC'li kitleyle A/B testi yap."
+                        "Improve ad relevance by matching the creative to the product. "
+                        "Test manual bidding and run an A/B test with lower-CPC audiences."
                     ),
                     "estimated_waste_eur": None,
                 })
