@@ -805,6 +805,53 @@ body::before{
 
 /* Connect */
 .connect-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.connect-hero{
+  display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);gap:18px;
+  margin-bottom:18px;align-items:stretch
+}
+.connect-hero-main{
+  background:linear-gradient(135deg,#fff 0%,#fbf8f0 54%,#f4ead5 100%);
+  border:1px solid rgba(214,155,45,.18);border-radius:26px;padding:26px 30px;
+  box-shadow:var(--sh);position:relative;overflow:hidden
+}
+.connect-hero-main::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(120deg,rgba(214,155,45,.12),transparent 42%);
+  pointer-events:none
+}
+.connect-hero-main>*{position:relative;z-index:1}
+.connect-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.connect-hero-title{font-family:var(--serif-font);font-size:38px;line-height:1.02;letter-spacing:-.045em;color:var(--ink);max-width:18ch}
+.connect-hero-title em{font-style:italic;color:#9b701f}
+.connect-hero-copy{font-size:15px;line-height:1.65;color:var(--muted);max-width:62ch;margin-top:14px}
+.connect-benefits{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.connect-benefit{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;
+  background:rgba(255,255,255,.72);border:1px solid rgba(17,18,13,.08);
+  font-size:12px;font-weight:700;color:var(--ink2)
+}
+.connect-benefit::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(214,155,45,.13)}
+.connect-proof-panel{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  background:var(--white);border:1px solid var(--border);border-radius:26px;padding:18px;
+  box-shadow:var(--sh)
+}
+.connect-proof-tile{
+  background:var(--cream2);border:1px solid rgba(17,18,13,.06);border-radius:18px;padding:16px;
+  min-height:104px;display:flex;flex-direction:column;justify-content:space-between
+}
+.connect-proof-tile.featured{grid-column:1/-1;background:linear-gradient(135deg,var(--ink),#332916);color:#fff;border-color:rgba(214,155,45,.18)}
+.connect-proof-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.connect-proof-tile.featured .connect-proof-label{color:rgba(214,155,45,.9)}
+.connect-proof-value{font-size:26px;font-weight:800;letter-spacing:-.035em;color:var(--ink);line-height:1.05}
+.connect-proof-tile.featured .connect-proof-value{color:#fff;font-family:var(--serif-font);font-size:27px;font-weight:650}
+.connect-proof-copy{font-size:12px;line-height:1.55;color:var(--muted);margin-top:8px}
+.connect-proof-tile.featured .connect-proof-copy{color:rgba(255,255,255,.68)}
+.source-tabs{
+  display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:16px;
+  padding:5px;width:fit-content;max-width:100%;overflow-x:auto;border:1px solid var(--border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)
+}
 .src-tab{padding:7px 14px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-radius:9px;transition:all .18s;letter-spacing:.04em;white-space:nowrap;user-select:none}
 .src-tab:hover{color:var(--ink)}
 .src-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 8px rgba(21,19,11,.08)}
@@ -813,6 +860,16 @@ body::before{
 .connect-card{background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(249,244,235,.96));border:1px solid var(--border);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;box-shadow:var(--sh)}
 .connect-card-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .connect-card-title svg{width:16px;height:16px;color:var(--muted)}
+.connect-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.connect-card-eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+.connect-card-title.big{font-size:24px;font-weight:800;letter-spacing:-.035em;margin-bottom:4px}
+.connect-card-sub{font-size:13px;color:var(--muted);line-height:1.55;max-width:56ch}
+.connect-badge{
+  display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;
+  background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.16);
+  font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--success);white-space:nowrap
+}
+.connect-form-stack{display:grid;gap:12px}
 .connect-state{display:flex;align-items:flex-start;gap:12px;font-size:12px;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px}
 .connect-state.ok{background:rgba(26,122,74,.07);border-color:rgba(26,122,74,.24)}
 .connect-state.warn{background:rgba(201,150,58,.09);border-color:rgba(201,150,58,.28)}
@@ -836,6 +893,24 @@ body::before{
   display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
   background:rgba(255,255,255,.78);border:1px solid rgba(17,18,13,.08)
 }
+.flow-card{background:linear-gradient(180deg,#fff,rgba(244,236,221,.92));border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh)}
+.flow-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.flow-title{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.flow-sub{font-size:13px;color:var(--muted);line-height:1.55;margin-top:5px;max-width:44ch}
+.flow-steps{display:grid;gap:10px}
+.flow-step{
+  display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:flex-start;
+  background:rgba(255,255,255,.72);border:1px solid rgba(17,18,13,.06);border-radius:16px;padding:13px
+}
+.flow-num{width:30px;height:30px;border-radius:11px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.flow-step strong{display:block;font-size:13px;color:var(--ink);margin-bottom:3px}
+.flow-step span{display:block;font-size:12px;color:var(--muted);line-height:1.5}
+.connect-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.connect-feature{
+  padding:14px;border-radius:16px;background:#fff;border:1px solid rgba(17,18,13,.07)
+}
+.connect-feature strong{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.connect-feature span{display:block;font-size:12px;color:var(--ink2);line-height:1.55}
 
 /* PDF strip */
 .pdf-strip{background:linear-gradient(135deg,var(--ink2),var(--ink));border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
@@ -892,6 +967,17 @@ body::before{
   #page-app .tabs{max-width:100%;overflow-x:auto}
   #page-app .chart-wrap{height:220px}
   #page-app .chart-wrap-tall{height:260px}
+  .connect-hero,.connect-proof-panel,.connect-feature-grid{grid-template-columns:1fr!important}
+  .connect-hero{gap:12px}
+  .connect-hero-main{padding:26px;border-radius:24px}
+  .connect-hero-title{font-size:32px;max-width:14ch}
+  .connect-hero-copy{font-size:14px}
+  .connect-proof-panel{display:none}
+  .connect-proof-tile{min-height:auto}
+  .connect-proof-tile.featured{grid-column:auto}
+  .source-tabs{width:100%;border-radius:14px}
+  .connect-card-head,.flow-head{flex-direction:column}
+  .connect-badge{align-self:flex-start}
   #sec-ledger,#sec-compare,#sec-team{left:0}
   #sec-ledger>div,#sec-compare>div,#sec-team>div{padding:24px 18px!important}
   #sec-ledger,#sec-compare,#sec-team{left:0}
@@ -1283,8 +1369,44 @@ body::before{
           <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
         </div>
 
-        <!-- Platform tabs -->
-        <div style="display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:12px;padding:4px;width:fit-content;max-width:100%;overflow-x:auto;border:1px solid var(--border)">
+        <div class="connect-hero">
+          <div class="connect-hero-main">
+            <div class="connect-kicker">Commerce connector hub</div>
+            <div class="connect-hero-title">From store access to an <em>operating brief</em>.</div>
+            <div class="connect-hero-copy">Connect Shopify or WooCommerce directly, or upload marketplace exports. OPS keeps demo and live data separated, then turns revenue, fulfillment, inventory, churn, pricing, and forecast signals into one readable brief.</div>
+            <div class="connect-benefits">
+              <div class="connect-benefit">Read-only OAuth</div>
+              <div class="connect-benefit">Source labels</div>
+              <div class="connect-benefit">Full product tables</div>
+              <div class="connect-benefit">Action-first results</div>
+            </div>
+          </div>
+          <div class="connect-proof-panel">
+            <div class="connect-proof-tile featured">
+              <div>
+                <div class="connect-proof-label">Live reporting standard</div>
+                <div class="connect-proof-value">No demo findings in live runs.</div>
+              </div>
+              <div class="connect-proof-copy">Each report names the connector, record coverage, and analysis engine so a founder can trust what they are reading.</div>
+            </div>
+            <div class="connect-proof-tile">
+              <div class="connect-proof-label">Access model</div>
+              <div>
+                <div class="connect-proof-value">Backend-held</div>
+                <div class="connect-proof-copy">Tokens stay server side after install.</div>
+              </div>
+            </div>
+            <div class="connect-proof-tile">
+              <div class="connect-proof-label">Store policy</div>
+              <div>
+                <div class="connect-proof-value">1 free</div>
+                <div class="connect-proof-copy">More connected stores require a paid plan.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="source-tabs" aria-label="Data source tabs">
           <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
           <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
           <div class="src-tab" id="tab-etsy" onclick="switchSource('etsy')">Etsy</div>
@@ -1292,62 +1414,35 @@ body::before{
           <div class="src-tab" id="tab-upload" onclick="switchSource('upload')">CSV / Excel</div>
         </div>
 
-        <div class="trust-strip">
-          <div class="trust-card">
-            <div class="trust-kicker">Founder-ready onboarding</div>
-            <div class="trust-title">Get to an <em>operating brief</em>, not another dashboard.</div>
-            <div class="trust-copy">OPS turns raw commerce activity into a weekly decision layer: what is slipping, what it costs, and what to change next. Live results only use authenticated Shopify or WooCommerce data, never demo findings.</div>
-            <div class="trust-points">
-              <div class="trust-point"><strong>Step 1</strong><span>Connect the store with read-only operational scopes.</span></div>
-              <div class="trust-point"><strong>Step 2</strong><span>OPS calculates fulfillment, revenue, inventory, churn, pricing, and benchmark signals.</span></div>
-              <div class="trust-point"><strong>Step 3</strong><span>The result page labels live vs. demo data so findings stay credible.</span></div>
-            </div>
-            <div class="founder-note">
-              <div class="founder-note-kicker">Built for founder decisions</div>
-              <div class="founder-note-title">Know what changed this week before it leaks cash, stock, or trust.</div>
-              <div class="founder-note-copy">OPS is designed for the founder or operator carrying the margin, inventory, and promise-to-customer risk, not for another passive dashboard review.</div>
-              <div class="founder-note-points">
-                <div class="founder-pill">Read-only connectors</div>
-                <div class="founder-pill">Warm onboarding</div>
-                <div class="founder-pill">Action-first reporting</div>
-              </div>
-              <div class="founder-micro">Built around the questions that surface in founder and ops reviews: what changed, where margin is leaking, what customer promises are at risk, and what action needs to happen first.</div>
-            </div>
-          </div>
-          <div class="trust-side">
-            <div class="trust-mini">
-              <div class="trust-mini-label">What OPS stores</div>
-              <div class="trust-mini-value">Backend-held access</div>
-              <div class="trust-mini-copy">Shopify access remains on the backend after OAuth so live runs do not depend on browser-stored secrets.</div>
-            </div>
-            <div class="trust-mini">
-              <div class="trust-mini-label">What OPS shows</div>
-              <div class="trust-mini-value">Source + coverage</div>
-              <div class="trust-mini-copy">Every result names the connector, record coverage, and engine so teams can trust what they are reading.</div>
-            </div>
-          </div>
-        </div>
-
         <!-- Shopify -->
         <div id="src-shopify" class="src-panel">
           <div class="connect-grid">
             <div class="connect-card">
-              <div class="connect-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                Shopify Store
+              <div class="connect-card-head">
+                <div>
+                  <div class="connect-card-eyebrow">Primary connector</div>
+                  <div class="connect-card-title big">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    Shopify Store
+                  </div>
+                  <div class="connect-card-sub">Enter the merchant domain, open Shopify's native install screen, then run a live operating brief from the connected store.</div>
+                </div>
+                <div class="connect-badge">Production path</div>
               </div>
               <div id="shopify-connection-status" class="connect-state warn">
                 <span class="connect-dot"></span>
                 <div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, and result pages with explicit source labels.</div></div>
               </div>
-              <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
-              <button class="btn btn-ink" style="width:100%;justify-content:center;margin-bottom:10px" onclick="connectShopifyApp()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                Open Shopify Install
-              </button>
-              <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
-                Run Shopify Operating Brief
-              </button>
+              <div class="connect-form-stack">
+                <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
+                <button class="btn btn-ink" style="width:100%;justify-content:center" onclick="connectShopifyApp()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  Open Shopify Install
+                </button>
+                <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
+                  Run Shopify Operating Brief
+                </button>
+              </div>
               <details style="margin-top:14px">
                 <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
                 <div style="margin-top:12px">
@@ -1362,30 +1457,24 @@ body::before{
               </div>
               <div class="connect-note"><strong>Recommended path:</strong> use Shopify OAuth for repeatable production analysis. Manual tokens remain available only as a fallback when install flow is blocked.</div>
             </div>
-            <div class="connect-card" style="background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(244,236,221,.95))">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
-                <div style="font-size:12px;font-weight:600;color:var(--ink)">Production connection flow</div>
-                <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.16);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--success)">Live data only</div>
+            <div class="flow-card">
+              <div class="flow-head">
+                <div>
+                  <div class="flow-title">What happens after install</div>
+                  <div class="flow-sub">A predictable four-step connection path that keeps the merchant inside Shopify for approval and OPS for analysis.</div>
+                </div>
+                <div class="connect-badge">Live data only</div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:9px">
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Merchant enters a <strong>.myshopify.com</strong> domain.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Shopify opens the native permission screen outside the iframe.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>OPS stores the offline access token securely on the backend.</div>
-                <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>Analysis uses Shopify orders, products, inventory, customers, and fulfillments.</div>
+              <div class="flow-steps">
+                <div class="flow-step"><div class="flow-num">1</div><div><strong>Enter store domain</strong><span>Use the merchant's permanent .myshopify.com domain.</span></div></div>
+                <div class="flow-step"><div class="flow-num">2</div><div><strong>Approve in Shopify</strong><span>The install permission screen opens outside the embedded frame.</span></div></div>
+                <div class="flow-step"><div class="flow-num">3</div><div><strong>Store access securely</strong><span>OPS saves the offline access token on the backend, not in the browser.</span></div></div>
+                <div class="flow-step"><div class="flow-num">4</div><div><strong>Run the operating brief</strong><span>Orders, products, inventory, customers, and fulfillments feed the report.</span></div></div>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
-                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
-                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Security</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Offline token stays on the backend. No browser-stored secret required.</div>
-                </div>
-                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
-                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Coverage</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Orders, products, inventory and fulfillment metrics come from the connected store.</div>
-                </div>
-                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
-                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Credibility</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Demo visuals stay in demo mode. Live results remain strictly tied to authenticated store data.</div>
-                </div>
+              <div class="connect-feature-grid">
+                <div class="connect-feature"><strong>Security</strong><span>Offline token stays on the backend.</span></div>
+                <div class="connect-feature"><strong>Coverage</strong><span>Record counts appear on every result page.</span></div>
+                <div class="connect-feature"><strong>Credibility</strong><span>Demo visuals never masquerade as live findings.</span></div>
               </div>
               <div class="connect-inline-proof">
                 <span>Founder-ready onboarding</span>
