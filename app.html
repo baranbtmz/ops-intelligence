@@ -559,7 +559,7 @@ body::before{
 .src-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 8px rgba(21,19,11,.08)}
 .src-panel{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.connect-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.connect-card{background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(249,244,235,.96));border:1px solid var(--border);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;box-shadow:var(--sh)}
 .connect-card-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .connect-card-title svg{width:16px;height:16px;color:var(--muted)}
 .connect-state{display:flex;align-items:flex-start;gap:12px;font-size:12px;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px}
@@ -571,6 +571,20 @@ body::before{
 .connect-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
 .connect-meta div{background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:11px;color:var(--muted)}
 .connect-meta strong{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+.connect-note{
+  margin-top:14px;padding:12px 14px;border-radius:14px;
+  background:rgba(17,18,13,.03);border:1px dashed rgba(17,18,13,.12);
+  font-size:12px;line-height:1.6;color:var(--muted)
+}
+.connect-note strong{color:var(--ink)}
+.connect-inline-proof{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;
+  font-size:11px;color:var(--muted)
+}
+.connect-inline-proof span{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+  background:rgba(255,255,255,.78);border:1px solid rgba(17,18,13,.08)
+}
 
 /* PDF strip */
 .pdf-strip{background:linear-gradient(135deg,var(--ink2),var(--ink));border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
@@ -1019,10 +1033,11 @@ body::before{
                 </div>
               </details>
               <div class="connect-meta">
-                <div><strong>OAuth</strong>No token copy</div>
-                <div><strong>Scopes</strong>Orders + inventory</div>
-                <div><strong>Output</strong>Live brief</div>
+                <div><strong>Preferred</strong>OAuth install</div>
+                <div><strong>Scopes</strong>Read-only ops data</div>
+                <div><strong>Output</strong>Live operating brief</div>
               </div>
+              <div class="connect-note"><strong>Recommended path:</strong> use Shopify OAuth for repeatable production analysis. Manual tokens remain available only as a fallback when install flow is blocked.</div>
             </div>
             <div class="connect-card" style="background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(244,236,221,.95))">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
@@ -1048,6 +1063,11 @@ body::before{
                   <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Credibility</div>
                   <div style="font-size:12px;color:var(--ink2);line-height:1.6">Demo visuals stay in demo mode. Live results remain strictly tied to authenticated store data.</div>
                 </div>
+              </div>
+              <div class="connect-inline-proof">
+                <span>Founder-ready onboarding</span>
+                <span>Connector + coverage labels</span>
+                <span>No fake live findings</span>
               </div>
             </div>
           </div>
@@ -1104,7 +1124,7 @@ body::before{
 
         <div class="card">
           <div class="card-title">Shopify Live Data</div>
-          <div class="card-sub">Use this fallback only when OAuth is unavailable. Preferred live runs should come from the connected store path above.</div>
+          <div class="card-sub">Use this only when OAuth is unavailable. Result pages will label this path separately from the preferred Shopify OAuth connection.</div>
           <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="storename.myshopify.com"></div>
           <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
           <button class="btn btn-gold" onclick="saveAndAnalyze()">
@@ -2243,7 +2263,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
         var loadFailed=String(fetchErr.message||'').toLowerCase().includes('load failed');
         var errMsg = (fetchErr.name==='AbortError'||loadFailed)
           ? 'Request timed out or was blocked by the browser. Shopify analysis can take up to 3 minutes — please try again.'
-          : 'Network error: '+fetchErr.message+'. Backend health is OK; please retry.';
+          : 'Network error: '+fetchErr.message+'. Please retry or reconnect the store.';
         showToast('❌ '+errMsg);
         nav('connect');
       }
@@ -2280,6 +2300,13 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
 // ── RENDER RESULTS
 function renderResults(data) {
   const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store')||String(data.model||'').includes('mock-demo')||String(data.model||'').includes('demo');
+  const usedManualShopifyToken=!!(
+    lastAnalysisRequest &&
+    !lastAnalysisRequest.mock &&
+    (lastAnalysisRequest.platform||'shopify')==='shopify' &&
+    (lastAnalysisRequest.shopToken||'') &&
+    !(lastAnalysisRequest.connectedShop||'')
+  );
   if(isDemoResult){
     const demoExt=buildLocalMock().extended||{};
     data.extended=Object.assign({}, demoExt, data.extended||{});
@@ -2306,7 +2333,7 @@ function renderResults(data) {
   document.getElementById('r-summary').textContent=an.executive_summary||'';
   const sourceLabel=isDemoResult
     ? 'Demo data'
-    : (data.data_source==='woocommerce' ? 'WooCommerce REST' : 'Shopify OAuth');
+    : (data.data_source==='woocommerce' ? 'WooCommerce REST' : (usedManualShopifyToken ? 'Shopify Admin API token' : 'Shopify OAuth'));
   const generatedLabel=data.generated_at
     ? new Date(data.generated_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
     : new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
@@ -2323,15 +2350,19 @@ function renderResults(data) {
   badgeEl.textContent=isDemoResult?'Demo mode':'Live mode';
   document.getElementById('result-signal-title').textContent=isDemoResult
     ? 'Sample results are isolated from live store reporting.'
-    : 'This run is based on connected store data only.';
+    : (usedManualShopifyToken ? 'This run used a live manual-token fallback.' : 'This run is based on connected store data only.');
   document.getElementById('result-signal-copy').textContent=isDemoResult
     ? 'Use demo runs to understand the product flow. They never overwrite the live-data labels.'
-    : 'OPS does not inject sample findings into live Shopify or WooCommerce analyses.';
+    : (usedManualShopifyToken
+      ? 'OPS still treats this as live data, but labels it separately from the preferred OAuth path.'
+      : 'OPS does not inject sample findings into live Shopify or WooCommerce analyses.');
   document.getElementById('result-signal-meta').textContent=`${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
   document.getElementById('proof-source').textContent=sourceLabel;
   document.getElementById('proof-source-copy').textContent=isDemoResult
     ? 'Demo mode stays isolated so practice runs never masquerade as live findings.'
-    : 'This connector path used authenticated store data rather than browser-stored samples.';
+    : (usedManualShopifyToken
+      ? 'This live run used a manually supplied Shopify Admin API token for the current session.'
+      : 'This connector path used an authenticated store connection rather than browser-stored samples.');
   document.getElementById('proof-coverage').textContent=coverageLabel;
   document.getElementById('proof-coverage-copy').textContent=orderCount||productCount
     ? 'OPS states how many records were analyzed in this run.'
@@ -2339,7 +2370,9 @@ function renderResults(data) {
   document.getElementById('proof-engine').textContent=modelLabel;
   document.getElementById('proof-engine-copy').textContent=isDemoResult
     ? 'Demo mode can use local sample scaffolding for product exploration.'
-    : 'Live runs use the backend analysis engine and keep source labels attached to the output.';
+    : (usedManualShopifyToken
+      ? 'Live runs still use the backend analysis engine, but this session used the manual token fallback instead of OAuth.'
+      : 'Live runs use the backend analysis engine and keep source labels attached to the output.');
 
   const cancelRate=((rev.cancellation_rate??rev.cancel_rate??0)).toFixed(1);
   const refundRate=(rev.refund_rate||0).toFixed(1);

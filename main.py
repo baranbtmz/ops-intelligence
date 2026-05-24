@@ -1384,7 +1384,11 @@ async def get_pdf(req: AnalysisRequest, payload: dict = Depends(verify_token)):
         "generated_at": analysis_response["generated_at"],
     }
 
-    pdf_bytes = generate_pdf_report(mock_result, None, req.shopify_domain or "Demo Store")
+    shop_label = analysis_response.get("shop_name") or (
+        "Demo Store" if req.use_mock else
+        (req.shopify_domain or req.connected_shop or ("WooCommerce Store" if (req.platform or "").lower() == "woocommerce" else "Connected Store"))
+    )
+    pdf_bytes = generate_pdf_report(mock_result, None, shop_label)
 
     return Response(
         content=pdf_bytes,
