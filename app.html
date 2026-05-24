@@ -860,13 +860,30 @@ body::before{
                 <div><strong>Output</strong>Live analysis</div>
               </div>
             </div>
-            <div class="connect-card" style="background:var(--cream2)">
-              <div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:12px">Production connection flow</div>
+            <div class="connect-card" style="background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(244,236,221,.95))">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+                <div style="font-size:12px;font-weight:600;color:var(--ink)">Production connection flow</div>
+                <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.16);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--success)">Live data only</div>
+              </div>
               <div style="display:flex;flex-direction:column;gap:9px">
                 <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">1</div>Merchant enters a <strong>.myshopify.com</strong> domain.</div>
                 <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">2</div>Shopify opens the native permission screen outside the iframe.</div>
                 <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">3</div>OPS stores the offline access token securely on the backend.</div>
                 <div style="display:flex;gap:10px;font-size:12px;color:var(--muted)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">4</div>Analysis uses Shopify orders, products, inventory, customers, and fulfillments.</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
+                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Security</div>
+                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Offline token stays on the backend. No browser-stored secret required.</div>
+                </div>
+                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Coverage</div>
+                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Orders, products, inventory and fulfillment metrics come from the connected store.</div>
+                </div>
+                <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Credibility</div>
+                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Demo visuals stay in demo mode. Live results now stay strictly data-backed.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -920,7 +937,7 @@ body::before{
         <div id="src-upload" class="src-panel" style="display:none">
           <div class="connect-card" style="max-width:560px">
             <div class="connect-card-title">Upload CSV or Excel</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Works with exports from Shopify, WooCommerce, Etsy, Amazon, or any spreadsheet.</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px">File validation is available, but full production parsing is not enabled yet. Use Shopify OAuth or WooCommerce REST for live analysis.</div>
 
             <!-- Drop zone -->
             <div id="drop-zone" onclick="document.getElementById('upload-file').click()"
@@ -1029,7 +1046,7 @@ body::before{
       <section id="sec-results" style="display:none">
         <div class="pg-header" style="align-items:flex-start">
           <div><div class="pg-title">Analysis Results</div><div class="pg-sub" id="results-meta">—</div></div>
-          <button class="btn btn-outline btn-sm" onclick="startDemo()">
+          <button class="btn btn-outline btn-sm" onclick="rerunLastAnalysis()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             Refresh
           </button>
@@ -1073,7 +1090,7 @@ body::before{
         </div>
 
         <div class="tab-content" id="tab-meta-content">
-          <div class="card"><div class="card-title">ROAS Analysis</div><div class="chart-wrap"><canvas id="chart-roas"></canvas></div></div>
+          <div class="card"><div class="card-title">ROAS Analysis</div><div class="chart-wrap"><canvas id="chart-roas"></canvas></div><div id="r-meta-summary" style="margin-top:12px"></div></div>
           <div class="card" style="margin-top:14px"><div class="card-title">Cross Alarms</div><div class="card-sub">Inventory vs. ad activity conflicts</div><div id="r-alarms"></div></div>
         </div>
 
@@ -1482,6 +1499,7 @@ const API = 'https://ops-intelligence-production.up.railway.app';
 let token = null;
 let user = null;
 let lastResult = null;
+let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
 
@@ -1903,43 +1921,46 @@ function renderOverview(data) {
 
   // Sparklines
   setTimeout(()=>{
-    const days=14;
-    const mkSpark=(id,base,color)=>{
+    const revenueSeries=Array.isArray(data.series?.daily_revenue)?data.series.daily_revenue:[];
+    const mkSpark=(id,vals,color)=>{
       const ctx=document.getElementById(id); if(!ctx) return;
       if(charts[id]) try{charts[id].destroy()}catch(e){}
-      const vals=Array.from({length:days},()=>base*(0.65+Math.random()*0.7));
-      charts[id]=new Chart(ctx,{type:'line',data:{labels:Array(days).fill(''),datasets:[{data:vals,borderColor:color,backgroundColor:color.replace('rgb(','rgba(').replace(')',',0.1)'),borderWidth:2,pointRadius:0,fill:true,tension:0.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}});
+      if(!Array.isArray(vals) || vals.length < 2) return;
+      charts[id]=new Chart(ctx,{type:'line',data:{labels:Array(vals.length).fill(''),datasets:[{data:vals,borderColor:color,backgroundColor:color.replace('rgb(','rgba(').replace(')',',0.1)'),borderWidth:2,pointRadius:0,fill:true,tension:0.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}});
     };
-    mkSpark('spark-rev',total/90||1000,'rgb(201,150,58)');
-    mkSpark('spark-ord',(rev.orders||100)/90,'rgb(26,122,74)');
+    mkSpark('spark-rev',revenueSeries.map(function(p){return Number(p.revenue||0);}), 'rgb(201,150,58)');
+    mkSpark('spark-ord',revenueSeries.map(function(p){return Math.max(1, Math.round(Number(p.revenue||0) / Math.max(rev.aov||1, 1)));}), 'rgb(26,122,74)');
   },80);
 }
 
 // ── ANALYSIS
 async function runCSVAnalysis() {
-  const ordersFile=document.getElementById('csv-orders').files[0];
-  if(!ordersFile){showToast('Please select an orders CSV file.');return;}
-  const loadEl=document.getElementById('analysis-loading');
-  loadEl.classList.add('show');
-  document.querySelectorAll('#sec-analysis .card').forEach(c=>c.style.display='none');
-  try {
-    const formData=new FormData();
-    formData.append('orders_file',ordersFile);
-    const pf=document.getElementById('csv-products').files[0];
-    if(pf) formData.append('products_file',pf);
-    formData.append('language','en');
-    const r=await fetch(`${API}/analysis/csv`,{method:'POST',headers:{'Authorization':`Bearer ${token}`},body:formData});
-    const d=await r.json();
-    if(!r.ok){showToast(d.detail||'Analysis failed.');return;}
-    lastResult=d; renderResults(d); renderOverview(d); setTimeout(()=>nav('results'),100);
-  } catch(e){showToast('Connection error.');}
-  finally{loadEl.classList.remove('show');document.querySelectorAll('#sec-analysis .card').forEach(c=>c.style.display='');}
+  showToast('CSV parsing is not production-ready yet. Use Shopify OAuth, WooCommerce REST, or demo mode.');
 }
 
 function startDemo() {
   nav('analysis');
   document.querySelectorAll('#sec-analysis .card').forEach(c=>c.style.display='none');
   runAnalysis(true,'','');
+}
+
+function rememberAnalysisRequest(req) {
+  lastAnalysisRequest = Object.assign({}, req);
+}
+
+function rerunLastAnalysis() {
+  if(!lastAnalysisRequest) {
+    showToast('No previous analysis to refresh yet.');
+    return;
+  }
+  nav('analysis');
+  runAnalysis(
+    !!lastAnalysisRequest.mock,
+    lastAnalysisRequest.domain || '',
+    lastAnalysisRequest.shopToken || '',
+    lastAnalysisRequest.connectedShop || '',
+    lastAnalysisRequest.platform || 'shopify'
+  );
 }
 
 async function startSmartAnalysis() {
@@ -2029,9 +2050,10 @@ function saveAndAnalyze() {
 }
 
 async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',platform='shopify') {
+  rememberAnalysisRequest({mock,domain,shopToken,connectedShop,platform});
   const loadEl=document.getElementById('analysis-loading');
   loadEl.classList.add('show');
-  document.getElementById('analysis-shop-name').textContent=mock?'Demo Store':'Starting analysis...';
+  document.getElementById('analysis-shop-name').textContent=mock?'Demo Store':'Pulling live store data...';
   const steps=['step-1','step-2','step-3','step-4'];
   let si=0;
   const interval=setInterval(()=>{
@@ -2051,7 +2073,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:platform==='shopify',language:'en'}),
+        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:!!connectedShop,use_mock_meta:!!mock&&platform==='shopify',language:'en'}),
         signal:controller.signal
       });
       clearTimeout(timeout);
@@ -2114,6 +2136,9 @@ function renderResults(data) {
   }
   const an=data.analysis||{};
   const m=data.metrics||{};
+  const meta=data.meta||null;
+  const series=data.series||{};
+  const dailyRevenue=Array.isArray(series.daily_revenue)?series.daily_revenue:[];
   const score=an.overall_health_score||0;
   const findings=an.findings||[];
   const quickWins=an.quick_wins||[];
@@ -2122,24 +2147,32 @@ function renderResults(data) {
   const inv=m.inventory||{};
 
   const sc=score>=75?'var(--success)':score>=50?'var(--warn)':'var(--danger)';
+  const campaignSummary=Array.isArray(meta?.campaign_summary)?meta.campaign_summary:[];
+  const crossAlarms=Array.isArray(meta?.cross_alarms)?meta.cross_alarms:[];
   document.getElementById('r-score').textContent=score;
   document.getElementById('r-score').style.color=sc;
   document.getElementById('r-summary').textContent=an.executive_summary||'';
-  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} — ${new Date().toLocaleDateString('en-GB')}`;
+  const sourceLabel=isDemoResult
+    ? 'Demo data'
+    : (data.data_source==='woocommerce' ? 'Live WooCommerce REST' : 'Live Shopify');
+  const generatedLabel=data.generated_at
+    ? new Date(data.generated_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    : new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const modelLabel=data.model||'ops-rules-real-data';
+  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} • ${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
 
-  const cancelRate=(rev.cancellation_rate||rev.cancel_rate||0).toFixed(1);
+  const cancelRate=((rev.cancellation_rate??rev.cancel_rate??0)).toFixed(1);
   const refundRate=(rev.refund_rate||0).toFixed(1);
-  const spark=(vals,color='#c9963a')=>{
-    const w=80,h=32,max=Math.max(...vals,1),min=Math.min(...vals,0);
-    const pts=vals.map((v,i)=>`${(i/(vals.length-1))*w},${h-((v-min)/(max-min||1))*h}`).join(' ');
-    return `<svg width="${w}" height="${h}" style="opacity:.7"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  };
+  const hasDailyRevenue=dailyRevenue.length>1;
+  const coverageText=hasDailyRevenue
+    ? `${dailyRevenue.length} recorded days`
+    : (isDemoResult ? 'Demo sample window' : 'No daily series returned');
 
   document.getElementById('r-metrics').innerHTML=`
-    <div class="metric-card"><div class="metric-label">Total Revenue</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px"><div class="metric-delta delta-good">↑ Analysis period</div>${spark([820,950,880,1100,1050,1320,1200,1450],'#1a7a4a')}</div></div>
-    <div class="metric-card"><div class="metric-label">Avg. Order</div><div class="metric-value">€${Math.round(rev.aov||0)}</div><div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px"><div class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">Target: €250</div>${spark([160,190,175,210,195,220,205,210],'#c9963a')}</div></div>
-    <div class="metric-card"><div class="metric-label">Fulfillment</div><div class="metric-value">${(ft.mean||0).toFixed(1)}h</div><div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px"><div class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">Median: ${(ft.median||0).toFixed(1)}h</div>${spark([28,22,19,24,16,18,14,18],'#1a7a4a')}</div></div>
-    <div class="metric-card"><div class="metric-label">Cancel Rate</div><div class="metric-value">${cancelRate}%</div><div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px"><div class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">Target: 2.5%</div>${spark([5.2,4.8,5.5,4.2,3.8,4.5,3.2,3.8],parseFloat(cancelRate)<=3?'#1a7a4a':'#c0392b')}</div></div>`;
+    <div class="metric-card"><div class="metric-label">Total Revenue</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="margin-top:8px" class="metric-delta delta-good">${coverageText}</div></div>
+    <div class="metric-card"><div class="metric-label">Avg. Order</div><div class="metric-value">€${Math.round(rev.aov||0)}</div><div style="margin-top:8px" class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">Target: €250</div></div>
+    <div class="metric-card"><div class="metric-label">Fulfillment</div><div class="metric-value">${(ft.mean||0).toFixed(1)}h</div><div style="margin-top:8px" class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">Median: ${(ft.median||0).toFixed(1)}h</div></div>
+    <div class="metric-card"><div class="metric-label">Cancel Rate</div><div class="metric-value">${cancelRate}%</div><div style="margin-top:8px" class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">Target: 2.5%</div></div>`;
 
   const severityMap={critical:'CRITICAL',warning:'WARNING',ok:'GOOD',info:'INFO'};
   const tagMap={critical:'tag-critical',warning:'tag-warning',ok:'tag-ok',info:'tag-info'};
@@ -2180,9 +2213,19 @@ function renderResults(data) {
   setTimeout(()=>{
     const revCtx=document.getElementById('chart-revenue');
     if(revCtx){
-      const days=30; const base=rev.total/days||1000;
-      const labels=Array.from({length:days},(_,i)=>{const d=new Date();d.setDate(d.getDate()-days+i);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
-      charts.revenue=new Chart(revCtx,{type:'line',data:{labels,datasets:[{label:'Daily Revenue (€)',data:labels.map(()=>base*(0.6+Math.random()*0.8)),borderColor:'#c9963a',backgroundColor:'rgba(201,150,58,0.07)',borderWidth:2,pointRadius:0,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f',callback:v=>'€'+v.toFixed(0)}},x:{grid:{display:false},ticks:{color:'#96907f',maxTicksLimit:6}}}}});
+      revCtx.style.display=hasDailyRevenue?'block':'none';
+      const emptyId='chart-revenue-empty';
+      let empty=document.getElementById(emptyId);
+      if(empty) empty.remove();
+      if(hasDailyRevenue){
+        charts.revenue=new Chart(revCtx,{type:'line',data:{labels:dailyRevenue.map(p=>new Date(p.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})),datasets:[{label:'Daily Revenue (€)',data:dailyRevenue.map(p=>Number(p.revenue||0)),borderColor:'#c9963a',backgroundColor:'rgba(201,150,58,0.07)',borderWidth:2,pointRadius:0,fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f',callback:v=>'€'+v.toFixed(0)}},x:{grid:{display:false},ticks:{color:'#96907f',maxTicksLimit:6}}}}});
+      } else {
+        empty=document.createElement('div');
+        empty.id=emptyId;
+        empty.style.cssText='font-size:13px;color:var(--muted);padding:18px 0';
+        empty.textContent=isDemoResult?'Demo trend hidden until you open the sample result again.':'Daily revenue trend is unavailable for this run.';
+        revCtx.parentElement.appendChild(empty);
+      }
     }
     const invCtx=document.getElementById('chart-inventory');
     if(invCtx&&products.length){
@@ -2190,17 +2233,25 @@ function renderResults(data) {
     }
     const roasCtx=document.getElementById('chart-roas');
     if(roasCtx){
-      charts.roas=new Chart(roasCtx,{type:'bar',data:{labels:['Campaign A','Campaign B','Campaign C','Campaign D','Campaign E'],datasets:[{data:[4.8,3.2,1.4,2.9,5.1],backgroundColor:['rgba(26,122,74,0.7)','rgba(26,122,74,0.7)','rgba(192,57,43,0.7)','rgba(26,122,74,0.7)','rgba(26,122,74,0.7)'],borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f',callback:v=>v+'x'}},x:{grid:{display:false},ticks:{color:'#96907f'}}}}});
+      roasCtx.style.display=campaignSummary.length?'block':'none';
+      if(campaignSummary.length){
+        charts.roas=new Chart(roasCtx,{type:'bar',data:{labels:campaignSummary.map(c=>c.campaign_name||c.name||'Campaign'),datasets:[{data:campaignSummary.map(c=>Number(c.roas||c.return_on_ad_spend||0)),backgroundColor:campaignSummary.map(c=>Number(c.roas||c.return_on_ad_spend||0)>=2?'rgba(26,122,74,0.7)':'rgba(192,57,43,0.7)'),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#e3dccf'},ticks:{color:'#96907f',callback:v=>v+'x'}},x:{grid:{display:false},ticks:{color:'#96907f'}}}}});
+      }
     }
   },100);
 
-  const criticalProducts=products.filter(p=>stockOf(p)<=10).slice(0,3);
-  const healthyProducts=products.filter(p=>stockOf(p)>10).slice(0,1);
-  const alarmRows=[
-    ...criticalProducts.map(p=>`<div class="alarm-item"><div class="alarm-dot ${stockOf(p)<=0?'red':'yellow'}"></div><div class="alarm-text">${p.title||'Product'} — ${stockOf(p)<=0?'Out of stock':'Critical stock'} (${stockOf(p)} units)</div><div class="alarm-badge ${stockOf(p)<=0?'danger':'warn'}">${stockOf(p)<=0?'Pause campaigns':'Reorder'}</div></div>`),
-    ...healthyProducts.map(p=>`<div class="alarm-item"><div class="alarm-dot green"></div><div class="alarm-text">${p.title||'Product'} — Inventory healthy (${stockOf(p)} units)</div><div class="alarm-badge ok">Normal</div></div>`)
-  ];
-  document.getElementById('r-alarms').innerHTML=alarmRows.length?alarmRows.join(''):'<div style="color:var(--muted);font-size:14px">No inventory alarms from the current data.</div>';
+  const metaTab=document.getElementById('tab-meta');
+  const metaSummary=document.getElementById('r-meta-summary');
+  const hasMetaData=campaignSummary.length||crossAlarms.length;
+  if(metaTab) metaTab.style.display=hasMetaData?'block':'none';
+  if(metaSummary){
+    metaSummary.innerHTML=hasMetaData
+      ? `<div style="font-size:12px;color:var(--muted)">Meta data source: ${isDemoResult?'sample campaign overlay':'live ad account connection'}</div>`
+      : `<div style="font-size:13px;color:var(--muted)">Meta Ads is hidden until a real ad account is connected. No placeholder ROAS is shown in live store analyses.</div>`;
+  }
+  document.getElementById('r-alarms').innerHTML=crossAlarms.length
+    ? crossAlarms.map(item=>`<div class="alarm-item"><div class="alarm-dot ${item.severity==='critical'?'red':item.severity==='warning'?'yellow':'green'}"></div><div class="alarm-text">${item.title||item.product_title||'Cross alarm'}${item.description?` — ${item.description}`:''}</div><div class="alarm-badge ${item.severity==='critical'?'danger':item.severity==='warning'?'warn':'ok'}">${item.impact||item.action||'Review'}</div></div>`).join('')
+    : '<div style="color:var(--muted);font-size:14px">No Meta inventory conflicts available for this run.</div>';
 
   const swot=data.analysis?.swot||{};
   const swotColors={strengths:['#1a7a4a','rgba(26,122,74,0.07)'],weaknesses:['#c0392b','rgba(192,57,43,0.07)'],opportunities:['#c9963a','rgba(201,150,58,0.07)'],threats:['#6b6560','rgba(107,101,96,0.07)']};
@@ -2262,6 +2313,9 @@ function renderResults(data) {
     const sc2=bench.overall_percentile>=80?'var(--success)':bench.overall_percentile>=60?'var(--gold)':'var(--danger)';
     document.getElementById('r-benchmark-score').innerHTML=`<div style="display:flex;align-items:center;gap:20px;background:var(--cream2);border-radius:12px;padding:16px;border:1px solid var(--border)"><div style="text-align:center;min-width:80px"><div style="font-family:var(--serif-font,serif);font-size:36px;font-weight:400;color:${sc2}">${bench.overall_percentile}%</div><div style="font-size:12px;color:var(--muted)">Percentile</div></div><div><div style="font-weight:600;margin-bottom:4px">${bench.overall_rating} — ${bench.industry}</div><div style="font-size:13px;color:var(--muted)">${bench.insight}</div><div style="font-size:12px;margin-top:6px">✓ Strongest: <strong>${bench.top_strength}</strong> &nbsp; ↑ Improve: <strong>${bench.top_weakness}</strong></div></div></div>`;
     document.getElementById('r-benchmark-table').innerHTML='<table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:12px"><tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Metric</th><th>Yours</th><th>Industry Avg</th><th>Top 10%</th><th>Rating</th></tr>'+bench.benchmarks.map(function(b){var bg=b.rating==='Excellent'?'var(--success-pale)':b.rating==='Good'?'var(--gold-pale)':'var(--danger-pale)';var col=b.rating==='Excellent'?'var(--success)':b.rating==='Good'?'var(--gold)':'var(--danger)';return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">'+b.metric+'</td><td style="text-align:center;font-weight:600">'+b.your_value+'</td><td style="text-align:center;color:var(--muted)">'+b.industry_average+'</td><td style="text-align:center;color:var(--gold)">'+b.top_10_pct+'</td><td style="text-align:center"><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+b.rating+'</span></td></tr>';}).join('')+'</table>';
+  } else {
+    document.getElementById('r-benchmark-score').innerHTML='<div style="color:var(--muted);font-size:14px">Benchmark data is unavailable for this run.</div>';
+    document.getElementById('r-benchmark-table').innerHTML='';
   }
 }
 

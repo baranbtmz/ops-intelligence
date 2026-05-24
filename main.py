@@ -101,7 +101,7 @@ async def send_analysis_email(user_email: str, user_name: str, analysis_data: di
             {wins_html}
 
             <div style="margin-top:28px;text-align:center">
-                <a href="https://opswebsitedot.netlify.app/app.html" style="display:inline-block;padding:12px 28px;background:#0d0c0a;color:#ffffff;text-decoration:none;border-radius:100px;font-size:14px;font-weight:500">Dashboard'a Git →</a>
+                <a href="https://opsintelligence.org/app.html" style="display:inline-block;padding:12px 28px;background:#0d0c0a;color:#ffffff;text-decoration:none;border-radius:100px;font-size:14px;font-weight:500">Open dashboard →</a>
             </div>
         </div>
 
@@ -575,6 +575,23 @@ def public_store(store: dict) -> dict:
         "updated_at": store.get("updated_at", ""),
         "status": store.get("status", "connected"),
     }
+
+
+def build_daily_revenue_points(report: dict) -> list[dict]:
+    series = ((report.get("revenue") or {}).get("daily_revenue_series"))
+    if series is None:
+        return []
+    points = []
+    try:
+        for day, amount in series.items():
+            label = day.isoformat() if hasattr(day, "isoformat") else str(day)
+            points.append({
+                "date": label,
+                "revenue": round(float(amount or 0), 2),
+            })
+    except Exception:
+        return []
+    return points
 
 
 # ─────────────────────────────────────────────
@@ -1138,7 +1155,10 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     # Meta Ads (Pro plan)
     meta_data = None
-    if plan["meta"] and (req.meta_token or req.use_mock_meta):
+    should_run_meta = plan["meta"] and (
+        (req.meta_token and req.meta_account) or (req.use_mock and req.use_mock_meta)
+    )
+    if should_run_meta:
         meta_cfg = MetaConfig(
             access_token=req.meta_token or "",
             ad_account_id=req.meta_account or "",
@@ -1173,6 +1193,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
             "revenue": {"total": report["revenue"]["total_revenue"], "orders": report["revenue"]["total_orders"], "aov": report["revenue"]["aov"], "cancel_rate": report["revenue"]["cancellation_rate"], "refund_rate": report["revenue"]["refund_rate"]},
             "inventory": {"avg_turnover": report["inventory"]["avg_turnover"], "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0, "products": inventory_products},
+        },
+        "series": {
+            "daily_revenue": build_daily_revenue_points(report),
         },
     })
 
@@ -1219,6 +1242,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         },
         "meta": meta_data,
         "extended": extended,
+        "series": {
+            "daily_revenue": build_daily_revenue_points(report),
+        },
         "user_plan": plan_key,
         "data_source": "demo" if req.use_mock else platform,
         "shop_name": shop_domain or "Demo Mağaza",
@@ -1244,20 +1270,13 @@ async def upload_analysis(
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Dosya boş görünüyor.")
-
-    result = await run_analysis(
-        AnalysisRequest(
-            use_mock=True,
-            shopify_domain=f"{platform.title()} Upload",
-            use_mock_meta=True,
-            language=language,
+    raise HTTPException(
+        status_code=501,
+        detail=(
+            "CSV/XLS upload parsing is not production-ready yet. "
+            "Use live Shopify OAuth, WooCommerce REST, or demo mode instead."
         ),
-        payload,
     )
-    result["shop_name"] = f"{platform.title()} Upload"
-    result["uploaded_file"] = filename
-    result["model"] = result.get("model") or "mock-upload"
-    return result
 
 
 # ─────────────────────────────────────────────
