@@ -100,13 +100,11 @@ body::before{
 }
 .auth-trust-panel>*{position:relative;z-index:1}
 .auth-trust-logo{
-  display:inline-flex;align-items:center;gap:10px;font-family:var(--serif-font);font-size:28px;font-weight:650;color:var(--ink);
+  display:inline-flex;align-items:center;gap:12px;font-size:11px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;color:rgba(24,22,15,.58);
 }
-.auth-trust-logo::before{
-  content:"";width:26px;height:26px;border-radius:8px;background:var(--ink);
-  box-shadow:inset 8px 0 0 var(--gold),0 8px 18px rgba(24,22,15,.12);
-}
-.auth-trust-logo span{color:var(--gold)}
+.auth-brand-mark{width:148px;height:48px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.auth-brand-mark img{width:232px;height:232px;object-fit:contain;display:block}
 .auth-trust-title{
   margin:48px 0 16px;max-width:560px;font-size:58px;line-height:.98;font-weight:650;
   letter-spacing:0;color:var(--ink);
@@ -141,9 +139,10 @@ body::before{
   display:grid;place-items:center;font-size:13px;font-weight:700;
 }
 .auth-box{width:100%;max-width:430px;position:relative;z-index:1;align-self:center;justify-self:center}
-.auth-logo{text-align:center;margin-bottom:30px}
-.auth-logotype{font-family:var(--serif-font);font-size:28px;font-weight:650;color:var(--ink);letter-spacing:-.02em}
-.auth-logotype .dot{color:var(--gold)}
+.auth-logo{display:flex;align-items:center;justify-content:center;flex-direction:column;margin-bottom:30px}
+.auth-logotype{display:flex;align-items:center;justify-content:center;height:56px;margin-bottom:2px}
+.auth-logotype .auth-brand-mark{width:176px;height:56px}
+.auth-logotype .auth-brand-mark img{width:286px;height:286px}
 .auth-rule{width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:10px auto}
 .auth-tagline{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
 
@@ -161,15 +160,17 @@ body::before{
 .auth-form{display:none}.auth-form.active{display:block}
 .auth-form,.auth-proof{position:relative;z-index:1}
 .auth-proof{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;padding-top:16px;
-  border-top:1px solid rgba(224,216,204,.8);
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid rgba(224,216,204,.8);
 }
 .auth-proof-item{
-  padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,rgba(251,247,239,.95),rgba(244,236,221,.82));
-  border:1px solid rgba(224,216,204,.95);
+  display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;
+  background:linear-gradient(180deg,rgba(251,247,239,.95),rgba(244,236,221,.82));
+  border:1px solid rgba(224,216,204,.95);white-space:nowrap;
 }
-.auth-proof-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.auth-proof-copy{font-size:12px;line-height:1.45;color:var(--ink2)}
+.auth-proof-item::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(214,155,45,.12);flex-shrink:0}
+.auth-proof-label{font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--ink2)}
+.auth-proof-copy{display:none}
 
 .login-loader{
   position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;
@@ -1074,7 +1075,10 @@ body::before{
     <div class="auth-shell">
       <section class="auth-trust-panel" aria-label="OPS trust panel">
         <div>
-          <div class="auth-trust-logo">OPS<span>.</span></div>
+          <div class="auth-trust-logo">
+            <span class="auth-brand-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></span>
+            Intelligence Platform
+          </div>
           <h1 class="auth-trust-title">Run your store with <span>operational confidence</span></h1>
           <p class="auth-trust-copy">Connect live commerce data, catch margin and inventory risk early, and turn every analysis into a clear founder action plan.</p>
           <div class="auth-trust-badges">
@@ -1109,7 +1113,7 @@ body::before{
       </section>
       <div class="auth-box">
         <div class="auth-logo">
-          <div class="auth-logotype">OPS<span class="dot">.</span></div>
+          <div class="auth-logotype"><span class="auth-brand-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></span></div>
           <div class="auth-rule"></div>
           <div class="auth-tagline">Founder-ready commerce operations intelligence</div>
         </div>
@@ -1136,15 +1140,12 @@ body::before{
           <div class="auth-proof">
             <div class="auth-proof-item">
               <div class="auth-proof-label">Connectors</div>
-              <div class="auth-proof-copy">Shopify OAuth and WooCommerce REST stay clearly separated.</div>
             </div>
             <div class="auth-proof-item">
-              <div class="auth-proof-label">Credibility</div>
-              <div class="auth-proof-copy">Every run names its source, coverage, and analysis engine.</div>
+              <div class="auth-proof-label">Source-labeled reports</div>
             </div>
             <div class="auth-proof-item">
-              <div class="auth-proof-label">Output</div>
-              <div class="auth-proof-copy">Founder-ready briefs focus on margin, stock, and customer promise risk.</div>
+              <div class="auth-proof-label">Founder-ready briefs</div>
             </div>
           </div>
         </div>
