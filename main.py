@@ -1376,10 +1376,6 @@ async def shopify_app_home(request: Request):
       return headers;
     }}
 
-    document.addEventListener('DOMContentLoaded', () => {{
-      shopifySessionHeaders().catch(() => {{}});
-    }});
-
     async function runAnalysis(){{
       const box=document.getElementById('result');
       box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
