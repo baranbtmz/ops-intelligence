@@ -184,7 +184,7 @@ class LoginRequest(BaseModel):
     password: str
 
 class AnalysisRequest(BaseModel):
-    use_mock: bool = True
+    use_mock: bool = False
     platform: str = "shopify"
     shopify_domain: Optional[str] = None
     shopify_token: Optional[str] = None
@@ -192,7 +192,7 @@ class AnalysisRequest(BaseModel):
     fast_ai: bool = False
     meta_token: Optional[str] = None
     meta_account: Optional[str] = None
-    use_mock_meta: bool = True
+    use_mock_meta: bool = False
     language: str = "tr"
 
 class ShopifyConnectStartRequest(BaseModel):
@@ -207,6 +207,21 @@ class ShopifyBillingRequest(BaseModel):
     shop: str
     plan: str
     app_token: str
+
+
+def make_analysis_context(report: dict, shop_name: str, data_source: str, model: str) -> dict:
+    counts = report.get("record_counts") or {}
+    mode = report.get("source_mode") or ("demo" if data_source == "demo" else "live")
+    return {
+        "shop_name": shop_name,
+        "data_source": data_source,
+        "analysis_mode": mode,
+        "model": model,
+        "record_counts": {
+            "orders": int(counts.get("orders") or 0),
+            "products": int(counts.get("products") or 0),
+        },
+    }
 
 
 # ─────────────────────────────────────────────
@@ -661,14 +676,14 @@ async def login(req: LoginRequest):
 
     result = db.table("users").select("*").eq("email", email).execute()
     if not result.data:
-        raise HTTPException(status_code=401, detail="E-posta veya şifre hatalı.")
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
 
     user = result.data[0]
     if not verify_password(req.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="E-posta veya şifre hatalı.")
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
 
     if not user.get("is_active", True):
-        raise HTTPException(status_code=403, detail="Hesap devre dışı.")
+        raise HTTPException(status_code=403, detail="This account is disabled.")
 
     token = create_token(email, user["plan"])
     return {
@@ -713,7 +728,7 @@ async def me(payload: dict = Depends(verify_token)):
 @app.get("/shopify/install")
 async def shopify_install(shop: str):
     if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
-        raise HTTPException(status_code=500, detail="Shopify OAuth env ayarları eksik.")
+        raise HTTPException(status_code=500, detail="Shopify OAuth environment variables are missing.")
 
     shop_domain = normalize_shop_domain(shop)
     install_url = build_shopify_install_url(shop_domain)
@@ -876,12 +891,15 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     extended = run_extended_analysis(report)
     return make_json_safe({
         "success": True,
-        "shop_name": shop,
+        **make_analysis_context(
+            report,
+            shop,
+            "shopify",
+            ai_result.get("model", "ops-rules-real-data"),
+        ),
         "analysis": ai_result.get("analysis", {}),
-        "model": ai_result.get("model", "ops-rules-real-data"),
         "generated_at": ai_result.get("generated_at", datetime.now().isoformat()),
         "user_plan": connected.get("plan", "pro"),
-        "data_source": "shopify",
         "extended": extended,
         "metrics": {
             "revenue": {
@@ -971,7 +989,7 @@ async def start_shopify_connect(req: ShopifyConnectStartRequest, payload: dict =
     if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
         raise HTTPException(
             status_code=500,
-            detail="Shopify OAuth ayarları eksik. Railway env içinde SHOPIFY_API_KEY ve SHOPIFY_API_SECRET tanımlanmalı.",
+            detail="Shopify OAuth configuration is missing. Set SHOPIFY_API_KEY and SHOPIFY_API_SECRET in Railway.",
         )
 
     shop = normalize_shop_domain(req.shop)
@@ -1115,14 +1133,23 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     shop_domain = (connected_store or {}).get("domain") or req.shopify_domain or ""
     shop_token = (connected_store or {}).get("access_token") or req.shopify_token or ""
-    if platform == "woocommerce":
+    if platform == "shopify" and not req.use_mock:
+        if not shop_domain:
+            raise HTTPException(status_code=400, detail="A Shopify store domain is required for live analysis.")
+        shop_domain = normalize_shop_domain(shop_domain)
+        if not shop_token:
+            raise HTTPException(status_code=400, detail="A Shopify access token is required for live analysis.")
+    elif platform == "woocommerce":
+        if not req.use_mock:
+            if not shop_domain:
+                raise HTTPException(status_code=400, detail="A WooCommerce store URL is required for live analysis.")
+            if "::" not in (shop_token or ""):
+                raise HTTPException(status_code=400, detail="WooCommerce Consumer Key and Secret are required.")
         shop_domain = normalize_store_url(shop_domain)
 
     # Veri çek
     try:
         if platform == "woocommerce":
-            if "::" not in (shop_token or ""):
-                raise HTTPException(status_code=400, detail="WooCommerce Consumer Key and Secret are required.")
             consumer_key, consumer_secret = shop_token.split("::", 1)
             report = run_woocommerce_pipeline(WooCommerceConfig(
                 store_url=shop_domain,
@@ -1217,7 +1244,12 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     # Analiz sonucu
     result_data = make_json_safe({
         "analysis": ai_result.get("analysis", {}),
-        "shop_name": shop_domain or "Demo Store",
+        **make_analysis_context(
+            report,
+            shop_domain or "Demo Store",
+            "demo" if req.use_mock else platform,
+            ai_result.get("model", "ops-rules-real-data"),
+        ),
         "extended": extended,
         "metrics": {
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
@@ -1245,8 +1277,13 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     return make_json_safe({
         "success": True,
+        **make_analysis_context(
+            report,
+            shop_domain or "Demo Store",
+            "demo" if req.use_mock else platform,
+            ai_result.get("model", "ops-rules-real-data"),
+        ),
         "analysis": ai_result.get("analysis", {}),
-        "model": ai_result.get("model", "mock"),
         "generated_at": ai_result.get("generated_at", datetime.now().isoformat()),
         "metrics": {
             "fulfillment": {
@@ -1276,8 +1313,6 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             "daily_revenue": build_daily_revenue_points(report),
         },
         "user_plan": plan_key,
-        "data_source": "demo" if req.use_mock else platform,
-        "shop_name": shop_domain or "Demo Store",
     })
 
 

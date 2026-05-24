@@ -367,6 +367,20 @@ body::before{
   padding:12px;border-radius:14px;background:rgba(255,255,255,.76);
   border:1px solid rgba(17,18,13,.06)
 }
+.founder-note{
+  margin-top:14px;background:linear-gradient(135deg,rgba(17,18,13,.96),rgba(38,31,21,.96));
+  border:1px solid rgba(214,155,45,.18);border-radius:18px;padding:18px 18px 16px;color:rgba(255,255,255,.9);
+  box-shadow:0 18px 40px rgba(24,22,15,.12);position:relative;overflow:hidden
+}
+.founder-note::before{
+  content:"";position:absolute;top:-30px;right:-20px;width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,155,45,.28),transparent 68%);pointer-events:none
+}
+.founder-note-kicker{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(214,155,45,.9);margin-bottom:10px}
+.founder-note-title{font-family:var(--serif-font);font-size:26px;line-height:1.04;letter-spacing:-.04em;color:#fff;max-width:11ch}
+.founder-note-copy{font-size:13px;line-height:1.6;color:rgba(255,255,255,.68);max-width:48ch;margin-top:10px}
+.founder-note-points{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.founder-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.82)}
 .trust-point strong{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:4px}
 .trust-point span{font-size:12px;color:var(--muted);line-height:1.5}
 .trust-side{
@@ -396,6 +410,14 @@ body::before{
 .result-signal-title{font-size:13px;font-weight:700;color:var(--ink)}
 .result-signal-copy{font-size:12px;color:var(--muted)}
 .result-signal-meta{font-size:12px;color:var(--muted);text-align:right}
+.result-proof{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 16px}
+.result-proof-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(244,236,221,.9));
+  border:1px solid var(--border);border-radius:14px;padding:14px 15px;box-shadow:var(--sh)
+}
+.result-proof-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.result-proof-value{font-size:18px;font-weight:800;line-height:1.1;color:var(--ink);letter-spacing:-.03em}
+.result-proof-copy{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
 
 /* Score */
 .score-box{
@@ -564,7 +586,7 @@ body::before{
   #sec-ledger,#sec-compare,#sec-team{left:0}
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
   .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr 1fr}
-  .trust-strip,.trust-points{grid-template-columns:1fr}
+  .trust-strip,.trust-points,.result-proof{grid-template-columns:1fr}
   .mobile-menu-btn{display:flex!important}
 }
 
@@ -887,6 +909,16 @@ body::before{
               <div class="trust-point"><strong>Step 2</strong><span>OPS calculates fulfillment, revenue, inventory, churn and pricing signals.</span></div>
               <div class="trust-point"><strong>Step 3</strong><span>The result page labels live vs. demo data so findings stay credible.</span></div>
             </div>
+            <div class="founder-note">
+              <div class="founder-note-kicker">Built for founder decisions</div>
+              <div class="founder-note-title">Know what changed this week before it hits margin.</div>
+              <div class="founder-note-copy">OPS is designed to feel like an operating brief for the person responsible for cash, stock, and customer promises, not another analytics maze.</div>
+              <div class="founder-note-points">
+                <div class="founder-pill">Read-only connectors</div>
+                <div class="founder-pill">Warm onboarding</div>
+                <div class="founder-pill">Action-first reporting</div>
+              </div>
+            </div>
           </div>
           <div class="trust-side">
             <div class="trust-mini">
@@ -1069,6 +1101,24 @@ body::before{
             </div>
           </div>
           <div class="result-signal-meta" id="result-signal-meta">Source details appear here after a run.</div>
+        </div>
+
+        <div class="result-proof">
+          <div class="result-proof-card">
+            <div class="result-proof-label">Connector</div>
+            <div class="result-proof-value" id="proof-source">Waiting</div>
+            <div class="result-proof-copy" id="proof-source-copy">OPS will show whether this run came from demo data or a live store.</div>
+          </div>
+          <div class="result-proof-card">
+            <div class="result-proof-label">Coverage</div>
+            <div class="result-proof-value" id="proof-coverage">—</div>
+            <div class="result-proof-copy" id="proof-coverage-copy">Record counts appear after the connector finishes.</div>
+          </div>
+          <div class="result-proof-card">
+            <div class="result-proof-label">Analysis engine</div>
+            <div class="result-proof-value" id="proof-engine">—</div>
+            <div class="result-proof-copy" id="proof-engine-copy">The result page always names the engine used for this brief.</div>
+          </div>
         </div>
 
         <div class="score-box">
@@ -1520,6 +1570,10 @@ let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
 
+function recordLocalAnalysis() {
+  if(user) user.analyses_this_month = (user.analyses_this_month || 0) + 1;
+}
+
 // ── INIT
 window.onload = () => {
   const params = getLaunchParams();
@@ -1660,7 +1714,7 @@ function logout() {
 function buildLocalMock() {
   const products=['Rose Elixir Serum','Midnight Oud Perfume','Gold Shimmer Lotion','Argan Hair Mask','Vitamin C Cream','Coconut Shampoo','Retinol Eye Cream','Jasmine Body Oil'];
   return {
-    success:true, shop_name:'Demo Store', user_plan: user?.plan||'pro',
+    success:true, shop_name:'Demo Store', user_plan: user?.plan||'pro', data_source:'demo', model:'mock-demo', record_counts:{orders:191,products:8},
     analysis:{
       overall_health_score:74,
       executive_summary:'Your store shows solid revenue performance with opportunities in fulfillment speed and inventory management. Focus on reducing the 7% cancellation rate and restocking 3 critical products.',
@@ -2099,7 +2153,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       clearTimeout(timeout);
       clearInterval(interval); loadEl.classList.remove('show');
       if(mock){
-        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
+        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
       } else {
         var loadFailed=String(fetchErr.message||'').toLowerCase().includes('load failed');
         var errMsg = (fetchErr.name==='AbortError'||loadFailed)
@@ -2108,18 +2162,16 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
         showToast('❌ '+errMsg);
         nav('connect');
       }
-      if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
       return;
     }
     clearInterval(interval); loadEl.classList.remove('show');
     if(!r.ok){
       if(mock){
-        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
+        const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
       } else {
         showToast('❌ '+(d.detail||'HTTP '+r.status+' — check your Shopify domain and token.'));
         nav('connect');
       }
-      if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
       return;
     }
     if(mock){
@@ -2128,17 +2180,15 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       d.user_plan=d.user_plan||'pro';
       d.model=d.model||'mock-demo';
     }
-    lastResult=d; renderResults(d); renderOverview(d); nav('results');
-    if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
+    lastResult=d; renderResults(d); renderOverview(d); nav('results'); recordLocalAnalysis();
   } catch(e){
     clearInterval(interval); loadEl.classList.remove('show');
     if(mock){
-      const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results');
+      const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis();
     } else {
       showToast('❌ Unexpected error: '+e.message);
       nav('connect');
     }
-    if(user) user.analyses_this_month=(user.analyses_this_month||0)+1;
   }
 }
 
@@ -2176,6 +2226,12 @@ function renderResults(data) {
     ? new Date(data.generated_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
     : new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   const modelLabel=data.model||'ops-rules-real-data';
+  const counts=data.record_counts||{};
+  const orderCount=Number(counts.orders||0);
+  const productCount=Number(counts.products||0);
+  const coverageLabel=orderCount||productCount
+    ? `${orderCount.toLocaleString('en-GB')} orders · ${productCount.toLocaleString('en-GB')} products`
+    : (isDemoResult ? 'Sample coverage' : 'Connector summary only');
   document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} • ${sourceLabel} • ${generatedLabel}`;
   const badgeEl=document.getElementById('result-badge');
   badgeEl.className='result-badge '+(isDemoResult?'demo':'live');
@@ -2187,6 +2243,18 @@ function renderResults(data) {
     ? 'Use demo runs to understand the product flow. They never overwrite the live-data labels.'
     : 'OPS does not inject sample findings into live Shopify or WooCommerce analyses.';
   document.getElementById('result-signal-meta').textContent=`${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
+  document.getElementById('proof-source').textContent=sourceLabel;
+  document.getElementById('proof-source-copy').textContent=isDemoResult
+    ? 'Demo mode stays isolated so practice runs never masquerade as live findings.'
+    : 'This connector path used authenticated store data rather than browser-stored samples.';
+  document.getElementById('proof-coverage').textContent=coverageLabel;
+  document.getElementById('proof-coverage-copy').textContent=orderCount||productCount
+    ? 'OPS states how many records were analyzed in this run.'
+    : 'The connector returned enough information for summary metrics, but not full record counts.';
+  document.getElementById('proof-engine').textContent=modelLabel;
+  document.getElementById('proof-engine-copy').textContent=isDemoResult
+    ? 'Demo mode can use local sample scaffolding for product exploration.'
+    : 'Live runs use the backend analysis engine and keep source labels attached to the output.';
 
   const cancelRate=((rev.cancellation_rate??rev.cancel_rate??0)).toFixed(1);
   const refundRate=(rev.refund_rate||0).toFixed(1);

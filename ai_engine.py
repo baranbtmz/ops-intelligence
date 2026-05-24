@@ -222,6 +222,9 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
     rev = report.get("revenue", {}) or {}
     products = inv.get("details")
     critical = inv.get("critical_items")
+    source_platform = (report.get("source_platform") or "store").lower()
+    connector_name = "WooCommerce REST" if source_platform == "woocommerce" else "Shopify OAuth"
+    platform_label = "WooCommerce" if source_platform == "woocommerce" else "Shopify"
 
     total_orders = int(_clean_number(rev.get("total_orders"), 0))
     valid_orders = int(_clean_number(rev.get("valid_orders"), total_orders))
@@ -263,7 +266,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "area": "Inventory",
             "severity": "critical",
             "title": f"{critical_count} products are below critical stock",
-            "root_cause": f"Shopify inventory shows low or zero stock for: {critical_text}. This is calculated from the products and variants returned by Shopify.",
+            "root_cause": f"{platform_label} inventory shows low or zero stock for: {critical_text}. This is calculated from the products and variants returned by {connector_name}.",
             "impact": "Products with low stock can lose sales and waste paid traffic if campaigns continue sending customers to unavailable items.",
             "recommendation": "Restock the listed SKUs, set reorder points, and pause campaigns for products with zero inventory until inventory is replenished.",
             "priority": 1,
@@ -275,7 +278,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "area": "Inventory",
             "severity": "ok",
             "title": "No critical stockouts detected",
-            "root_cause": f"OPS reviewed {product_count} Shopify products/variants and did not find stock below the critical threshold.",
+            "root_cause": f"OPS reviewed {product_count} {platform_label} products/variants and did not find stock below the critical threshold.",
             "impact": "Current inventory health supports continued selling without immediate stockout risk.",
             "recommendation": "Keep reorder alerts active and review slow-moving products weekly.",
             "priority": 4,
@@ -288,9 +291,9 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "area": "Fulfillment",
             "severity": "warning",
             "title": "Fulfillment timestamps are missing",
-            "root_cause": "Shopify orders do not include enough fulfillment timestamps to calculate processing time reliably.",
+            "root_cause": f"{platform_label} orders do not include enough fulfillment timestamps to calculate processing time reliably.",
             "impact": "OPS cannot benchmark pick-pack-ship speed until fulfillments are recorded on orders.",
-            "recommendation": "Confirm that fulfillments are created in Shopify when orders are shipped and rerun the analysis.",
+            "recommendation": f"Confirm that fulfillments are recorded in {platform_label} when orders are shipped and rerun the analysis.",
             "priority": 2,
             "estimated_effort": "Low",
             "estimated_impact": "High",
@@ -325,7 +328,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "area": "Revenue Quality",
             "severity": "warning",
             "title": "Cancellation or refund rate needs attention",
-            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% from Shopify order data.",
+            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% from {connector_name} order data.",
             "impact": "Refunds and cancellations reduce net revenue and can signal product, stock, or fulfillment expectation gaps.",
             "recommendation": "Audit the latest cancelled/refunded orders by reason, tighten product descriptions, and trigger proactive messages for delayed orders.",
             "priority": 3,
@@ -337,7 +340,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "area": "Revenue Quality",
             "severity": "ok",
             "title": "Cancellation and refund rates are controlled",
-            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% across {total_orders} Shopify orders.",
+            "root_cause": f"Cancellation rate is {cancel_rate:.1f}% and refund rate is {refund_rate:.1f}% across {total_orders} {platform_label} orders.",
             "impact": "Low leakage means most gross revenue is retained.",
             "recommendation": "Keep tracking refund reasons and compare this rate after each campaign push.",
             "priority": 5,
@@ -370,7 +373,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
             "strengths": [
                 f"€{revenue:,.0f} revenue captured in the analyzed period",
                 f"Average order value of €{aov:.2f}",
-                "Connected Shopify data is available for operational monitoring",
+                f"Connected {platform_label} data is available for operational monitoring",
             ],
             "weaknesses": [
                 f"{critical_count} products below critical stock" if critical_count else "No major inventory weakness detected",

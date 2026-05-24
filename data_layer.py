@@ -1,9 +1,9 @@
 """
-E-Ticaret Operasyonel Analiz Sistemi
-Adım 1: Veri Katmanı - Shopify Entegrasyonu & Mock Data Üreteci
+E-commerce operations analysis system.
+Step 1: Data layer for Shopify and WooCommerce connectors.
 
-Gerekli kurulum:
-pip install pandas numpy requests python-dateutil faker rich
+Dependencies:
+pip install pandas numpy requests python-dateutil rich
 """
 
 import pandas as pd
@@ -16,9 +16,6 @@ from datetime import datetime, timedelta
 from dateutil import parser as date_parser
 from dataclasses import dataclass, field
 from typing import Optional
-from faker import Faker
-
-fake = Faker("de_DE")  # Alman market simülasyonu
 random.seed(42)
 np.random.seed(42)
 
@@ -137,7 +134,7 @@ class MockDataGenerator:
 
             # Müşteri e-postası (RFM/Churn için) — 60 farklı müşteri
             customer_id = random.randint(1, 60)
-            customer_email = f"customer{customer_id:03d}@demo.com"
+            customer_email = f"customer{customer_id:03d}@sample.ops"
 
             # Ana ürün başlığı (Pricing için)
             primary_product = selected_products[0]["title"] if selected_products else "Unknown"
@@ -686,8 +683,14 @@ def run_pipeline(config: Optional[ShopifyConfig] = None) -> dict:
     engine = MetricsEngine(orders_df, products_df)
     report = engine.full_report()
 
-    report["orders_df"]   = orders_df
+    report["orders_df"] = orders_df
     report["products_df"] = products_df
+    report["source_platform"] = "shopify"
+    report["source_mode"] = "demo" if config.use_mock else "live"
+    report["record_counts"] = {
+        "orders": int(len(orders_df)),
+        "products": int(len(products_df)),
+    }
 
     return report
 
@@ -708,6 +711,12 @@ def run_woocommerce_pipeline(config: WooCommerceConfig) -> dict:
     report = engine.full_report()
     report["orders_df"] = orders_df
     report["products_df"] = products_df
+    report["source_platform"] = "woocommerce"
+    report["source_mode"] = "demo" if config.use_mock else "live"
+    report["record_counts"] = {
+        "orders": int(len(orders_df)),
+        "products": int(len(products_df)),
+    }
     return report
 
 
