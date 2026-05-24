@@ -165,6 +165,7 @@ SHOPIFY_SCOPES = os.environ.get(
     "SHOPIFY_SCOPES",
     "read_orders,read_all_orders,read_products,read_inventory,read_fulfillments,read_locations",
 )
+SHOPIFY_API_VERSION = os.environ.get("SHOPIFY_API_VERSION", "2026-01")
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
@@ -406,10 +407,12 @@ def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
 
 def render_shopify_install_required(shop: str) -> HTMLResponse:
     install_url = build_shopify_install_url(shop)
-    return HTMLResponse(f"""
+    response = HTMLResponse(f"""
 <!doctype html>
 <html>
 <head>
+  <meta name="shopify-api-key" content="{SHOPIFY_API_KEY}">
+  <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Connect OPS to Shopify</title>
@@ -438,6 +441,8 @@ def render_shopify_install_required(shop: str) -> HTMLResponse:
 </body>
 </html>
 """)
+    response.headers["Content-Security-Policy"] = f"frame-ancestors https://{shop} https://admin.shopify.com;"
+    return response
 
 
 def create_shopify_embedded_token(email: str, shop: str) -> str:
@@ -464,7 +469,7 @@ def verify_shopify_embedded_token(token: str, shop: str) -> dict:
 
 def fetch_shop_profile(shop: str, access_token: str) -> dict:
     response = requests.get(
-        f"https://{shop}/admin/api/2024-01/shop.json",
+        f"https://{shop}/admin/api/{SHOPIFY_API_VERSION}/shop.json",
         headers={"X-Shopify-Access-Token": access_token, "Content-Type": "application/json"},
         timeout=20,
     )
@@ -963,57 +968,122 @@ async def shopify_app_home(request: Request):
     safe_scope = (store.get("scope") or "").replace("<", "").replace(">", "")
     used = int(user.get("analyses_this_month") or 0)
     max_analyses = analysis_limit_for_plan(plan)
+    usage_pct = min(100, int((used / max(max_analyses, 1)) * 100))
+    ops_launch_url = f"{BACKEND_PUBLIC_URL}/shopify/app/launch?shop={quote(shop)}&app_token={quote(app_token)}"
+    install_url = build_shopify_install_url(shop)
 
-    return HTMLResponse(f"""
+    response = HTMLResponse(f"""
 <!doctype html>
 <html>
 <head>
+  <meta name="shopify-api-key" content="{SHOPIFY_API_KEY}">
+  <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>OPS Intelligence</title>
   <style>
-    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
-    .wrap{{padding:28px;max-width:1180px;margin:0 auto}}
-    h1{{font-family:Georgia,serif;font-size:34px;font-weight:400;margin:0 0 6px}}
-    .muted{{color:#887f70}} .grid{{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:22px}}
-    .card{{background:#fff;border:1px solid #e0d8cc;border-radius:14px;padding:20px;box-shadow:0 14px 34px rgba(30,24,10,.06)}}
-    .row{{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eee7dc}}
-    .row:last-child{{border-bottom:0}} .pill{{display:inline-flex;border-radius:999px;background:#d09b36;color:#fff;padding:5px 10px;font-size:12px;font-weight:700}}
-    button,a.btn{{appearance:none;border:0;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}}
-    button.secondary{{background:#fff;color:#11100c;border:1px solid #ded5c8}} .plans{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}}
-    .plan{{border:1px solid #e0d8cc;border-radius:12px;padding:14px;background:#faf8f4}} .price{{font-size:24px;font-weight:800;margin-top:8px}}
-    #result{{white-space:pre-wrap;background:#11100c;color:#f8f1df;border-radius:12px;padding:14px;font-size:13px;min-height:90px;margin-top:14px}}
-    @media(max-width:800px){{.grid,.plans{{grid-template-columns:1fr}}}}
+    :root{{--ink:#17140f;--muted:#756f64;--line:#ded7cc;--soft:#f4f1ea;--gold:#d39b2a;--green:#0f7a4a;--purple:#cfc5ff}}
+    *{{box-sizing:border-box}}
+    body{{margin:0;background:#f2f1ef;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif}}
+    .shell{{max-width:1240px;margin:0 auto;padding:24px 28px 42px}}
+    .appbar{{height:64px;background:#fff;border:1px solid #ddd8cf;border-radius:16px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 1px 0 rgba(0,0,0,.04)}}
+    .brand{{display:flex;align-items:center;gap:12px;font-weight:800;font-size:21px;letter-spacing:-.03em}}
+    .mark{{width:34px;height:34px;border-radius:9px;background:#11100c;color:#fff;display:grid;place-items:center;font-family:Georgia,serif;font-size:18px}}
+    .muted{{color:var(--muted)}} .small{{font-size:12px;line-height:1.5}}
+    .actions{{display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
+    button,a.btn{{appearance:none;border:0;border-radius:12px;background:#25221c;color:#fff;padding:12px 16px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}}
+    button.secondary,a.secondary{{background:#fff;color:#25221c;border:1px solid #d8d2c7;box-shadow:none}}
+    .hero{{margin-top:24px;background:linear-gradient(135deg,#fff 0%,#faf6ec 58%,#efe2c4 100%);border:1px solid rgba(211,155,42,.22);border-radius:20px;padding:26px;display:grid;grid-template-columns:1.15fr .85fr;gap:22px;box-shadow:0 18px 44px rgba(26,21,12,.07)}}
+    h1{{font-size:34px;line-height:1.05;letter-spacing:-.045em;margin:0 0 10px}}
+    .kicker{{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:900;margin-bottom:10px}}
+    .hero p{{margin:0;color:var(--muted);font-size:15px;line-height:1.6;max-width:68ch}}
+    .banner{{background:#cec6ff;border:1px solid #b7acf6;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}}
+    .banner strong{{display:block;font-size:20px;letter-spacing:-.03em;margin-bottom:5px}} .banner span{{font-size:13px;color:#504b66;line-height:1.45}}
+    .grid{{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}}
+    .card{{background:#fff;border:1px solid #ddd8cf;border-radius:18px;padding:22px;box-shadow:0 12px 32px rgba(26,21,12,.06)}}
+    .card-head{{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}}
+    h2{{font-size:22px;letter-spacing:-.035em;margin:0}} h3{{font-size:16px;margin:0 0 4px}}
+    .pill{{display:inline-flex;border-radius:999px;background:rgba(15,122,74,.09);border:1px solid rgba(15,122,74,.18);color:var(--green);padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}}
+    .stats{{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #e3ded5;border-radius:16px;overflow:hidden;background:#fff;margin-top:16px}}
+    .stat{{padding:20px;text-align:center;border-right:1px solid #e3ded5}} .stat:last-child{{border-right:0}}
+    .label{{font-size:12px;color:var(--muted);margin-bottom:8px}} .value{{font-size:31px;font-weight:800;letter-spacing:-.04em}}
+    .row{{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee9df;font-size:14px}}
+    .row:last-child{{border-bottom:0}} .scope{{max-width:58%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+    .usage{{height:8px;border-radius:999px;background:#eee8dc;overflow:hidden;margin-top:8px}} .usage span{{display:block;height:100%;width:{usage_pct}%;background:linear-gradient(90deg,var(--gold),#ebc66d)}}
+    .plan-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}}
+    .plan{{border:1px solid #e1dbd1;border-radius:15px;padding:15px;background:#fbfaf7}} .plan.active{{background:#18150f;color:#fff;border-color:#18150f}}
+    .plan-name{{font-size:12px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:900}} .plan.active .plan-name{{color:rgba(255,255,255,.55)}}
+    .price{{font-size:30px;font-weight:900;margin:8px 0 4px;letter-spacing:-.04em}} .plan-copy{{font-size:12px;line-height:1.45;color:var(--muted)}} .plan.active .plan-copy{{color:rgba(255,255,255,.62)}}
+    #result{{white-space:pre-wrap;background:#18150f;color:#f8f1df;border-radius:15px;padding:16px;font-size:13px;line-height:1.55;min-height:112px;margin-top:16px}}
+    .ops-list{{display:grid;gap:12px}}
+    .ops-item{{display:grid;grid-template-columns:42px 1fr auto;gap:14px;align-items:center;border:1px solid #e5dfd4;border-radius:15px;padding:14px;background:#fff}}
+    .ico{{width:42px;height:42px;border-radius:12px;background:#f3ecd9;color:#a87314;display:grid;place-items:center;font-weight:900}}
+    @media(max-width:900px){{.hero,.grid{{grid-template-columns:1fr}}.stats,.plan-grid{{grid-template-columns:1fr 1fr}}.actions{{justify-content:flex-start}}}}
+    @media(max-width:560px){{.shell{{padding:14px}}.appbar{{height:auto;align-items:flex-start;flex-direction:column}}.hero{{padding:18px}}.stats,.plan-grid{{grid-template-columns:1fr}}.stat{{border-right:0;border-bottom:1px solid #e3ded5}}.stat:last-child{{border-bottom:0}}.scope{{max-width:100%;white-space:normal;text-align:left}}.row{{flex-direction:column}}}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>OPS Intelligence</h1>
-    <div class="muted">Shopify admin app home for {shop}</div>
+  <div class="shell">
+    <div class="appbar">
+      <div class="brand"><div class="mark">O</div><div>OPS Intelligence<div class="small muted">Embedded Shopify app for {shop}</div></div></div>
+      <div class="actions">
+        <a class="btn secondary" href="{install_url}" target="_top">Reinstall permissions</a>
+        <a class="btn" href="{ops_launch_url}" target="_blank">Go to OPS Intelligence →</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="kicker">Operations intelligence</div>
+        <h1>Your Shopify store is connected to OPS.</h1>
+        <p>Use this Shopify app home as the lightweight control room. Run a quick live check here, manage plan access through Shopify Billing, then open the full OPS workspace for deeper analysis, product tables, forecasts, churn, pricing, ledger and team workflows.</p>
+      </div>
+      <div class="banner">
+        <div><strong>Founder-ready brief</strong><span>Live store data stays labeled, scoped, and separated from demo results.</span></div>
+        <button class="secondary" onclick="runAnalysis()">Run quick check</button>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><div class="label">Plan</div><div class="value">{plan_key.title()}</div></div>
+      <div class="stat"><div class="label">Monthly usage</div><div class="value">{used}/{max_analyses}</div></div>
+      <div class="stat"><div class="label">Store</div><div class="value" style="font-size:18px">{shop.split('.')[0]}</div></div>
+      <div class="stat"><div class="label">Access</div><div class="value" style="color:var(--green)">Live</div></div>
+    </section>
+
     <div class="grid">
       <section class="card">
-        <span class="pill">Connected</span>
-        <h2>Store overview</h2>
-        <div class="row"><span>Shop</span><strong>{shop}</strong></div>
+        <div class="card-head"><div><h2>Connection status</h2><div class="small muted">Permissions and usage for this Shopify install.</div></div><span class="pill">Connected</span></div>
+        <div class="row"><span>Shop domain</span><strong>{shop}</strong></div>
         <div class="row"><span>Plan</span><strong>{plan_key.title()}</strong></div>
         <div class="row"><span>Usage</span><strong>{used}/{max_analyses} analyses</strong></div>
-        <div class="row"><span>Permissions</span><span class="muted">{safe_scope}</span></div>
+        <div class="usage"><span></span></div>
+        <div class="row"><span>Permissions</span><span class="muted scope" title="{safe_scope}">{safe_scope}</span></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button onclick="runAnalysis()">Analyze Shopify data</button>
-          <a class="btn secondary" href="{FRONTEND_PUBLIC_URL}/app.html?shop={quote(shop)}" target="_blank">Open full OPS dashboard</a>
+          <a class="btn secondary" href="{ops_launch_url}" target="_blank">Open full OPS dashboard</a>
         </div>
-        <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a summary.</div>
+        <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a live summary. For the full report and all product rows, use “Go to OPS Intelligence”.</div>
       </section>
       <section class="card">
-        <h2>Plans</h2>
-        <div class="plans">
-          <div class="plan"><strong>Free</strong><div class="price">€0</div><div class="muted">100 orders</div></div>
-          <div class="plan"><strong>Starter</strong><div class="price">€29</div><div class="muted">AI + PDF</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
-          <div class="plan"><strong>Pro</strong><div class="price">€79</div><div class="muted">Forecast, churn, pricing</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
+        <div class="card-head"><div><h2>Plans & Shopify Billing</h2><div class="small muted">Merchants can upgrade without leaving Shopify.</div></div></div>
+        <div class="plan-grid">
+          <div class="plan {'active' if plan_key == 'free' else ''}"><div class="plan-name">Free</div><div class="price">€0</div><div class="plan-copy">1 store, basic live check.</div></div>
+          <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
+          <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">Forecast, churn, pricing, more stores.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
-        <p class="muted">Paid plans open Shopify Billing confirmation inside Shopify. Billing is currently controlled by SHOPIFY_BILLING_TEST.</p>
+        <p class="small muted">Paid plans open Shopify Billing confirmation inside Shopify. Current billing mode: {'test' if SHOPIFY_BILLING_TEST else 'live'}.</p>
       </section>
     </div>
+
+    <section class="card" style="margin-top:18px">
+      <div class="card-head"><div><h2>What merchants do here</h2><div class="small muted">A Shopify-native landing area, with deep analysis handled in OPS.</div></div></div>
+      <div class="ops-list">
+        <div class="ops-item"><div class="ico">1</div><div><h3>Confirm connection</h3><div class="small muted">The app shows whether Shopify permissions are active and which store is connected.</div></div><span class="pill">Inside Shopify</span></div>
+        <div class="ops-item"><div class="ico">2</div><div><h3>Run quick check</h3><div class="small muted">A lightweight summary can run from Shopify admin for confidence.</div></div><button class="secondary" onclick="runAnalysis()">Analyze</button></div>
+        <div class="ops-item"><div class="ico">3</div><div><h3>Open full OPS workspace</h3><div class="small muted">Full product rows, forecasts, pricing, churn, ledger and team tools live on opsintelligence.org.</div></div><a class="btn" href="{ops_launch_url}" target="_blank">Go to OPS Intelligence →</a></div>
+      </div>
+    </section>
   </div>
   <script>
     const shop = {json.dumps(shop)};
@@ -1031,15 +1101,19 @@ async def shopify_app_home(request: Request):
         if(!res.ok) throw new Error(data.detail||'Analysis failed');
         const rev=data.metrics.revenue||{{}};
         const inv=data.metrics.inventory||{{}};
+        const counts=data.record_counts||{{}};
         box.textContent =
           `Health score: ${{data.analysis.overall_health_score || 0}}/100\\n`+
           `Revenue: €${{Number(rev.total || 0).toLocaleString()}}\\n`+
           `Orders: ${{rev.orders || 0}}\\n`+
+          `Products analyzed: ${{counts.products || 0}}\\n`+
           `AOV: €${{Number(rev.aov || 0).toFixed(2)}}\\n`+
           `Critical inventory items: ${{inv.critical_count || 0}}\\n\\n`+
           `${{data.analysis.executive_summary || 'Analysis completed.'}}`;
+        if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis complete');
       }}catch(e){{
         box.textContent='Error: '+e.message;
+        if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis failed', {{isError:true}});
       }}
     }}
     async function startBilling(plan){{
@@ -1062,6 +1136,21 @@ async def shopify_app_home(request: Request):
 </body>
 </html>
 """)
+    response.headers["Content-Security-Policy"] = f"frame-ancestors https://{shop} https://admin.shopify.com;"
+    return response
+
+
+@app.get("/shopify/app/launch")
+async def shopify_app_launch(shop: str, app_token: str):
+    shop_domain = normalize_shop_domain(shop)
+    payload = verify_shopify_embedded_token(app_token, shop_domain)
+    db = get_supabase()
+    user_result = db.table("users").select("plan").eq("email", payload["sub"]).execute()
+    plan_key = user_result.data[0].get("plan", "free") if user_result.data else "free"
+    ops_token = create_token(payload["sub"], plan_key)
+    return RedirectResponse(
+        f"{FRONTEND_PUBLIC_URL}/app.html#shopify_connected=1&shop={quote(shop_domain)}&token={quote(ops_token)}"
+    )
 
 
 @app.post("/shopify/app/analyze")
@@ -1085,6 +1174,7 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         report = run_pipeline(ShopifyConfig(
             shop_domain=shop,
             access_token=connected["access_token"],
+            api_version=SHOPIFY_API_VERSION,
             use_mock=False,
             mock_order_count=200,
         ))
@@ -1164,7 +1254,7 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
         }],
     }
     response = requests.post(
-        f"https://{shop}/admin/api/2024-01/graphql.json",
+        f"https://{shop}/admin/api/{SHOPIFY_API_VERSION}/graphql.json",
         headers={"X-Shopify-Access-Token": connected["access_token"], "Content-Type": "application/json"},
         json={"query": mutation, "variables": variables},
         timeout=30,
@@ -1404,6 +1494,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             report = run_pipeline(ShopifyConfig(
                 shop_domain=shop_domain,
                 access_token=shop_token,
+                api_version=SHOPIFY_API_VERSION,
                 use_mock=req.use_mock,
                 mock_order_count=200,
             ))

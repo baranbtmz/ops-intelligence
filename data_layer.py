@@ -29,7 +29,7 @@ class ShopifyConfig:
     """Shopify API bağlantı konfigürasyonu"""
     shop_domain: str = ""           # örn: myaurellia.myshopify.com
     access_token: str = ""          # Private App Access Token
-    api_version: str = "2024-01"
+    api_version: str = "2026-01"
     use_mock: bool = True           # True = Mock data kullan (test modu)
     mock_order_count: int = 200     # Kaç adet mock sipariş üretilsin
 
