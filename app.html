@@ -1950,6 +1950,7 @@ let lastResult = null;
 let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
+let storeLimit = {plan:'free', max:1, used:0, canAdd:true};
 
 function updateUsageMeter() {
   if(!user) return;
@@ -2474,14 +2475,28 @@ function renderShopifyStatus() {
   if(active) {
     el.className='connect-state ok';
     el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Connected: '+active.domain+'</strong>'+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Live Shopify permissions active: '+(active.scope||'orders, products, inventory')+'</div></div>';
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Live Shopify permissions active: '+(active.scope||'orders, products, inventory')+'</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Store slots used: '+storeLimit.used+' / '+storeLimit.max+'. Add another store by upgrading or using a separate account.</div></div>';
     if(document.getElementById('connect-domain') && !document.getElementById('connect-domain').value) {
       document.getElementById('connect-domain').value=active.domain;
     }
   } else {
     el.className='connect-state warn';
-    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div></div>';
+    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Current account limit: '+storeLimit.max+' Shopify store'+(storeLimit.max===1?'':'s')+'.</div></div>';
   }
+}
+
+function canUseShopSlot(shop) {
+  const connected=connectedShops.filter(s=>s.status==='connected');
+  if(connected.some(s=>s.domain===shop)) return true;
+  return connected.length < storeLimit.max;
+}
+
+function showStoreLimitMessage() {
+  const planName=(storeLimit.plan||user?.plan||'free').replace(/^./,c=>c.toUpperCase());
+  showToast(`Store limit reached on ${planName}: ${storeLimit.used}/${storeLimit.max}. Upgrade or use a separate account.`);
+  setTimeout(()=>nav('plans'),900);
 }
 
 async function loadShopifyStatus() {
@@ -2491,6 +2506,12 @@ async function loadShopifyStatus() {
     if(!r.ok) return;
     const d=await r.json();
     connectedShops=d.stores||[];
+    storeLimit={
+      plan:d.plan || user?.plan || 'free',
+      max:d.max_stores || ({free:1,starter:2,pro:10}[user?.plan]||1),
+      used:d.connected_count ?? connectedShops.filter(s=>s.status==='connected').length,
+      canAdd:d.can_add_store !== false
+    };
     renderShopifyStatus();
   } catch(e) {}
 }
@@ -2500,6 +2521,11 @@ async function connectShopifyApp() {
   const shop=normalizeShopInput(raw);
   if(!shop){showToast('Please enter your Shopify store domain.');return;}
   if(!token){showToast('Please sign in first.');return;}
+  await loadShopifyStatus();
+  if(!canUseShopSlot(shop)){
+    showStoreLimitMessage();
+    return;
+  }
   const installTab = window.open('about:blank', '_blank');
   if(installTab) {
     installTab.document.write('<!doctype html><title>Opening Shopify...</title><body style="font-family:system-ui;padding:32px;background:#fbf7ef;color:#11120d">Opening Shopify permission screen...</body>');
@@ -2514,6 +2540,7 @@ async function connectShopifyApp() {
     if(!r.ok){
       if(installTab) installTab.close();
       showToast('❌ '+(d.detail||'Could not start Shopify connection.'));
+      if(r.status===402) setTimeout(()=>nav('plans'),900);
       return;
     }
     if(installTab) {
@@ -2541,10 +2568,16 @@ async function analyzeConnectedShopify() {
   runAnalysis(false,active.domain,'',active.domain,'shopify');
 }
 
-function saveAndAnalyze() {
+async function saveAndAnalyze() {
   var domain=(document.getElementById('connect-domain').value.trim()||document.getElementById('shopify-domain').value.trim());
   var st=(document.getElementById('connect-token').value.trim()||document.getElementById('shopify-token').value.trim());
   if(!domain||!st){showToast('Please enter your store domain and API token.');return;}
+  domain=normalizeShopInput(domain);
+  await loadShopifyStatus();
+  if(!canUseShopSlot(domain)){
+    showStoreLimitMessage();
+    return;
+  }
   document.getElementById('connect-domain').value=domain;document.getElementById('shopify-domain').value=domain;
   document.getElementById('connect-token').value=st;document.getElementById('shopify-token').value=st;
   nav('analysis');

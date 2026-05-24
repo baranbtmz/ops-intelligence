@@ -515,13 +515,15 @@ def ensure_shopify_user(shop: str, access_token: str, scope: str) -> dict:
 
 def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> dict:
     db = get_supabase()
-    user_result = db.table("users").select("stores").eq("email", email).execute()
+    user_result = db.table("users").select("plan,stores").eq("email", email).execute()
     if not user_result.data:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    stores = user_result.data[0].get("stores") or []
+    user = user_result.data[0]
+    stores = user.get("stores") or []
     if not isinstance(stores, list):
         stores = []
+    ensure_store_slot_available(stores, user.get("plan", "free"), "shopify", shop)
 
     now = datetime.utcnow().isoformat()
     store_record = {
@@ -547,6 +549,46 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
     db.table("users").update({"stores": stores}).eq("email", email).execute()
     safe_record = {k: v for k, v in store_record.items() if k != "access_token"}
     return safe_record
+
+
+def connected_store_count(stores: list, platform: str = "shopify") -> int:
+    if not isinstance(stores, list):
+        return 0
+    return sum(
+        1
+        for store in stores
+        if isinstance(store, dict)
+        and store.get("platform") == platform
+        and store.get("status") == "connected"
+    )
+
+
+def store_already_connected(stores: list, platform: str, domain: str) -> bool:
+    if not isinstance(stores, list):
+        return False
+    return any(
+        isinstance(store, dict)
+        and store.get("platform") == platform
+        and store.get("domain") == domain
+        and store.get("status") == "connected"
+        for store in stores
+    )
+
+
+def ensure_store_slot_available(stores: list, plan_key: str, platform: str, domain: str) -> None:
+    if store_already_connected(stores, platform, domain):
+        return
+    plan = PLANS.get(plan_key or "free", PLANS["free"])
+    max_stores = int(plan.get("max_stores", 1))
+    used = connected_store_count(stores, platform)
+    if used >= max_stores:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"Store limit reached for the {plan.get('name', plan_key).title()} plan "
+                f"({used}/{max_stores}). Upgrade your plan or connect this store with a separate account."
+            ),
+        )
 
 
 def disconnect_shopify_store(shop: str) -> None:
@@ -1037,6 +1079,15 @@ async def start_shopify_connect(req: ShopifyConnectStartRequest, payload: dict =
         )
 
     shop = normalize_shop_domain(req.shop)
+    db = get_supabase()
+    user_result = db.table("users").select("plan,stores").eq("email", payload["sub"]).execute()
+    if not user_result.data:
+        raise HTTPException(status_code=404, detail="User not found.")
+    stores = user_result.data[0].get("stores") or []
+    if not isinstance(stores, list):
+        stores = []
+    ensure_store_slot_available(stores, user_result.data[0].get("plan", "free"), "shopify", shop)
+
     state = create_shopify_state(payload["sub"], shop)
     redirect_uri = f"{BACKEND_PUBLIC_URL}/shopify/callback"
     params = {
@@ -1088,20 +1139,26 @@ async def shopify_callback(request: Request):
         return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error=no_access_token")
 
     if state_payload.get("mode") == "embedded":
-        ensure_shopify_user(
+        try:
+            ensure_shopify_user(
+                shop,
+                access_token,
+                token_data.get("scope", SHOPIFY_SCOPES),
+            )
+        except HTTPException as e:
+            return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error={quote(str(e.detail))}")
+        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop)}&shopify_connected=1")
+
+    user_email = state_payload["sub"]
+    try:
+        save_shopify_store(
+            user_email,
             shop,
             access_token,
             token_data.get("scope", SHOPIFY_SCOPES),
         )
-        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop)}&shopify_connected=1")
-
-    user_email = state_payload["sub"]
-    save_shopify_store(
-        user_email,
-        shop,
-        access_token,
-        token_data.get("scope", SHOPIFY_SCOPES),
-    )
+    except HTTPException as e:
+        return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error={quote(str(e.detail))}")
 
     db = get_supabase()
     user_result = db.table("users").select("plan").eq("email", user_email).execute()
@@ -1115,14 +1172,28 @@ async def shopify_callback(request: Request):
 @app.get("/shopify/status")
 async def shopify_status(payload: dict = Depends(verify_token)):
     db = get_supabase()
-    result = db.table("users").select("stores").eq("email", payload["sub"]).execute()
-    stores = result.data[0].get("stores", []) if result.data else []
+    result = db.table("users").select("plan,stores").eq("email", payload["sub"]).execute()
+    user_row = result.data[0] if result.data else {}
+    stores = user_row.get("stores", []) if user_row else []
+    if not isinstance(stores, list):
+        stores = []
+    plan_key = user_row.get("plan", payload.get("plan", "free")) if user_row else payload.get("plan", "free")
+    plan = PLANS.get(plan_key, PLANS["free"])
     shopify_stores = [
         public_store(store)
         for store in stores
         if isinstance(store, dict) and store.get("platform") == "shopify"
     ]
-    return {"success": True, "stores": shopify_stores}
+    connected_count = connected_store_count(stores, "shopify")
+    max_stores = int(plan.get("max_stores", 1))
+    return {
+        "success": True,
+        "stores": shopify_stores,
+        "plan": plan_key,
+        "max_stores": max_stores,
+        "connected_count": connected_count,
+        "can_add_store": connected_count < max_stores,
+    }
 
 
 @app.post("/shopify/webhooks/app-uninstalled")
@@ -1152,7 +1223,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     db = get_supabase()
     email = payload["sub"]
 
-    user_data = db.table("users").select("plan,analyses_this_month").eq("email", email).execute()
+    user_data = db.table("users").select("plan,analyses_this_month,stores").eq("email", email).execute()
     if not user_data.data:
         raise HTTPException(status_code=404, detail="User not found.")
 
@@ -1181,6 +1252,11 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         if not shop_domain:
             raise HTTPException(status_code=400, detail="A Shopify store domain is required for live analysis.")
         shop_domain = normalize_shop_domain(shop_domain)
+        if req.shopify_token and not connected_store:
+            stores = user_data.data[0].get("stores") or []
+            if not isinstance(stores, list):
+                stores = []
+            ensure_store_slot_available(stores, plan_key, "shopify", shop_domain)
         if not shop_token:
             raise HTTPException(status_code=400, detail="A Shopify access token is required for live analysis.")
     elif platform == "woocommerce":
