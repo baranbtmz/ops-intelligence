@@ -88,12 +88,27 @@ body::before{
 
 .auth-card{
   background:var(--white);border:1px solid var(--border);border-radius:22px;
-  padding:36px 32px;box-shadow:0 4px 48px rgba(24,22,15,.09);
+  padding:36px 32px 22px;box-shadow:0 16px 56px rgba(24,22,15,.12);position:relative;overflow:hidden;
+}
+.auth-card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:88px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(214,155,45,.12),transparent 78%);
 }
 .auth-tabs{display:flex;background:var(--cream2);border-radius:100px;padding:3px;margin-bottom:28px}
 .auth-tab{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-radius:100px;transition:all .22s;letter-spacing:.06em;text-transform:uppercase}
 .auth-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 10px rgba(24,22,15,.09)}
 .auth-form{display:none}.auth-form.active{display:block}
+.auth-form,.auth-proof{position:relative;z-index:1}
+.auth-proof{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;padding-top:16px;
+  border-top:1px solid rgba(224,216,204,.8);
+}
+.auth-proof-item{
+  padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,rgba(251,247,239,.95),rgba(244,236,221,.82));
+  border:1px solid rgba(224,216,204,.95);
+}
+.auth-proof-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.auth-proof-copy{font-size:12px;line-height:1.45;color:var(--ink2)}
 
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
@@ -393,6 +408,10 @@ body::before{
 .founder-note-copy{font-size:13px;line-height:1.6;color:rgba(255,255,255,.68);max-width:48ch;margin-top:10px}
 .founder-note-points{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .founder-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.82)}
+.founder-micro{
+  margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);
+  font-size:12px;line-height:1.6;color:rgba(255,255,255,.58)
+}
 .trust-point strong{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:4px}
 .trust-point span{font-size:12px;color:var(--muted);line-height:1.5}
 .trust-side{
@@ -599,7 +618,7 @@ body::before{
   #sec-ledger,#sec-compare,#sec-team{left:0}
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
   .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr}
-  .trust-strip,.trust-points,.result-proof{grid-template-columns:1fr}
+  .trust-strip,.trust-points,.result-proof,.auth-proof{grid-template-columns:1fr}
   .mobile-menu-btn{display:flex!important}
 }
 
@@ -695,7 +714,20 @@ body::before{
           <button class="auth-btn" onclick="register()">Create Account →</button>
           <div class="auth-error" id="reg-error"></div>
         </div>
-        
+        <div class="auth-proof">
+          <div class="auth-proof-item">
+            <div class="auth-proof-label">Connectors</div>
+            <div class="auth-proof-copy">Shopify OAuth and WooCommerce REST stay clearly separated.</div>
+          </div>
+          <div class="auth-proof-item">
+            <div class="auth-proof-label">Credibility</div>
+            <div class="auth-proof-copy">Every run names its source, coverage, and analysis engine.</div>
+          </div>
+          <div class="auth-proof-item">
+            <div class="auth-proof-label">Output</div>
+            <div class="auth-proof-copy">Founder-ready briefs focus on margin, stock, and customer promise risk.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -914,7 +946,7 @@ body::before{
       <!-- CONNECT -->
       <section id="sec-connect">
         <div class="pg-header">
-          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Start with Shopify OAuth or WooCommerce REST, then move into a clearly labeled operating brief for every run.</div></div>
+          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
         </div>
 
         <div class="trust-strip">
@@ -929,25 +961,26 @@ body::before{
             </div>
             <div class="founder-note">
               <div class="founder-note-kicker">Built for founder decisions</div>
-              <div class="founder-note-title">Know what changed this week before it hits margin.</div>
-              <div class="founder-note-copy">OPS is designed to feel like an operating brief for the person responsible for cash, stock, and customer promises, not another analytics maze.</div>
+              <div class="founder-note-title">Know what changed this week before it leaks cash, stock, or trust.</div>
+              <div class="founder-note-copy">OPS is designed for the founder or operator carrying the margin, inventory, and promise-to-customer risk, not for another passive dashboard review.</div>
               <div class="founder-note-points">
                 <div class="founder-pill">Read-only connectors</div>
                 <div class="founder-pill">Warm onboarding</div>
                 <div class="founder-pill">Action-first reporting</div>
               </div>
+              <div class="founder-micro">Built around the questions that surface in founder and ops reviews: what changed, where margin is leaking, what customer promises are at risk, and what action needs to happen first.</div>
             </div>
           </div>
           <div class="trust-side">
             <div class="trust-mini">
               <div class="trust-mini-label">What OPS stores</div>
-              <div class="trust-mini-value">Offline tokens</div>
-              <div class="trust-mini-copy">Shopify access remains on the backend after OAuth. Live runs do not rely on browser-stored secrets.</div>
+              <div class="trust-mini-value">Backend-held access</div>
+              <div class="trust-mini-copy">Shopify access remains on the backend after OAuth so live runs do not depend on browser-stored secrets.</div>
             </div>
             <div class="trust-mini">
               <div class="trust-mini-label">What OPS shows</div>
-              <div class="trust-mini-value">Live vs. demo</div>
-              <div class="trust-mini-copy">Every result states its data source, run time, and analysis engine so teams can trust the output.</div>
+              <div class="trust-mini-value">Source + coverage</div>
+              <div class="trust-mini-copy">Every result names the connector, record coverage, and engine so teams can trust what they are reading.</div>
             </div>
           </div>
         </div>
@@ -976,7 +1009,7 @@ body::before{
                 Open Shopify Install
               </button>
               <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
-                Analyze Live Shopify Data
+                Run Shopify Operating Brief
               </button>
               <details style="margin-top:14px">
                 <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
@@ -988,7 +1021,7 @@ body::before{
               <div class="connect-meta">
                 <div><strong>OAuth</strong>No token copy</div>
                 <div><strong>Scopes</strong>Orders + inventory</div>
-                <div><strong>Output</strong>Live analysis</div>
+                <div><strong>Output</strong>Live brief</div>
               </div>
             </div>
             <div class="connect-card" style="background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(244,236,221,.95))">
@@ -1013,7 +1046,7 @@ body::before{
                 </div>
                 <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(17,18,13,.06)">
                   <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Credibility</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Demo visuals stay in demo mode. Live results now stay strictly data-backed.</div>
+                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Demo visuals stay in demo mode. Live results remain strictly tied to authenticated store data.</div>
                 </div>
               </div>
             </div>
@@ -1021,7 +1054,7 @@ body::before{
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-ink" onclick="analyzeConnectedShopify()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Analyze Shopify
+              Run Shopify Brief
             </button>
             <button class="btn btn-outline" onclick="startDemo()">Try Demo</button>
           </div>
@@ -1029,12 +1062,12 @@ body::before{
 
         <!-- WooCommerce -->
         <div id="src-woo" class="src-panel" style="display:none">
-          <div class="connect-card" style="max-width:520px;margin-bottom:14px">
+          <div class="connect-card" style="max-width:560px;margin-bottom:14px">
             <div class="connect-card-title">WooCommerce</div>
             <div class="field"><label>Store URL</label><input type="text" id="woo-url" placeholder="https://yourstore.com" autocomplete="off"></div>
             <div class="field"><label>Consumer Key</label><input type="password" id="woo-key" placeholder="ck_..." autocomplete="off"></div>
             <div class="field"><label>Consumer Secret</label><input type="password" id="woo-secret" placeholder="cs_..." autocomplete="off"></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">WooCommerce → Settings → Advanced → REST API → Add key</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">WooCommerce → Settings → Advanced → REST API → Add key. OPS labels WooCommerce runs separately from Shopify so reporting stays source-accurate.</div>
           </div>
           <button class="btn btn-ink" onclick="analyzeWoo()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1052,7 +1085,7 @@ body::before{
 
         <div class="card" style="margin-bottom:14px">
           <div class="card-title">Demo Analysis</div>
-          <div class="card-sub">Use realistic sample data to preview the OPS experience. Demo outputs stay visibly separated from production runs.</div>
+          <div class="card-sub">Use realistic sample data to preview the OPS experience. Demo outputs stay visibly separated from production runs and never overwrite live labels.</div>
           <button class="btn btn-ink" onclick="startDemo()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Run Demo Analysis
@@ -1061,7 +1094,7 @@ body::before{
 
         <div class="card" style="margin-bottom:14px">
           <div class="card-title">Production Analysis Rules</div>
-          <div class="card-sub">OPS keeps live analysis strict so result pages stay credible in operator, founder, and investor conversations.</div>
+          <div class="card-sub">OPS keeps live analysis strict so result pages stay credible in operator, founder, board, and investor conversations.</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
             <div class="trust-point"><strong>Live connectors</strong><span>Use Shopify OAuth or WooCommerce REST for production runs.</span></div>
             <div class="trust-point"><strong>Demo isolation</strong><span>Sample overlays only appear in demo mode and stay labeled as demo.</span></div>
@@ -1071,7 +1104,7 @@ body::before{
 
         <div class="card">
           <div class="card-title">Shopify Live Data</div>
-          <div class="card-sub">Run on your real store only after the connector and source labels are in place.</div>
+          <div class="card-sub">Use this fallback only when OAuth is unavailable. Preferred live runs should come from the connected store path above.</div>
           <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="storename.myshopify.com"></div>
           <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
           <button class="btn btn-gold" onclick="saveAndAnalyze()">
@@ -1082,7 +1115,7 @@ body::before{
 
         <div class="loading-overlay" id="analysis-loading">
           <div class="spinner"></div>
-          <div style="font-size:14px;color:var(--muted);margin-bottom:16px">Preparing your analysis…</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:16px">Preparing your operating brief…</div>
           <div class="loading-steps">
             <div class="loading-step" id="step-1">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/></svg>Fetching Shopify data
@@ -1135,7 +1168,7 @@ body::before{
           <div class="result-proof-card">
             <div class="result-proof-label">Analysis engine</div>
             <div class="result-proof-value" id="proof-engine">—</div>
-            <div class="result-proof-copy" id="proof-engine-copy">The result page always names the engine used for this brief.</div>
+            <div class="result-proof-copy" id="proof-engine-copy">The result page always names the analysis engine used for this brief.</div>
           </div>
         </div>
 
@@ -1743,6 +1776,7 @@ function logout() {
 
 function buildLocalMock() {
   const products=['Rose Elixir Serum','Midnight Oud Perfume','Gold Shimmer Lotion','Argan Hair Mask','Vitamin C Cream','Coconut Shampoo','Retinol Eye Cream','Jasmine Body Oil'];
+  const forecastSeries=[1180,1240,1310,1195,1410,1680,1765,1225,1290,1360,1275,1445,1715,1800,1260,1335,1405,1320,1490,1740,1825,1285,1365,1430,1345,1510,1785,1860,1325,1395];
   return {
     success:true, shop_name:'Demo Store', user_plan: user?.plan||'pro', data_source:'demo', model:'mock-demo', record_counts:{orders:191,products:8},
     analysis:{
@@ -1795,7 +1829,7 @@ function buildLocalMock() {
         ],
       },
       forecast:{
-        forecast_30_days:Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);return{date:d.toISOString().slice(0,10),predicted_revenue:Math.round(900+Math.random()*700+(i%7>=5?300:0))}}),
+        forecast_30_days:Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);return{date:d.toISOString().slice(0,10),predicted_revenue:forecastSeries[i]}}),
         total_predicted_revenue:38200,avg_daily_predicted:1273,
         peak_day:{date:new Date(Date.now()+6*86400000).toISOString().slice(0,10),predicted_revenue:1820},
         insight:'Next 30 days projected at €38,200 based on historical trends.',
@@ -2071,6 +2105,18 @@ function normalizeShopInput(v) {
   return v;
 }
 
+function setAnalysisLoadingLabels(mode) {
+  const labels = {
+    demo: ['Loading sample operating data', 'Calculating operating metrics', 'Building sample analysis', 'Preparing labeled demo results'],
+    shopify: ['Fetching Shopify orders and inventory', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
+    woocommerce: ['Fetching WooCommerce orders and products', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
+  }[mode] || ['Fetching store data', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing results'];
+  labels.forEach((label, index) => {
+    const step = document.getElementById(`step-${index + 1}`);
+    if(step && step.lastChild) step.lastChild.textContent = label;
+  });
+}
+
 function renderShopifyStatus() {
   const el=document.getElementById('shopify-connection-status');
   if(!el) return;
@@ -2145,8 +2191,11 @@ function saveAndAnalyze() {
 async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',platform='shopify') {
   rememberAnalysisRequest({mock,domain,shopToken,connectedShop,platform});
   const loadEl=document.getElementById('analysis-loading');
+  setAnalysisLoadingLabels(mock ? 'demo' : platform);
   loadEl.classList.add('show');
-  document.getElementById('analysis-shop-name').textContent=mock?'Demo Store':'Pulling live store data...';
+  document.getElementById('analysis-shop-name').textContent=mock
+    ? 'Demo Store'
+    : (platform === 'woocommerce' ? 'Pulling live WooCommerce data...' : 'Pulling live Shopify data...');
   const steps=['step-1','step-2','step-3','step-4'];
   let si=0;
   const interval=setInterval(()=>{

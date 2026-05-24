@@ -622,31 +622,32 @@ def build_daily_revenue_points(report: dict) -> list[dict]:
 
 
 def build_metrics_payload(report: dict) -> dict:
-    ft = report["fulfillment_time"]
-    rev = report["revenue"]
-    inv = report["inventory"]
-    inventory_products = report["inventory"]["details"].to_dict("records")
+    ft = report.get("fulfillment_time", {}) or {}
+    rev = report.get("revenue", {}) or {}
+    inv = report.get("inventory", {}) or {}
+    inventory_details = inv.get("details")
+    inventory_products = inventory_details.to_dict("records") if hasattr(inventory_details, "to_dict") else []
     for product in inventory_products:
         product["current_stock"] = product.get("inventory", 0)
     return {
         "fulfillment": {
-            "mean": ft["mean"],
-            "median": ft["median"],
-            "p95": ft["p95"],
-            "over72h": ft["orders_over_72h"],
-            "status": ft["status"],
-            "total": ft["total_fulfilled"],
+            "mean": ft.get("mean", 0),
+            "median": ft.get("median", 0),
+            "p95": ft.get("p95", 0),
+            "over72h": ft.get("orders_over_72h", 0),
+            "status": ft.get("status", "Unknown"),
+            "total": ft.get("total_fulfilled", 0),
         },
         "revenue": {
-            "total": rev["total_revenue"],
-            "orders": rev["total_orders"],
-            "aov": rev["aov"],
-            "cancel_rate": rev["cancellation_rate"],
-            "refund_rate": rev["refund_rate"],
+            "total": rev.get("total_revenue", 0),
+            "orders": rev.get("total_orders", 0),
+            "aov": rev.get("aov", 0),
+            "cancel_rate": rev.get("cancellation_rate", 0),
+            "refund_rate": rev.get("refund_rate", 0),
         },
         "inventory": {
-            "avg_turnover": inv["avg_turnover"],
-            "critical_count": len(inv["critical_items"]) if inv["critical_items"] is not None else 0,
+            "avg_turnover": inv.get("avg_turnover", 0),
+            "critical_count": len(inv["critical_items"]) if inv.get("critical_items") is not None else 0,
             "products": inventory_products,
         },
     }
@@ -661,6 +662,10 @@ PLANS = {
     "starter": {"name": "Starter",  "price": 29, "max_stores": 2,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": True},
     "pro":     {"name": "Pro",      "price": 79, "max_stores": 10, "max_orders": 10000,"ai": True,  "pdf": True,  "meta": True},
 }
+
+
+def analysis_limit_for_plan(plan: dict) -> int:
+    return max(1, int(plan.get("max_orders", 0) // 100))
 
 
 # ─────────────────────────────────────────────
@@ -792,7 +797,7 @@ async def shopify_app_home(request: Request):
     app_token = create_shopify_embedded_token(user["email"], shop)
     safe_scope = (store.get("scope") or "").replace("<", "").replace(">", "")
     used = int(user.get("analyses_this_month") or 0)
-    max_analyses = max(1, plan["max_orders"] // 100)
+    max_analyses = analysis_limit_for_plan(plan)
 
     return HTMLResponse(f"""
 <!doctype html>
@@ -904,6 +909,12 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
     db = get_supabase()
     user_result = db.table("users").select("plan").eq("email", payload["sub"]).execute()
     plan_key = user_result.data[0].get("plan", "free") if user_result.data else "free"
+    plan = PLANS.get(plan_key, PLANS["free"])
+    usage_result = db.table("users").select("analyses_this_month").eq("email", payload["sub"]).execute()
+    used = usage_result.data[0].get("analyses_this_month", 0) if usage_result.data else 0
+    limit = analysis_limit_for_plan(plan)
+    if used >= limit:
+        raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
 
     try:
         report = run_pipeline(ShopifyConfig(
@@ -921,8 +932,18 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         raise HTTPException(status_code=504, detail="Shopify API timed out. Please retry.")
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
-    ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
+
+    openai_key = os.environ.get("OPENAI_API_KEY", "")
+    ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=not (openai_key and plan["ai"]), language="en")
+    ai_result = AIAnalysisEngine(ai_cfg).analyze(report)
+    if not ai_result.get("success") or "analysis" not in ai_result:
+        ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
+
     extended = run_extended_analysis(report)
+    db.table("users").update({
+        "analyses_this_month": used + 1,
+        "last_analysis": datetime.now().isoformat(),
+    }).eq("email", payload["sub"]).execute()
     return make_json_safe({
         "success": True,
         **make_analysis_context(
@@ -1139,7 +1160,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     plan_key = user_data.data[0].get("plan") or payload.get("plan", "free")
     plan = PLANS.get(plan_key, PLANS["free"])
     used = user_data.data[0].get("analyses_this_month") or 0
-    limit = plan["max_orders"] // 100
+    limit = analysis_limit_for_plan(plan)
 
     if not req.use_mock and used >= limit:
         raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
