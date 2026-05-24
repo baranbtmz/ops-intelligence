@@ -428,6 +428,61 @@ def shopify_billing_fallback_response(shop: str, app_token: str, message: str) -
     )
 
 
+def connected_shopify_stores(stores: list) -> list[dict]:
+    if not isinstance(stores, list):
+        return []
+    return [
+        store
+        for store in stores
+        if isinstance(store, dict)
+        and store.get("platform") == "shopify"
+        and store.get("status") == "connected"
+    ]
+
+
+def active_shopify_billing_store(stores: list) -> Optional[dict]:
+    for store in connected_shopify_stores(stores):
+        if (
+            store.get("billing_provider") == "shopify"
+            and store.get("billing_status") == "active"
+            and store.get("billing_plan") in ("starter", "pro")
+        ):
+            return store
+    return None
+
+
+def get_user_billing_state(email: str) -> dict:
+    db = get_supabase()
+    result = db.table("users").select("email,plan,stores").eq("email", email).execute()
+    user = result.data[0] if result.data else {}
+    stores = user.get("stores") or []
+    if not isinstance(stores, list):
+        stores = []
+
+    shopify_stores = connected_shopify_stores(stores)
+    active_shopify = active_shopify_billing_store(stores)
+    plan = user.get("plan", "free") if user else "free"
+    provider = "shopify" if active_shopify else ("stripe" if plan in ("starter", "pro") else "none")
+    billing_shop = active_shopify or (shopify_stores[0] if shopify_stores else None)
+
+    pricing_url = ""
+    if billing_shop:
+        try:
+            pricing_url = build_shopify_app_pricing_url(billing_shop.get("domain", ""))
+        except Exception:
+            pricing_url = ""
+
+    return {
+        "email": email,
+        "plan": plan,
+        "billing_provider": provider,
+        "has_shopify_store": bool(shopify_stores),
+        "shopify_billing_active": bool(active_shopify),
+        "shopify_shop": (billing_shop or {}).get("domain", ""),
+        "shopify_pricing_url": pricing_url,
+    }
+
+
 def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
     if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
         raise HTTPException(status_code=500, detail="Shopify app credentials are missing.")
@@ -596,6 +651,9 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
     for idx, store in enumerate(stores):
         if store.get("platform") == "shopify" and store.get("domain") == shop:
             store_record["connected_at"] = store.get("connected_at", now)
+            for key in ("billing_provider", "billing_plan", "billing_status", "billing_updated_at"):
+                if store.get(key):
+                    store_record[key] = store.get(key)
             stores[idx] = store_record
             replaced = True
             break
@@ -605,6 +663,66 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
     db.table("users").update({"stores": stores}).eq("email", email).execute()
     safe_record = {k: v for k, v in store_record.items() if k != "access_token"}
     return safe_record
+
+
+def mark_shopify_billing(email: str, shop: str, plan: str, status: str = "active") -> None:
+    if plan not in ("starter", "pro"):
+        raise HTTPException(status_code=400, detail="Invalid Shopify billing plan.")
+
+    shop_domain = normalize_shop_domain(shop)
+    db = get_supabase()
+    result = db.table("users").select("stores").eq("email", email).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    stores = result.data[0].get("stores") or []
+    if not isinstance(stores, list):
+        stores = []
+
+    now = datetime.utcnow().isoformat()
+    for store in stores:
+        if (
+            isinstance(store, dict)
+            and store.get("platform") == "shopify"
+            and store.get("domain") == shop_domain
+        ):
+            store["billing_provider"] = "shopify"
+            store["billing_plan"] = plan
+            store["billing_status"] = status
+            store["billing_updated_at"] = now
+            break
+
+    db.table("users").update({"plan": plan, "stores": stores}).eq("email", email).execute()
+
+
+def mark_shopify_billing_intent(email: str, shop: str, plan: str) -> None:
+    if plan not in ("starter", "pro"):
+        raise HTTPException(status_code=400, detail="Invalid Shopify billing plan.")
+
+    shop_domain = normalize_shop_domain(shop)
+    db = get_supabase()
+    result = db.table("users").select("stores").eq("email", email).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    stores = result.data[0].get("stores") or []
+    if not isinstance(stores, list):
+        stores = []
+
+    now = datetime.utcnow().isoformat()
+    for store in stores:
+        if (
+            isinstance(store, dict)
+            and store.get("platform") == "shopify"
+            and store.get("domain") == shop_domain
+        ):
+            store["billing_provider"] = "shopify"
+            store["billing_pending_plan"] = plan
+            store["billing_status"] = store.get("billing_status") or "pending"
+            store["billing_updated_at"] = now
+            break
+
+    db.table("users").update({"stores": stores}).eq("email", email).execute()
 
 
 def connected_store_count(stores: list, platform: str = "shopify") -> int:
@@ -760,6 +878,9 @@ def public_store(store: dict) -> dict:
         "connected_at": store.get("connected_at", ""),
         "updated_at": store.get("updated_at", ""),
         "status": store.get("status", "connected"),
+        "billing_provider": store.get("billing_provider", ""),
+        "billing_plan": store.get("billing_plan", ""),
+        "billing_status": store.get("billing_status", ""),
     }
 
 
@@ -1401,6 +1522,7 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
             pricing_url = build_shopify_app_pricing_url(shop)
         except HTTPException as e:
             return shopify_billing_fallback_response(shop, req.app_token, str(e.detail))
+        mark_shopify_billing_intent(payload["sub"], shop, req.plan)
         return {
             "success": True,
             "confirmation_url": pricing_url,
@@ -1483,10 +1605,12 @@ async def shopify_billing_return(request: Request, shop: str = "", plan: str = "
         return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html#shopify_error=missing_shop")
 
     shop_domain = normalize_shop_domain(shop_value)
-    selected_plan = plan if plan in ("starter", "pro") else plan_from_shopify_handle(plan_handle or params.get("plan_handle", ""))
     connected = find_shopify_store_by_domain(shop_domain)
+    selected_plan = plan if plan in ("starter", "pro") else plan_from_shopify_handle(plan_handle or params.get("plan_handle", ""))
+    if not selected_plan and connected:
+        selected_plan = connected["store"].get("billing_pending_plan", "")
     if connected and selected_plan in ("starter", "pro"):
-        set_user_plan(connected["user"]["email"], selected_plan)
+        mark_shopify_billing(connected["user"]["email"], shop_domain, selected_plan)
     return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop_domain)}&billing_return=1")
 
 
@@ -1964,8 +2088,23 @@ class CheckoutRequest(BaseModel):
     success_url: str
     cancel_url: str
 
+
+@app.get("/billing/status")
+async def billing_status(payload: dict = Depends(verify_token)):
+    state = get_user_billing_state(payload["sub"])
+    return {"success": True, **state}
+
+
 @app.post("/payments/create-checkout")
 async def create_checkout(req: CheckoutRequest, payload: dict = Depends(verify_token)):
+    billing = get_user_billing_state(payload["sub"])
+    if billing.get("has_shopify_store"):
+        raise HTTPException(
+            status_code=409,
+            detail="This account is connected to Shopify. Manage the plan through Shopify to avoid duplicate billing.",
+            headers={"X-OPS-Billing-Provider": "shopify"},
+        )
+
     import stripe
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
     if not stripe.api_key:
@@ -2016,6 +2155,10 @@ async def stripe_webhook(request: Request):
         email = session.get("customer_email") or session.get("metadata", {}).get("user_email")
         plan = session.get("metadata", {}).get("plan", "starter")
         if email:
+            billing = get_user_billing_state(email)
+            if billing.get("shopify_billing_active"):
+                print(f"Stripe checkout ignored for Shopify-billed user: {email}")
+                return {"status": "ok", "ignored": "shopify_billing_active"}
             db = get_supabase()
             db.table("users").update({"plan": plan}).eq("email", email).execute()
             print(f"✅ Plan updated: {email} -> {plan}")
@@ -2024,6 +2167,15 @@ async def stripe_webhook(request: Request):
 
 async def cancel_subscription_for_user(payload: dict) -> dict:
     email = payload["sub"]
+    billing = get_user_billing_state(email)
+    if billing.get("shopify_billing_active"):
+        return {
+            "success": False,
+            "plan": billing.get("plan", "free"),
+            "billing_provider": "shopify",
+            "shopify_pricing_url": billing.get("shopify_pricing_url", ""),
+            "message": "This subscription is managed in Shopify. Open Shopify billing to change or cancel the plan.",
+        }
 
     try:
         import stripe
@@ -2067,6 +2219,12 @@ async def cancel_subscription(payload: dict = Depends(verify_token)):
 async def update_plan(plan: str, payload: dict = Depends(verify_token)):
     if plan not in PLANS:
         raise HTTPException(status_code=400, detail="Invalid plan.")
+    billing = get_user_billing_state(payload["sub"])
+    if billing.get("shopify_billing_active") and plan != billing.get("plan"):
+        raise HTTPException(
+            status_code=409,
+            detail="This plan is managed through Shopify. Change or cancel it from Shopify billing.",
+        )
 
     db = get_supabase()
     db.table("users").update({"plan": plan}).eq("email", payload["sub"]).execute()

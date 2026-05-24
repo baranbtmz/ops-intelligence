@@ -3195,6 +3195,23 @@ async function selectPlan(plan) {
   const origText=btn?.textContent||'';
   if(btn){btn.textContent='Loading...';btn.disabled=true;}
 
+  let billingState=null;
+  try {
+    const br=await fetch(`${API}/billing/status`,{headers:{'Authorization':`Bearer ${token}`}});
+    billingState=await br.json();
+  } catch(e) {}
+
+  if(billingState && billingState.has_shopify_store) {
+    if(billingState.shopify_pricing_url) {
+      showToast('Opening Shopify billing to avoid duplicate payment...');
+      window.location.href=billingState.shopify_pricing_url;
+    } else {
+      showToast('This account is managed through Shopify billing. Open OPS inside Shopify to change plans.');
+    }
+    if(btn){btn.textContent=origText;btn.disabled=false;}
+    return;
+  }
+
   if(plan==='free'){
     try {
       const r=await fetch(`${API}/user/plan?plan=free`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}});
