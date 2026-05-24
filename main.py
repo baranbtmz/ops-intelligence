@@ -1367,13 +1367,26 @@ async def shopify_app_home(request: Request):
       return data.fallback_url || (data.detail && data.detail.fallback_url) || '';
     }}
 
+    async function shopifySessionHeaders(extraHeaders) {{
+      const headers = Object.assign({{}}, extraHeaders || {{}});
+      if (window.shopify && typeof shopify.idToken === 'function') {{
+        const token = await shopify.idToken();
+        headers.Authorization = `Bearer ${{token}}`;
+      }}
+      return headers;
+    }}
+
+    document.addEventListener('DOMContentLoaded', () => {{
+      shopifySessionHeaders().catch(() => {{}});
+    }});
+
     async function runAnalysis(){{
       const box=document.getElementById('result');
       box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
       try{{
         const res=await fetch('/shopify/app/analyze',{{
           method:'POST',
-          headers:{{'Content-Type':'application/json'}},
+          headers:await shopifySessionHeaders({{'Content-Type':'application/json'}}),
           body:JSON.stringify({{shop,app_token:appToken}})
         }});
         const data=await res.json();
@@ -1403,7 +1416,7 @@ async def shopify_app_home(request: Request):
       try{{
         const res=await fetch('/shopify/app/billing',{{
           method:'POST',
-          headers:{{'Content-Type':'application/json'}},
+          headers:await shopifySessionHeaders({{'Content-Type':'application/json'}}),
           body:JSON.stringify({{shop,plan,app_token:appToken}})
         }});
         const data=await res.json().catch(()=>({{}}));
