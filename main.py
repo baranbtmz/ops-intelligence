@@ -308,6 +308,47 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         raise HTTPException(status_code=401, detail="Invalid token.")
 
 
+def strip_shopify_url(value: str) -> str:
+    return (
+        (value or "")
+        .strip()
+        .lower()
+        .replace("https://", "")
+        .replace("http://", "")
+        .replace("/admin", "")
+        .split("/")[0]
+    )
+
+
+def verify_shopify_session_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
+        raise HTTPException(status_code=500, detail="Shopify app credentials are missing.")
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            SHOPIFY_API_SECRET,
+            algorithms=["HS256"],
+            audience=SHOPIFY_API_KEY,
+            leeway=10,
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Shopify session token expired. Retry the request.")
+    except jwt.ImmatureSignatureError:
+        raise HTTPException(status_code=401, detail="Shopify session token is not active yet.")
+    except jwt.InvalidAudienceError:
+        raise HTTPException(status_code=401, detail="Shopify session token audience is invalid.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid Shopify session token.")
+
+    dest_shop = normalize_shop_domain(strip_shopify_url(payload.get("dest", "")))
+    iss_shop = normalize_shop_domain(strip_shopify_url(payload.get("iss", "")))
+    if dest_shop != iss_shop:
+        raise HTTPException(status_code=401, detail="Shopify session token shop mismatch.")
+
+    payload["shop"] = dest_shop
+    return payload
+
+
 def normalize_shop_domain(shop: str) -> str:
     shop = (shop or "").strip().lower()
     shop = shop.replace("https://", "").replace("http://", "").split("/")[0]
@@ -1376,6 +1417,16 @@ async def shopify_app_home(request: Request):
       return headers;
     }}
 
+    async function verifyEmbeddedSession() {{
+      try {{
+        await fetch('/shopify/app/session', {{
+          method:'POST',
+          headers:await shopifySessionHeaders({{'Content-Type':'application/json'}}),
+          body:JSON.stringify({{shop}})
+        }});
+      }} catch(e) {{}}
+    }}
+
     async function runAnalysis(){{
       const box=document.getElementById('result');
       box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
@@ -1431,6 +1482,7 @@ async def shopify_app_home(request: Request):
         box.textContent='Billing error: '+e.message;
       }}
     }}
+    verifyEmbeddedSession();
   </script>
 </body>
 </html>
@@ -1459,9 +1511,29 @@ async def shopify_app_launch(shop: str, app_token: str, section: str = ""):
     )
 
 
-@app.post("/shopify/app/analyze")
-async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
+@app.post("/shopify/app/session")
+async def shopify_embedded_session(
+    req: ShopifyConnectStartRequest,
+    shopify_session: dict = Depends(verify_shopify_session_token),
+):
     shop = normalize_shop_domain(req.shop)
+    if shopify_session.get("shop") != shop:
+        raise HTTPException(status_code=401, detail="Shopify session token does not match this store.")
+    return {
+        "success": True,
+        "shop": shop,
+        "session_user_id": str(shopify_session.get("sub", "")),
+    }
+
+
+@app.post("/shopify/app/analyze")
+async def shopify_embedded_analyze(
+    req: ShopifyEmbeddedAnalyzeRequest,
+    shopify_session: dict = Depends(verify_shopify_session_token),
+):
+    shop = normalize_shop_domain(req.shop)
+    if shopify_session.get("shop") != shop:
+        raise HTTPException(status_code=401, detail="Shopify session token does not match this store.")
     payload = verify_shopify_embedded_token(req.app_token, shop)
     connected = get_connected_shop(payload["sub"], shop)
     if not connected:
@@ -1548,8 +1620,13 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
 
 
 @app.post("/shopify/app/billing")
-async def shopify_embedded_billing(req: ShopifyBillingRequest):
+async def shopify_embedded_billing(
+    req: ShopifyBillingRequest,
+    shopify_session: dict = Depends(verify_shopify_session_token),
+):
     shop = normalize_shop_domain(req.shop)
+    if shopify_session.get("shop") != shop:
+        raise HTTPException(status_code=401, detail="Shopify session token does not match this store.")
     payload = verify_shopify_embedded_token(req.app_token, shop)
     connected = get_connected_shop(payload["sub"], shop)
     if not connected:
