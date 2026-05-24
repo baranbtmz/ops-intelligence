@@ -171,6 +171,35 @@ body::before{
 .auth-proof-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
 .auth-proof-copy{font-size:12px;line-height:1.45;color:var(--ink2)}
 
+.login-loader{
+  position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;
+  background:#fff;color:var(--ink);overflow:hidden;
+}
+.login-loader.show{display:flex}
+.login-loader-mark{
+  display:flex;align-items:center;gap:14px;font-family:var(--serif-font);font-size:72px;font-weight:650;
+  letter-spacing:0;transform:translateY(-42px);opacity:0;animation:loaderDrop 1.35s cubic-bezier(.16,1,.3,1) forwards;
+}
+.login-loader-mark::before{
+  content:"";width:42px;height:56px;border-radius:14px;background:var(--ink);
+  box-shadow:inset 15px 0 0 var(--gold),0 18px 42px rgba(24,22,15,.12);
+}
+.login-loader-mark .dot{color:var(--gold)}
+.login-loader-copy{
+  position:absolute;top:calc(50% + 72px);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);opacity:0;animation:loaderCopy .7s ease forwards .58s;
+}
+@keyframes loaderDrop{
+  0%{opacity:0;transform:translateY(-78px)}
+  55%{opacity:1;transform:translateY(10px)}
+  78%{transform:translateY(-4px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+@keyframes loaderCopy{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
 .field input{
@@ -706,6 +735,8 @@ body::before{
   .auth-testimonial-copy{font-size:15px}
   .auth-rating{align-items:flex-start;flex-direction:column}
   .auth-box{max-width:460px;order:1}
+  .login-loader-mark{font-size:52px}
+  .login-loader-mark::before{width:34px;height:46px;border-radius:12px;box-shadow:inset 12px 0 0 var(--gold),0 14px 32px rgba(24,22,15,.12)}
   .mobile-menu-btn{display:flex!important}
 }
 
@@ -766,6 +797,10 @@ body::before{
 </style>
 </head>
 <body>
+<div class="login-loader" id="login-loader" aria-hidden="true">
+  <div class="login-loader-mark">OPS<span class="dot">.</span></div>
+  <div class="login-loader-copy">Preparing your workspace</div>
+</div>
 
 <!-- ══════════════════════════════════════
      AUTH
@@ -1833,6 +1868,26 @@ function onLoginInput() {
   // Keep login explicit so the user can edit email/password before submitting.
 }
 
+function playLoginLoader() {
+  const loader=document.getElementById('login-loader');
+  if(!loader) return Promise.resolve();
+  loader.classList.add('show');
+  loader.setAttribute('aria-hidden','false');
+  return new Promise(resolve=>setTimeout(resolve,1150));
+}
+
+async function enterAppWithLoader() {
+  await playLoginLoader();
+  showApp();
+  setTimeout(()=>{
+    const loader=document.getElementById('login-loader');
+    if(loader) {
+      loader.classList.remove('show');
+      loader.setAttribute('aria-hidden','true');
+    }
+  },180);
+}
+
 async function login() {
   const email=document.getElementById('login-email').value.trim();
   const password=document.getElementById('login-password').value;
@@ -1856,7 +1911,7 @@ async function login() {
     token=d.token;
     localStorage.setItem('ops_token',token);
     user=d.user;
-    showApp();
+    await enterAppWithLoader();
   } catch(e){
     err.textContent='Could not connect to server. Please try again.';
   } finally {
@@ -1882,7 +1937,7 @@ async function register() {
     clearTimeout(timeout);
     const d=await r.json();
     if(!r.ok){err.textContent=d.detail||'Registration failed.';return;}
-    token=d.token; localStorage.setItem('ops_token',token); user=d.user; showApp();
+    token=d.token; localStorage.setItem('ops_token',token); user=d.user; await enterAppWithLoader();
   } catch(e){
     err.textContent='Could not connect to server. Please try again.';
   } finally {
