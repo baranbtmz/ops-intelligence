@@ -60,7 +60,7 @@ async def send_email(to: str, subject: str, html: str):
 
 async def send_analysis_email(user_email: str, user_name: str, analysis_data: dict, pdf_bytes: bytes = None):
     score = analysis_data.get("analysis", {}).get("overall_health_score", 0)
-    shop = analysis_data.get("shop_name", "Mağazanız")
+    shop = analysis_data.get("shop_name", "Your store")
     findings = analysis_data.get("analysis", {}).get("findings", [])[:3]
     quick_wins = analysis_data.get("analysis", {}).get("quick_wins", [])[:3]
     sc = "#1a7a4a" if score >= 75 else "#d4ac0d" if score >= 50 else "#c0392b"
@@ -82,22 +82,22 @@ async def send_analysis_email(user_email: str, user_name: str, analysis_data: di
     <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
         <div style="background:#0d0c0a;padding:28px 32px;text-align:center">
             <div style="font-size:24px;font-weight:600;color:#ffffff;letter-spacing:-0.02em">OPS<span style="color:#c9963a">.</span></div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;letter-spacing:0.1em;text-transform:uppercase">Analiz Raporu Hazır</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;letter-spacing:0.1em;text-transform:uppercase">Analysis Ready</div>
         </div>
 
         <div style="padding:32px">
-            <p style="font-size:15px;color:#2c2a25;margin-bottom:24px">Merhaba {user_name.split()[0]},</p>
-            <p style="font-size:14px;color:#8a8070;margin-bottom:24px"><strong>{shop}</strong> mağazanız için operasyonel analiz tamamlandı.</p>
+            <p style="font-size:15px;color:#2c2a25;margin-bottom:24px">Hi {user_name.split()[0]},</p>
+            <p style="font-size:14px;color:#8a8070;margin-bottom:24px">Your latest operations review for <strong>{shop}</strong> is ready.</p>
 
             <div style="background:#f8f7f4;border:1px solid #e0d8cc;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px">
                 <div style="font-size:56px;font-weight:400;color:{sc};font-family:Georgia,serif;line-height:1">{score}</div>
-                <div style="font-size:11px;color:#8a8070;text-transform:uppercase;letter-spacing:0.12em;margin-top:6px">Mağaza Sağlık Skoru / 100</div>
+                <div style="font-size:11px;color:#8a8070;text-transform:uppercase;letter-spacing:0.12em;margin-top:6px">Store Health Score / 100</div>
             </div>
 
-            <h3 style="font-size:16px;color:#0d0c0a;margin-bottom:12px;font-family:Georgia,serif">Öne Çıkan Bulgular</h3>
+            <h3 style="font-size:16px;color:#0d0c0a;margin-bottom:12px;font-family:Georgia,serif">Top Findings</h3>
             {findings_html}
 
-            <h3 style="font-size:16px;color:#0d0c0a;margin:20px 0 12px;font-family:Georgia,serif">Bu Hafta Yapılacaklar</h3>
+            <h3 style="font-size:16px;color:#0d0c0a;margin:20px 0 12px;font-family:Georgia,serif">What To Do This Week</h3>
             {wins_html}
 
             <div style="margin-top:28px;text-align:center">
@@ -106,11 +106,11 @@ async def send_analysis_email(user_email: str, user_name: str, analysis_data: di
         </div>
 
         <div style="padding:20px 32px;border-top:1px solid #e0d8cc;text-align:center">
-            <p style="font-size:11px;color:#8a8070">OPS Intelligence · E-Ticaret Operasyonel Analiz Platformu</p>
+            <p style="font-size:11px;color:#8a8070">OPS Intelligence · E-commerce Operations Intelligence</p>
         </div>
     </div>"""
 
-    return await send_email(user_email, f"📊 {shop} Analiz Raporu — Sağlık Skoru: {score}/100", html)
+    return await send_email(user_email, f"📊 {shop} Analysis Report — Health Score: {score}/100", html)
 
 # ── Startup: DejaVu fontlarını indir (Türkçe PDF desteği)
 @app.on_event("startup")
@@ -273,9 +273,9 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token süresi doldu")
+        raise HTTPException(status_code=401, detail="Session expired.")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Geçersiz token")
+        raise HTTPException(status_code=401, detail="Invalid token.")
 
 
 def normalize_shop_domain(shop: str) -> str:
@@ -284,7 +284,7 @@ def normalize_shop_domain(shop: str) -> str:
     if shop and "." not in shop:
         shop = f"{shop}.myshopify.com"
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*\.myshopify\.com", shop or ""):
-        raise HTTPException(status_code=400, detail="Geçerli bir Shopify mağaza domain'i girin.")
+        raise HTTPException(status_code=400, detail="Enter a valid Shopify store domain.")
     return shop
 
 
@@ -303,12 +303,24 @@ def verify_shopify_state(state: str, shop: str) -> dict:
     try:
         payload = jwt.decode(state, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Shopify bağlantı oturumu süresi doldu. Tekrar deneyin.")
+        raise HTTPException(status_code=400, detail="Shopify connection session expired. Try again.")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Shopify bağlantı oturumu geçersiz.")
+        raise HTTPException(status_code=400, detail="Invalid Shopify connection session.")
     if payload.get("shop") != shop:
-        raise HTTPException(status_code=400, detail="Shopify mağaza doğrulaması başarısız.")
+        raise HTTPException(status_code=400, detail="Shopify store verification failed.")
     return payload
+
+
+def normalize_store_url(store_url: str) -> str:
+    value = (store_url or "").strip()
+    if not value:
+        raise HTTPException(status_code=400, detail="Enter your WooCommerce store URL.")
+    if not re.match(r"^https?://", value, flags=re.IGNORECASE):
+        value = f"https://{value}"
+    value = value.rstrip("/")
+    if not re.fullmatch(r"https?://[^/]+\S*", value, flags=re.IGNORECASE):
+        raise HTTPException(status_code=400, detail="Enter a valid WooCommerce store URL.")
+    return value
 
 
 def verify_shopify_hmac(query_params: dict) -> bool:
@@ -490,7 +502,7 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
     db = get_supabase()
     user_result = db.table("users").select("stores").eq("email", email).execute()
     if not user_result.data:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=404, detail="User not found.")
 
     stores = user_result.data[0].get("stores") or []
     if not isinstance(stores, list):
@@ -599,7 +611,7 @@ def build_daily_revenue_points(report: dict) -> list[dict]:
 # ─────────────────────────────────────────────
 
 PLANS = {
-    "free":    {"name": "Ücretsiz", "price": 0,  "max_stores": 1,  "max_orders": 100,  "ai": False, "pdf": False, "meta": False},
+    "free":    {"name": "Free", "price": 0,  "max_stores": 1,  "max_orders": 100,  "ai": False, "pdf": False, "meta": False},
     "starter": {"name": "Starter",  "price": 29, "max_stores": 2,  "max_orders": 1000, "ai": True,  "pdf": True,  "meta": False},
     "pro":     {"name": "Pro",      "price": 79, "max_stores": 10, "max_orders": 10000,"ai": True,  "pdf": True,  "meta": True},
 }
@@ -617,10 +629,10 @@ async def register(req: RegisterRequest):
     # Mevcut kullanıcı kontrolü
     existing = db.table("users").select("email").eq("email", email).execute()
     if existing.data:
-        raise HTTPException(status_code=400, detail="Bu e-posta zaten kayıtlı.")
+        raise HTTPException(status_code=400, detail="This email is already registered.")
 
     if len(req.password) < 6:
-        raise HTTPException(status_code=400, detail="Şifre en az 6 karakter olmalı.")
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
 
     # Kullanıcı oluştur
     user = {
@@ -679,7 +691,7 @@ async def me(payload: dict = Depends(verify_token)):
     ).execute()
 
     if not result.data:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=404, detail="User not found.")
 
     user = result.data[0]
     user["stores"] = [
@@ -867,7 +879,9 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
         "shop_name": shop,
         "analysis": ai_result.get("analysis", {}),
         "model": ai_result.get("model", "ops-rules-real-data"),
+        "generated_at": ai_result.get("generated_at", datetime.now().isoformat()),
         "user_plan": connected.get("plan", "pro"),
+        "data_source": "shopify",
         "extended": extended,
         "metrics": {
             "revenue": {
@@ -880,6 +894,9 @@ async def shopify_embedded_analyze(req: ShopifyEmbeddedAnalyzeRequest):
                 "total_products": len(report["inventory"]["details"]),
                 "critical_count": len(report["inventory"]["critical_items"]) if report["inventory"]["critical_items"] is not None else 0,
             },
+        },
+        "series": {
+            "daily_revenue": build_daily_revenue_points(report),
         },
     })
 
@@ -1075,7 +1092,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 
     user_data = db.table("users").select("plan,analyses_this_month").eq("email", email).execute()
     if not user_data.data:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=404, detail="User not found.")
 
     # JWT plan bilgisi eski kalabilir; kullanım ve limit için her zaman DB'deki güncel planı esas al.
     plan_key = user_data.data[0].get("plan") or payload.get("plan", "free")
@@ -1084,7 +1101,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     limit = plan["max_orders"] // 100
 
     if used >= limit:
-        raise HTTPException(status_code=429, detail=f"Aylık limit doldu ({used}/{limit}). Güncel plan: {plan_key}.")
+        raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
 
     platform = (req.platform or "shopify").lower()
     connected_store = None
@@ -1093,11 +1110,13 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         if not connected_store:
             raise HTTPException(
                 status_code=400,
-                detail="Bu hesapta bağlı Shopify mağazası bulunamadı. Önce Connect Shopify ile uygulamayı mağazaya kurun.",
+                detail="No connected Shopify store was found for this account. Install OPS through Shopify first.",
             )
 
     shop_domain = (connected_store or {}).get("domain") or req.shopify_domain or ""
     shop_token = (connected_store or {}).get("access_token") or req.shopify_token or ""
+    if platform == "woocommerce":
+        shop_domain = normalize_store_url(shop_domain)
 
     # Veri çek
     try:
@@ -1120,21 +1139,32 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
             ))
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else 502
+        if platform == "woocommerce":
+            if status_code in (401, 403):
+                raise HTTPException(
+                    status_code=status_code,
+                    detail="WooCommerce credentials were rejected. Verify the Consumer Key and Consumer Secret.",
+                )
+            raise HTTPException(status_code=502, detail=f"WooCommerce API returned HTTP {status_code}.")
         if status_code in (401, 403):
             raise HTTPException(
                 status_code=status_code,
                 detail=(
-                    "Shopify bağlantısı yetkisiz. Token'ın doğru olduğundan ve "
-                    "read_orders, read_products, read_inventory scope'larının açık olduğundan emin olun."
+                    "Shopify credentials were rejected. Confirm the token is valid and the "
+                    "read_orders, read_products, read_inventory scopes are granted."
                 ),
             )
-        raise HTTPException(status_code=502, detail=f"Shopify API hata döndürdü: HTTP {status_code}")
+        raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
     except requests.exceptions.Timeout:
-        raise HTTPException(status_code=504, detail="Shopify API yanıtı zaman aşımına uğradı. Birazdan tekrar deneyin.")
+        if platform == "woocommerce":
+            raise HTTPException(status_code=504, detail="WooCommerce API timed out. Try again shortly.")
+        raise HTTPException(status_code=504, detail="Shopify API timed out. Try again shortly.")
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"Shopify bağlantı hatası: {str(e)}")
+        if platform == "woocommerce":
+            raise HTTPException(status_code=502, detail=f"WooCommerce connection error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analiz başlatılamadı: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis could not be started: {str(e)}")
 
     # AI analiz
     openai_key = os.environ.get("OPENAI_API_KEY", "")
@@ -1187,7 +1217,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     # Analiz sonucu
     result_data = make_json_safe({
         "analysis": ai_result.get("analysis", {}),
-        "shop_name": shop_domain or "Demo Mağaza",
+        "shop_name": shop_domain or "Demo Store",
         "extended": extended,
         "metrics": {
             "fulfillment": {"mean": report["fulfillment_time"]["mean"], "median": report["fulfillment_time"]["median"], "p95": report["fulfillment_time"]["p95"], "over72h": report["fulfillment_time"]["orders_over_72h"], "status": report["fulfillment_time"]["status"], "total": report["fulfillment_time"]["total_fulfilled"]},
@@ -1204,9 +1234,9 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
     user_name = user_info.data[0]["name"] if user_info.data else email
     try:
         mail_sent = await send_analysis_email(email, user_name, result_data)
-        print(f"📧 Mail {'gönderildi' if mail_sent else 'gönderilemedi'}: {email}")
+        print(f"📧 Analysis email {'sent' if mail_sent else 'not sent'}: {email}")
     except Exception as e:
-        print(f"📧 Mail hatası: {e}")
+        print(f"📧 Analysis email error: {e}")
 
     # Metrikleri hazırla
     ft  = report["fulfillment_time"]
@@ -1247,7 +1277,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         },
         "user_plan": plan_key,
         "data_source": "demo" if req.use_mock else platform,
-        "shop_name": shop_domain or "Demo Mağaza",
+        "shop_name": shop_domain or "Demo Store",
     })
 
 
@@ -1259,17 +1289,17 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
 async def upload_analysis(
     file: UploadFile = File(...),
     platform: str = Form("generic"),
-    language: str = Form("tr"),
+    language: str = Form("en"),
     payload: dict = Depends(verify_token),
 ):
     filename = file.filename or "upload"
     allowed_ext = (".csv", ".xlsx", ".xls")
     if not filename.lower().endswith(allowed_ext):
-        raise HTTPException(status_code=400, detail="CSV veya Excel dosyası yükleyin.")
+        raise HTTPException(status_code=400, detail="Upload a CSV or Excel file.")
 
     content = await file.read()
     if not content:
-        raise HTTPException(status_code=400, detail="Dosya boş görünüyor.")
+        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
     raise HTTPException(
         status_code=501,
         detail=(
@@ -1290,7 +1320,7 @@ async def get_pdf(req: AnalysisRequest, payload: dict = Depends(verify_token)):
     plan = PLANS.get(plan_key, PLANS["free"])
 
     if not plan["pdf"]:
-        raise HTTPException(status_code=403, detail="PDF export Starter+ plan gerektirir.")
+        raise HTTPException(status_code=403, detail="PDF export requires Starter or Pro.")
 
     # Analiz çalıştır
     analysis_response = await run_analysis(req, payload)
@@ -1307,7 +1337,7 @@ async def get_pdf(req: AnalysisRequest, payload: dict = Depends(verify_token)):
         "generated_at": analysis_response["generated_at"],
     }
 
-    pdf_bytes = generate_pdf_report(mock_result, None, req.shopify_domain or "Demo Mağaza")
+    pdf_bytes = generate_pdf_report(mock_result, None, req.shopify_domain or "Demo Store")
 
     return Response(
         content=pdf_bytes,
@@ -1330,7 +1360,7 @@ async def create_checkout(req: CheckoutRequest, payload: dict = Depends(verify_t
     import stripe
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
     if not stripe.api_key:
-        raise HTTPException(status_code=500, detail="Stripe yapılandırılmamış.")
+        raise HTTPException(status_code=500, detail="Stripe is not configured.")
 
     price_ids = {
         "starter": os.environ.get("STRIPE_PRICE_STARTER", "price_1TRf3JG1DLQ2LxkRn0eLrytf"),
@@ -1338,7 +1368,7 @@ async def create_checkout(req: CheckoutRequest, payload: dict = Depends(verify_t
     }
     price_id = price_ids.get(req.plan)
     if not price_id:
-        raise HTTPException(status_code=400, detail="Geçersiz plan.")
+        raise HTTPException(status_code=400, detail="Invalid plan.")
 
     try:
         session = stripe.checkout.Session.create(
@@ -1379,7 +1409,7 @@ async def stripe_webhook(request: Request):
         if email:
             db = get_supabase()
             db.table("users").update({"plan": plan}).eq("email", email).execute()
-            print(f"✅ Plan güncellendi: {email} → {plan}")
+            print(f"✅ Plan updated: {email} -> {plan}")
 
     return {"status": "ok"}
 
@@ -1413,7 +1443,7 @@ async def cancel_subscription_for_user(payload: dict) -> dict:
         "success": True,
         "token": new_token,
         "plan": "free",
-        "message": "Abonelik iptal edildi, plan Free olarak güncellendi.",
+        "message": "Subscription canceled. Plan updated to Free.",
     }
 
 @app.post("/payments/cancel")
@@ -1427,7 +1457,7 @@ async def cancel_subscription(payload: dict = Depends(verify_token)):
 @app.put("/user/plan")
 async def update_plan(plan: str, payload: dict = Depends(verify_token)):
     if plan not in PLANS:
-        raise HTTPException(status_code=400, detail="Geçersiz plan.")
+        raise HTTPException(status_code=400, detail="Invalid plan.")
 
     db = get_supabase()
     db.table("users").update({"plan": plan}).eq("email", payload["sub"]).execute()

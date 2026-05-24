@@ -38,6 +38,12 @@
 }
 html{scroll-behavior:smooth}
 body{background:var(--cream);color:var(--ink2);font-family:var(--sans-font);font-weight:500;line-height:1.6;min-height:100vh;overflow-x:hidden}
+body{
+  background:
+    radial-gradient(circle at top right, rgba(214,155,45,.14), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(138,92,26,.08), transparent 26%),
+    var(--cream);
+}
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
   background:
@@ -57,6 +63,10 @@ body::before{
 .auth-wrap{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:var(--cream);padding:24px;position:relative;overflow:hidden;
+}
+.auth-wrap::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 36%,rgba(214,155,45,.05));
 }
 /* Gold spheres — index.html style */
 .blob{position:absolute;border-radius:50%;pointer-events:none;animation:float 6s ease-in-out infinite}
@@ -336,6 +346,57 @@ body::before{
 .card-title{font-family:var(--serif-font);font-size:19px;font-weight:650;color:var(--ink);margin-bottom:3px;letter-spacing:-.02em}
 .card-sub{font-size:12px;color:var(--muted);margin-bottom:16px}
 
+.trust-strip{
+  display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:18px;
+}
+.trust-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(244,236,221,.98));
+  border:1px solid rgba(214,155,45,.16);border-radius:20px;padding:20px 22px;
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.trust-card::before{
+  content:"";position:absolute;top:0;left:24px;right:24px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(214,155,45,.5),transparent);
+}
+.trust-kicker{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.trust-title{font-family:var(--serif-font);font-size:28px;line-height:1.08;letter-spacing:-.035em;color:var(--ink);max-width:10ch;margin-bottom:10px}
+.trust-title em{font-style:italic;color:#8a5c1a}
+.trust-copy{font-size:13px;color:var(--muted);max-width:52ch}
+.trust-points{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.trust-point{
+  padding:12px;border-radius:14px;background:rgba(255,255,255,.76);
+  border:1px solid rgba(17,18,13,.06)
+}
+.trust-point strong{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:4px}
+.trust-point span{font-size:12px;color:var(--muted);line-height:1.5}
+.trust-side{
+  display:flex;flex-direction:column;gap:10px;justify-content:space-between;
+}
+.trust-mini{
+  background:var(--white);border:1px solid var(--border);border-radius:18px;padding:16px;
+  box-shadow:var(--sh)
+}
+.trust-mini-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.trust-mini-value{font-size:24px;font-weight:800;line-height:1;color:var(--ink);letter-spacing:-.04em}
+.trust-mini-copy{font-size:12px;color:var(--muted);margin-top:6px}
+
+.result-signal{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(244,236,221,.94));
+  border:1px solid rgba(214,155,45,.18);border-radius:18px;padding:14px 16px;
+  box-shadow:var(--sh);margin-bottom:14px
+}
+.result-signal-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.result-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase
+}
+.result-badge.live{background:rgba(26,122,74,.09);border:1px solid rgba(26,122,74,.18);color:var(--success)}
+.result-badge.demo{background:rgba(201,150,58,.12);border:1px solid rgba(201,150,58,.2);color:#8a5c1a}
+.result-signal-title{font-size:13px;font-weight:700;color:var(--ink)}
+.result-signal-copy{font-size:12px;color:var(--muted)}
+.result-signal-meta{font-size:12px;color:var(--muted);text-align:right}
+
 /* Score */
 .score-box{
   background:linear-gradient(135deg,var(--cream2),var(--cream));
@@ -503,6 +564,7 @@ body::before{
   #sec-ledger,#sec-compare,#sec-team{left:0}
   .ov-kpis{grid-template-columns:repeat(2,1fr)}.ov-row2{grid-template-columns:1fr}.ov-bottom{grid-template-columns:1fr}
   .qnav,.connect-grid,.plan-grid,.metrics-grid{grid-template-columns:1fr 1fr}
+  .trust-strip,.trust-points{grid-template-columns:1fr}
   .mobile-menu-btn{display:flex!important}
 }
 
@@ -706,7 +768,7 @@ body::before{
         <div class="pg-header">
           <div>
             <div class="pg-title" id="home-title">Good morning<em>.</em></div>
-            <div class="pg-sub">Here's what's happening with your store.</div>
+            <div class="pg-sub">Your operating signal across the last 90 days of store activity.</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="chip">
@@ -812,19 +874,38 @@ body::before{
       <!-- CONNECT -->
       <section id="sec-connect">
         <div class="pg-header">
-          <div><div class="pg-title">Connect Data Source</div><div class="pg-sub">Shopify, WooCommerce, Etsy, Amazon — or upload any CSV / Excel file.</div></div>
+          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Start with Shopify OAuth or WooCommerce REST. Demo mode stays separate from live analysis.</div></div>
+        </div>
+
+        <div class="trust-strip">
+          <div class="trust-card">
+            <div class="trust-kicker">Founder-ready onboarding</div>
+            <div class="trust-title">Get to an <em>operating brief</em>, not another dashboard.</div>
+            <div class="trust-copy">OPS turns raw commerce activity into a weekly decision layer: what is slipping, what it costs, and what to change next. Live results only use connected Shopify or WooCommerce data.</div>
+            <div class="trust-points">
+              <div class="trust-point"><strong>Step 1</strong><span>Connect the store with read-only operational scopes.</span></div>
+              <div class="trust-point"><strong>Step 2</strong><span>OPS calculates fulfillment, revenue, inventory, churn and pricing signals.</span></div>
+              <div class="trust-point"><strong>Step 3</strong><span>The result page labels live vs. demo data so findings stay credible.</span></div>
+            </div>
+          </div>
+          <div class="trust-side">
+            <div class="trust-mini">
+              <div class="trust-mini-label">What OPS stores</div>
+              <div class="trust-mini-value">Offline tokens</div>
+              <div class="trust-mini-copy">Shopify access remains on the backend. Live runs do not rely on browser-stored secrets.</div>
+            </div>
+            <div class="trust-mini">
+              <div class="trust-mini-label">What OPS shows</div>
+              <div class="trust-mini-value">Live vs. demo</div>
+              <div class="trust-mini-copy">Every result states its data source, run time, and analysis engine so teams can trust the output.</div>
+            </div>
+          </div>
         </div>
 
         <!-- Platform tabs -->
         <div style="display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:12px;padding:4px;width:fit-content;border:1px solid var(--border)">
           <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
           <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
-          <div class="src-tab" id="tab-etsy" onclick="switchSource('etsy')">Etsy</div>
-          <div class="src-tab" id="tab-amazon" onclick="switchSource('amazon')">Amazon</div>
-          <div class="src-tab" id="tab-upload" onclick="switchSource('upload')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Upload File
-          </div>
         </div>
 
         <!-- Shopify -->
@@ -911,72 +992,6 @@ body::before{
           </button>
         </div>
 
-        <!-- Etsy -->
-        <div id="src-etsy" class="src-panel" style="display:none">
-          <div class="connect-card" style="max-width:520px;margin-bottom:14px">
-            <div class="connect-card-title">Etsy</div>
-            <div style="background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
-              Etsy API requires OAuth. For now, export your orders from <strong style="color:var(--ink)">Etsy → Shop Manager → Orders → Export CSV</strong> and upload it using the Upload File tab.
-            </div>
-            <button class="btn btn-outline" onclick="switchSource('upload')">Go to Upload File →</button>
-          </div>
-        </div>
-
-        <!-- Amazon -->
-        <div id="src-amazon" class="src-panel" style="display:none">
-          <div class="connect-card" style="max-width:520px;margin-bottom:14px">
-            <div class="connect-card-title">Amazon Seller Central</div>
-            <div style="background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
-              Amazon SP-API requires marketplace approval. For instant analysis, export your orders from <strong style="color:var(--ink)">Seller Central → Reports → Business Reports → Orders</strong> and upload the CSV.
-            </div>
-            <button class="btn btn-outline" onclick="switchSource('upload')">Go to Upload File →</button>
-          </div>
-        </div>
-
-        <!-- Upload File -->
-        <div id="src-upload" class="src-panel" style="display:none">
-          <div class="connect-card" style="max-width:560px">
-            <div class="connect-card-title">Upload CSV or Excel</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:14px">File validation is available, but full production parsing is not enabled yet. Use Shopify OAuth or WooCommerce REST for live analysis.</div>
-
-            <!-- Drop zone -->
-            <div id="drop-zone" onclick="document.getElementById('upload-file').click()"
-              style="border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;background:var(--cream2)"
-              ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='rgba(196,154,58,.06)'"
-              ondragleave="this.style.borderColor='var(--border)';this.style.background='var(--cream2)'"
-              ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--cream2)';handleFileDrop(event.dataTransfer.files[0])">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;color:var(--muted);margin-bottom:10px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px">Drop your file here</div>
-              <div style="font-size:11px;color:var(--muted)">CSV or Excel (.xlsx, .xls) — Shopify, WooCommerce, Etsy, Amazon or custom</div>
-              <input type="file" id="upload-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileSelect(this.files[0])">
-            </div>
-
-            <div id="upload-file-info" style="display:none;background:var(--cream2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;margin-bottom:14px;display:none;align-items:center;gap:10px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--success);flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
-              <div id="upload-file-name" style="font-size:12px;font-weight:500;color:var(--ink)">—</div>
-              <button onclick="clearUpload()" style="margin-left:auto;border:none;background:transparent;cursor:pointer;color:var(--muted);font-size:16px;line-height:1">&times;</button>
-            </div>
-
-            <div class="field">
-              <label>Platform (optional — helps with column detection)</label>
-              <select id="upload-platform" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none">
-                <option value="shopify">Shopify</option>
-                <option value="woocommerce">WooCommerce</option>
-                <option value="etsy">Etsy</option>
-                <option value="amazon">Amazon</option>
-                <option value="generic">Other / Custom</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="btn btn-ink" onclick="runUploadAnalysis()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Analyze File
-            </button>
-            <button class="btn btn-outline" onclick="startDemo()">Try Demo</button>
-          </div>
-        </div>
-
       </section>
 
       <!-- ANALYSIS -->
@@ -995,20 +1010,13 @@ body::before{
         </div>
 
         <div class="card" style="margin-bottom:14px">
-          <div class="card-title">Upload CSV</div>
-          <div class="card-sub">Works with Shopify, WooCommerce, Etsy, Amazon — export your orders and upload here.</div>
-          <div class="field">
-            <label>Orders CSV <span style="color:var(--muted);font-size:11px">(required)</span></label>
-            <input type="file" id="csv-orders" accept=".csv" style="padding:9px;border:1.5px dashed var(--border);border-radius:10px;width:100%;cursor:pointer;background:var(--cream2);font-family:'DM Sans',sans-serif;font-size:13px">
+          <div class="card-title">Production Analysis Rules</div>
+          <div class="card-sub">OPS keeps live analysis strict so results remain useful in real operating decisions.</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="trust-point"><strong>Live connectors</strong><span>Use Shopify OAuth or WooCommerce REST for production runs.</span></div>
+            <div class="trust-point"><strong>Demo isolation</strong><span>Sample overlays only appear in demo mode and stay labeled as demo.</span></div>
+            <div class="trust-point"><strong>Result context</strong><span>Every run shows source, timestamp, and model label on the results page.</span></div>
           </div>
-          <div class="field">
-            <label>Products CSV <span style="color:var(--muted);font-size:11px">(optional)</span></label>
-            <input type="file" id="csv-products" accept=".csv" style="padding:9px;border:1.5px dashed var(--border);border-radius:10px;width:100%;cursor:pointer;background:var(--cream2);font-family:'DM Sans',sans-serif;font-size:13px">
-          </div>
-          <button class="btn btn-gold" onclick="runCSVAnalysis()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Analyze CSV
-          </button>
         </div>
 
         <div class="card">
@@ -1050,6 +1058,17 @@ body::before{
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             Refresh
           </button>
+        </div>
+
+        <div class="result-signal">
+          <div class="result-signal-left">
+            <div class="result-badge demo" id="result-badge">Demo mode</div>
+            <div>
+              <div class="result-signal-title" id="result-signal-title">Waiting for analysis</div>
+              <div class="result-signal-copy" id="result-signal-copy">OPS will label live and sample runs separately.</div>
+            </div>
+          </div>
+          <div class="result-signal-meta" id="result-signal-meta">Source details appear here after a run.</div>
         </div>
 
         <div class="score-box">
@@ -1146,7 +1165,6 @@ body::before{
               <li><span class="chk">✓</span> Basic metrics</li>
               <li class="off"><span class="cx">×</span> AI Analysis Report</li>
               <li class="off"><span class="cx">×</span> PDF Export</li>
-              <li class="off"><span class="cx">×</span> CSV Upload</li>
               <li class="off"><span class="cx">×</span> Meta Ads + ROAS</li>
               <li class="off"><span class="cx">×</span> SWOT Analysis</li>
             </ul>
@@ -1163,7 +1181,6 @@ body::before{
               <li><span class="chk">✓</span> 1,000 orders / month</li>
               <li><span class="chk">✓</span> AI Analysis (GPT-4o)</li>
               <li><span class="chk">✓</span> PDF Export</li>
-              <li><span class="chk">✓</span> CSV Upload (any platform)</li>
               <li><span class="chk">✓</span> Meta Ads + ROAS</li>
               <li><span class="chk">✓</span> SWOT Analysis</li>
               <li><span class="chk">✓</span> Competitor Benchmarking</li>
@@ -1797,7 +1814,6 @@ function renderPlanFeatures(plan) {
     ['Monthly Orders',`${{free:100,starter:1000,pro:10000}[plan]||100}`,true],
     ['AI Analysis Report','GPT-4o powered',plan!=='free'],
     ['PDF Export','Professional report',plan!=='free'],
-    ['CSV Upload','Any platform',plan!=='free'],
     ['Meta Ads + ROAS','Campaign analysis',plan!=='free'],
     ['SWOT Analysis','AI-generated',plan!=='free'],
     ['Competitor Benchmarking',plan==='pro'?'Full (5 metrics)':'Summary (2 metrics)',plan!=='free'],
@@ -2128,7 +2144,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
 
 // ── RENDER RESULTS
 function renderResults(data) {
-  const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store')||(data.shop_name==='Demo Mağaza')||String(data.model||'').includes('mock-demo')||String(data.model||'').includes('demo');
+  const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store')||String(data.model||'').includes('mock-demo')||String(data.model||'').includes('demo');
   if(isDemoResult){
     const demoExt=buildLocalMock().extended||{};
     data.extended=Object.assign({}, demoExt, data.extended||{});
@@ -2145,6 +2161,7 @@ function renderResults(data) {
   const rev=m.revenue||{};
   const ft=m.fulfillment||{};
   const inv=m.inventory||{};
+  const moneyFormat=new Intl.NumberFormat('en-GB',{maximumFractionDigits:0});
 
   const sc=score>=75?'var(--success)':score>=50?'var(--warn)':'var(--danger)';
   const campaignSummary=Array.isArray(meta?.campaign_summary)?meta.campaign_summary:[];
@@ -2154,19 +2171,29 @@ function renderResults(data) {
   document.getElementById('r-summary').textContent=an.executive_summary||'';
   const sourceLabel=isDemoResult
     ? 'Demo data'
-    : (data.data_source==='woocommerce' ? 'Live WooCommerce REST' : 'Live Shopify');
+    : (data.data_source==='woocommerce' ? 'WooCommerce REST' : 'Shopify OAuth');
   const generatedLabel=data.generated_at
     ? new Date(data.generated_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
     : new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   const modelLabel=data.model||'ops-rules-real-data';
-  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} • ${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
+  document.getElementById('results-meta').textContent=`${data.shop_name||'Demo Store'} • ${sourceLabel} • ${generatedLabel}`;
+  const badgeEl=document.getElementById('result-badge');
+  badgeEl.className='result-badge '+(isDemoResult?'demo':'live');
+  badgeEl.textContent=isDemoResult?'Demo mode':'Live mode';
+  document.getElementById('result-signal-title').textContent=isDemoResult
+    ? 'Sample results are isolated from live store reporting.'
+    : 'This run is based on connected store data only.';
+  document.getElementById('result-signal-copy').textContent=isDemoResult
+    ? 'Use demo runs to understand the product flow. They never overwrite the live-data labels.'
+    : 'OPS does not inject sample findings into live Shopify or WooCommerce analyses.';
+  document.getElementById('result-signal-meta').textContent=`${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
 
   const cancelRate=((rev.cancellation_rate??rev.cancel_rate??0)).toFixed(1);
   const refundRate=(rev.refund_rate||0).toFixed(1);
   const hasDailyRevenue=dailyRevenue.length>1;
   const coverageText=hasDailyRevenue
     ? `${dailyRevenue.length} recorded days`
-    : (isDemoResult ? 'Demo sample window' : 'No daily series returned');
+    : (isDemoResult ? 'Sample reporting window' : 'Connector returned summary metrics only');
 
   document.getElementById('r-metrics').innerHTML=`
     <div class="metric-card"><div class="metric-label">Total Revenue</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="margin-top:8px" class="metric-delta delta-good">${coverageText}</div></div>
@@ -2188,7 +2215,7 @@ function renderResults(data) {
   document.getElementById('r-revenue-detail').innerHTML=`
     <table class="data-table">
       <tr><th>Metric</th><th>Value</th><th>Status</th></tr>
-      <tr><td>Total Revenue</td><td>€${(rev.total||0).toLocaleString('tr-TR',{maximumFractionDigits:0})}</td><td><span class="badge badge-success">—</span></td></tr>
+      <tr><td>Total Revenue</td><td>€${moneyFormat.format(rev.total||0)}</td><td><span class="badge badge-success">—</span></td></tr>
       <tr><td>Total Orders</td><td>${rev.orders||0}</td><td><span class="badge badge-success">—</span></td></tr>
       <tr><td>Average Order Value</td><td>€${Math.round(rev.aov||0)}</td><td><span class="badge ${(rev.aov||0)>=200?'badge-success':'badge-warn'}">${(rev.aov||0)>=200?'Good':'Below Target'}</span></td></tr>
       <tr><td>Cancel Rate</td><td>${cancelRate}%</td><td><span class="badge ${parseFloat(cancelRate)<=3?'badge-success':'badge-danger'}">${parseFloat(cancelRate)<=3?'Normal':'High'}</span></td></tr>
@@ -2223,7 +2250,7 @@ function renderResults(data) {
         empty=document.createElement('div');
         empty.id=emptyId;
         empty.style.cssText='font-size:13px;color:var(--muted);padding:18px 0';
-        empty.textContent=isDemoResult?'Demo trend hidden until you open the sample result again.':'Daily revenue trend is unavailable for this run.';
+        empty.textContent=isDemoResult?'Demo trend is limited to the sample reporting window.':'Daily revenue trend is unavailable for this run.';
         revCtx.parentElement.appendChild(empty);
       }
     }
@@ -2272,7 +2299,7 @@ function renderResults(data) {
     document.getElementById('r-churn-summary').innerHTML=`
       <div class="metric-card"><div class="metric-label">Total Customers</div><div class="metric-value">${churn.total_customers}</div></div>
       <div class="metric-card"><div class="metric-label">Churn Risk</div><div class="metric-value" style="color:${churn.churn_rate>30?'var(--danger)':'var(--gold)'}">${churn.churn_rate}%</div></div>
-      <div class="metric-card"><div class="metric-label">Revenue at Risk</div><div class="metric-value">€${(churn.potential_revenue_at_risk||0).toLocaleString()}</div></div>`;
+      <div class="metric-card"><div class="metric-label">Revenue at Risk</div><div class="metric-value">€${moneyFormat.format(churn.potential_revenue_at_risk||0)}</div></div>`;
     const segs=churn.segments||{};
     document.getElementById('r-churn-segments').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${Object.entries(segs).map(([k,v])=>`<div style="background:var(--cream2);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:20px;font-weight:600">${v}</div><div style="font-size:12px;color:var(--muted)">${k}</div></div>`).join('')}</div>`;
     const topRisk=churn.top_at_risk||[];
@@ -2283,7 +2310,7 @@ function renderResults(data) {
 
   const pricing=ext.price_elasticity||{};
   if(pricing.products?.length){
-    document.getElementById('r-pricing-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">💡 ${pricing.insight||''} <strong style="color:var(--gold)">+€${(pricing.total_revenue_potential||0).toLocaleString()} potential</strong></div>`;
+    document.getElementById('r-pricing-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">💡 ${pricing.insight||''} <strong style="color:var(--gold)">+€${moneyFormat.format(pricing.total_revenue_potential||0)} potential</strong></div>`;
     document.getElementById('r-pricing-table').innerHTML='<table style="width:100%;font-size:13px;border-collapse:collapse"><tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Product</th><th>Current</th><th>Suggested</th><th>Margin</th><th>Action</th></tr>'+pricing.products.map(function(p){var bg=p.recommendation==='price_increase'?'var(--success-pale)':p.recommendation==='bundle'?'var(--gold-pale)':'var(--cream2)';var col=p.recommendation==='price_increase'?'var(--success)':p.recommendation==='bundle'?'var(--gold)':'var(--muted)';var tcol=p.recommendation==='price_increase'?'var(--success)':'var(--muted)';return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">'+p.product+'</td><td style="text-align:center">€'+p.current_price+'</td><td style="text-align:center;color:'+tcol+'">€'+p.suggested_price+'</td><td style="text-align:center">'+p.margin_pct+'%</td><td style="text-align:center"><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+p.recommendation.toUpperCase()+'</span></td></tr>';}).join('')+'</table>';
   } else {
     document.getElementById('r-pricing-insight').innerHTML='<div style="color:var(--muted)">Pricing analysis requires product data.</div>';
@@ -2292,7 +2319,7 @@ function renderResults(data) {
   const forecast=ext.forecast||{};
   if(forecast.forecast_30_days?.length){
     document.getElementById('r-forecast-summary').innerHTML=`
-      <div class="metric-card"><div class="metric-label">30-Day Forecast</div><div class="metric-value">€${(forecast.total_predicted_revenue||0).toLocaleString()}</div></div>
+      <div class="metric-card"><div class="metric-label">30-Day Forecast</div><div class="metric-value">€${moneyFormat.format(forecast.total_predicted_revenue||0)}</div></div>
       <div class="metric-card"><div class="metric-label">Daily Average</div><div class="metric-value">€${(forecast.avg_daily_predicted||0).toFixed(0)}</div></div>
       <div class="metric-card"><div class="metric-label">Peak Day</div><div class="metric-value" style="font-size:14px">${forecast.peak_day?.date||'—'}</div></div>`;
     document.getElementById('r-forecast-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">📈 ${forecast.insight||''}<br><span style="color:var(--muted);font-size:12px">${forecast.recommendation||''}</span></div>`;
@@ -2690,10 +2717,8 @@ function runComparison() {
 
 
 // ── SOURCE SWITCHER
-var _selectedFile = null;
-
 function switchSource(src) {
-  ['shopify','woo','etsy','amazon','upload'].forEach(function(s) {
+  ['shopify','woo'].forEach(function(s) {
     var tab = document.getElementById('tab-'+s);
     var panel = document.getElementById('src-'+s);
     if(tab) tab.classList.toggle('active', s===src);
@@ -2701,63 +2726,8 @@ function switchSource(src) {
   });
 }
 
-// ── FILE UPLOAD
-function handleFileSelect(file) {
-  if(!file) return;
-  _selectedFile = file;
-  document.getElementById('upload-file-info').style.display = 'flex';
-  document.getElementById('upload-file-name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
-  document.getElementById('drop-zone').style.borderColor = 'var(--gold)';
-}
-
-function handleFileDrop(file) {
-  if(!file) return;
-  document.getElementById('upload-file').files; // reset
-  handleFileSelect(file);
-}
-
-function clearUpload() {
-  _selectedFile = null;
-  document.getElementById('upload-file').value = '';
-  document.getElementById('upload-file-info').style.display = 'none';
-  document.getElementById('drop-zone').style.borderColor = 'var(--border)';
-}
-
 async function runUploadAnalysis() {
-  if(!_selectedFile) { showToast('Please select a file first.'); return; }
-  var platform = document.getElementById('upload-platform').value;
-  var loadEl = document.getElementById('analysis-loading');
-  nav('analysis');
-  loadEl.classList.add('show');
-  document.querySelectorAll('#sec-analysis .card').forEach(function(el){el.style.display='none';});
-  var steps=['step-1','step-2','step-3','step-4']; var si=0;
-  var interval=setInterval(function(){
-    steps.forEach(function(s,i){var el=document.getElementById(s);if(i<si)el.className='loading-step done';else if(i===si)el.className='loading-step active';else el.className='loading-step';});
-    si=Math.min(si+1,steps.length-1);
-  },1000);
-  try {
-    var fd = new FormData();
-    fd.append('file', _selectedFile);
-    fd.append('platform', platform);
-    fd.append('language', 'en');
-    var r = await fetch(API+'/analysis/upload', {
-      method:'POST',
-      headers:{'Authorization':'Bearer '+token},
-      body: fd
-    });
-    var text = await r.text();
-    var d; try{d=JSON.parse(text);}catch(e){d={detail:'Invalid response: '+text.slice(0,100)};}
-    clearInterval(interval); loadEl.classList.remove('show');
-    document.querySelectorAll('#sec-analysis .card').forEach(function(el){el.style.display='';});
-    if(!r.ok){ showToast('Upload failed: '+(d.detail||'HTTP '+r.status)); nav('connect'); return; }
-    lastResult=d; renderResults(d); renderOverview(d); nav('results');
-    showToast(_selectedFile.name+' analyzed ✓');
-  } catch(e) {
-    clearInterval(interval); loadEl.classList.remove('show');
-    document.querySelectorAll('#sec-analysis .card').forEach(function(el){el.style.display='';});
-    showToast('Error: '+e.message);
-    nav('connect');
-  }
+  showToast('File uploads are not enabled for production yet. Use Shopify OAuth, WooCommerce REST, or demo mode.');
 }
 
 // ── WooCommerce
