@@ -161,10 +161,16 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 # ── Shopify OAuth
 SHOPIFY_API_KEY = os.environ.get("SHOPIFY_API_KEY", "")
 SHOPIFY_API_SECRET = os.environ.get("SHOPIFY_API_SECRET", "")
-SHOPIFY_SCOPES = os.environ.get(
-    "SHOPIFY_SCOPES",
-    "read_orders,read_all_orders,read_products,read_inventory,read_fulfillments,read_locations",
-)
+SHOPIFY_REQUIRED_SCOPES = [
+    "read_orders",
+    "read_all_orders",
+    "read_products",
+    "read_inventory",
+    "read_fulfillments",
+    "read_locations",
+]
+SHOPIFY_ENV_SCOPES = [s.strip() for s in os.environ.get("SHOPIFY_SCOPES", "").split(",") if s.strip()]
+SHOPIFY_SCOPES = ",".join(dict.fromkeys(SHOPIFY_ENV_SCOPES + SHOPIFY_REQUIRED_SCOPES))
 SHOPIFY_API_VERSION = os.environ.get("SHOPIFY_API_VERSION", "2026-01")
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
 SHOPIFY_BILLING_ENABLED = os.environ.get("SHOPIFY_BILLING_ENABLED", "false").lower() in ("1", "true", "yes")
