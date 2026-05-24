@@ -11,7 +11,7 @@ uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -167,6 +167,7 @@ SHOPIFY_SCOPES = os.environ.get(
 )
 SHOPIFY_API_VERSION = os.environ.get("SHOPIFY_API_VERSION", "2026-01")
 SHOPIFY_BILLING_TEST = os.environ.get("SHOPIFY_BILLING_TEST", "true").lower() != "false"
+SHOPIFY_BILLING_ENABLED = os.environ.get("SHOPIFY_BILLING_ENABLED", "false").lower() in ("1", "true", "yes")
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
 SHOPIFY_STATE_EXPIRE_MINUTES = 10
@@ -375,9 +376,26 @@ def build_shopify_install_url(shop: str) -> str:
         "scope": SHOPIFY_SCOPES,
         "redirect_uri": redirect_uri,
         "state": state,
-        "grant_options[]": "offline",
     }
     return f"https://{shop_domain}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
+
+
+def build_shopify_app_launch_url(shop: str, app_token: str, section: str = "") -> str:
+    params = {"shop": normalize_shop_domain(shop), "app_token": app_token}
+    if section:
+        params["section"] = section
+    return f"{BACKEND_PUBLIC_URL}/shopify/app/launch?{urlencode(params)}"
+
+
+def shopify_billing_fallback_response(shop: str, app_token: str, message: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "success": False,
+            "detail": message,
+            "fallback_url": build_shopify_app_launch_url(shop, app_token, "plans"),
+        },
+    )
 
 
 def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
@@ -969,8 +987,10 @@ async def shopify_app_home(request: Request):
     used = int(user.get("analyses_this_month") or 0)
     max_analyses = analysis_limit_for_plan(plan)
     usage_pct = min(100, int((used / max(max_analyses, 1)) * 100))
-    ops_launch_url = f"{BACKEND_PUBLIC_URL}/shopify/app/launch?shop={quote(shop)}&app_token={quote(app_token)}"
+    ops_launch_url = build_shopify_app_launch_url(shop, app_token)
+    ops_plans_url = build_shopify_app_launch_url(shop, app_token, "plans")
     install_url = build_shopify_install_url(shop)
+    billing_status = "enabled" if SHOPIFY_BILLING_ENABLED else "pending Partner app migration"
 
     response = HTMLResponse(f"""
 <!doctype html>
@@ -1027,8 +1047,8 @@ async def shopify_app_home(request: Request):
     <div class="appbar">
       <div class="brand"><div class="mark">O</div><div>OPS Intelligence<div class="small muted">Embedded Shopify app for {shop}</div></div></div>
       <div class="actions">
-        <a class="btn secondary" href="{install_url}" target="_top">Reinstall permissions</a>
-        <a class="btn" href="{ops_launch_url}" target="_blank">Go to OPS Intelligence →</a>
+        <button class="secondary" onclick="reinstallPermissions()">Reinstall permissions</button>
+        <button onclick="openOpsDashboard()">Go to OPS Intelligence →</button>
       </div>
     </div>
 
@@ -1061,7 +1081,7 @@ async def shopify_app_home(request: Request):
         <div class="row"><span>Permissions</span><span class="muted scope" title="{safe_scope}">{safe_scope}</span></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button onclick="runAnalysis()">Analyze Shopify data</button>
-          <a class="btn secondary" href="{ops_launch_url}" target="_blank">Open full OPS dashboard</a>
+          <button class="secondary" onclick="openOpsDashboard()">Open full OPS dashboard</button>
         </div>
         <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a live summary. For the full report and all product rows, use “Go to OPS Intelligence”.</div>
       </section>
@@ -1072,7 +1092,7 @@ async def shopify_app_home(request: Request):
           <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
           <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">Forecast, churn, pricing, more stores.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
-        <p class="small muted">Paid plans open Shopify Billing confirmation inside Shopify. Current billing mode: {'test' if SHOPIFY_BILLING_TEST else 'live'}.</p>
+        <p class="small muted">Billing status: {billing_status}. Shopify Billing opens inside Shopify after the app is migrated to the Shopify Partner area; until then, upgrades open OPS billing.</p>
       </section>
     </div>
 
@@ -1081,13 +1101,48 @@ async def shopify_app_home(request: Request):
       <div class="ops-list">
         <div class="ops-item"><div class="ico">1</div><div><h3>Confirm connection</h3><div class="small muted">The app shows whether Shopify permissions are active and which store is connected.</div></div><span class="pill">Inside Shopify</span></div>
         <div class="ops-item"><div class="ico">2</div><div><h3>Run quick check</h3><div class="small muted">A lightweight summary can run from Shopify admin for confidence.</div></div><button class="secondary" onclick="runAnalysis()">Analyze</button></div>
-        <div class="ops-item"><div class="ico">3</div><div><h3>Open full OPS workspace</h3><div class="small muted">Full product rows, forecasts, pricing, churn, ledger and team tools live on opsintelligence.org.</div></div><a class="btn" href="{ops_launch_url}" target="_blank">Go to OPS Intelligence →</a></div>
+        <div class="ops-item"><div class="ico">3</div><div><h3>Open full OPS workspace</h3><div class="small muted">Full product rows, forecasts, pricing, churn, ledger and team tools live on opsintelligence.org.</div></div><button onclick="openOpsDashboard()">Go to OPS Intelligence →</button></div>
       </div>
     </section>
   </div>
   <script>
     const shop = {json.dumps(shop)};
     const appToken = {json.dumps(app_token)};
+    const installUrl = {json.dumps(install_url)};
+    const opsLaunchUrl = {json.dumps(ops_launch_url)};
+    const opsPlansUrl = {json.dumps(ops_plans_url)};
+
+    function leaveShopifyFrame(url) {{
+      try {{
+        if (window.top && window.top !== window) {{
+          window.top.location.href = url;
+          return;
+        }}
+      }} catch(e) {{}}
+      window.location.href = url;
+    }}
+
+    function reinstallPermissions() {{
+      leaveShopifyFrame(installUrl);
+    }}
+
+    function openOpsDashboard(section) {{
+      leaveShopifyFrame(section === 'plans' ? opsPlansUrl : opsLaunchUrl);
+    }}
+
+    function readApiError(data, fallback) {{
+      if (!data) return fallback;
+      if (typeof data.detail === 'string') return data.detail;
+      if (data.detail && typeof data.detail.message === 'string') return data.detail.message;
+      if (typeof data.message === 'string') return data.message;
+      return fallback;
+    }}
+
+    function readFallbackUrl(data) {{
+      if (!data) return '';
+      return data.fallback_url || (data.detail && data.detail.fallback_url) || '';
+    }}
+
     async function runAnalysis(){{
       const box=document.getElementById('result');
       box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
@@ -1098,7 +1153,7 @@ async def shopify_app_home(request: Request):
           body:JSON.stringify({{shop,app_token:appToken}})
         }});
         const data=await res.json();
-        if(!res.ok) throw new Error(data.detail||'Analysis failed');
+        if(!res.ok) throw new Error(readApiError(data,'Analysis failed'));
         const rev=data.metrics.revenue||{{}};
         const inv=data.metrics.inventory||{{}};
         const counts=data.record_counts||{{}};
@@ -1112,7 +1167,7 @@ async def shopify_app_home(request: Request):
           `${{data.analysis.executive_summary || 'Analysis completed.'}}`;
         if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis complete');
       }}catch(e){{
-        box.textContent='Error: '+e.message;
+        box.textContent='Analysis error: '+e.message+'\\n\\nUse Reinstall permissions if Shopify access was recently changed, then run the check again.';
         if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis failed', {{isError:true}});
       }}
     }}
@@ -1125,9 +1180,18 @@ async def shopify_app_home(request: Request):
           headers:{{'Content-Type':'application/json'}},
           body:JSON.stringify({{shop,plan,app_token:appToken}})
         }});
-        const data=await res.json();
-        if(!res.ok) throw new Error(data.detail||'Billing failed');
-        window.top.location.href=data.confirmation_url;
+        const data=await res.json().catch(()=>({{}}));
+        if(!res.ok){{
+          const fallbackUrl = readFallbackUrl(data);
+          const msg = readApiError(data,'Billing failed');
+          if(fallbackUrl){{
+            box.textContent=msg+' Opening OPS billing instead...';
+            setTimeout(()=>leaveShopifyFrame(fallbackUrl), 700);
+            return;
+          }}
+          throw new Error(msg);
+        }}
+        leaveShopifyFrame(data.confirmation_url);
       }}catch(e){{
         box.textContent='Billing error: '+e.message;
       }}
@@ -1141,15 +1205,22 @@ async def shopify_app_home(request: Request):
 
 
 @app.get("/shopify/app/launch")
-async def shopify_app_launch(shop: str, app_token: str):
+async def shopify_app_launch(shop: str, app_token: str, section: str = ""):
     shop_domain = normalize_shop_domain(shop)
     payload = verify_shopify_embedded_token(app_token, shop_domain)
     db = get_supabase()
     user_result = db.table("users").select("plan").eq("email", payload["sub"]).execute()
     plan_key = user_result.data[0].get("plan", "free") if user_result.data else "free"
     ops_token = create_token(payload["sub"], plan_key)
+    launch_params = {
+        "shopify_connected": "1",
+        "shop": shop_domain,
+        "token": ops_token,
+    }
+    if section:
+        launch_params["section"] = section
     return RedirectResponse(
-        f"{FRONTEND_PUBLIC_URL}/app.html#shopify_connected=1&shop={quote(shop_domain)}&token={quote(ops_token)}"
+        f"{FRONTEND_PUBLIC_URL}/app.html#{urlencode(launch_params)}"
     )
 
 
@@ -1229,6 +1300,13 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
     if req.plan not in ("starter", "pro"):
         raise HTTPException(status_code=400, detail="Only Starter and Pro can be purchased through Shopify Billing.")
 
+    if not SHOPIFY_BILLING_ENABLED:
+        return shopify_billing_fallback_response(
+            shop,
+            req.app_token,
+            "Shopify Billing is not active for this app yet because the current Shopify app is shop-owned. OPS will open its own billing page until the app is migrated to a Shopify Partner-owned app.",
+        )
+
     amount = 29.0 if req.plan == "starter" else 79.0
     name = "OPS Starter" if req.plan == "starter" else "OPS Pro"
     return_url = f"{BACKEND_PUBLIC_URL}/shopify/billing/return?shop={quote(shop)}&plan={quote(req.plan)}"
@@ -1253,18 +1331,33 @@ async def shopify_embedded_billing(req: ShopifyBillingRequest):
             }
         }],
     }
-    response = requests.post(
-        f"https://{shop}/admin/api/{SHOPIFY_API_VERSION}/graphql.json",
-        headers={"X-Shopify-Access-Token": connected["access_token"], "Content-Type": "application/json"},
-        json={"query": mutation, "variables": variables},
-        timeout=30,
-    )
-    response.raise_for_status()
+    try:
+        response = requests.post(
+            f"https://{shop}/admin/api/{SHOPIFY_API_VERSION}/graphql.json",
+            headers={"X-Shopify-Access-Token": connected["access_token"], "Content-Type": "application/json"},
+            json={"query": mutation, "variables": variables},
+            timeout=30,
+        )
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else 502
+        raise HTTPException(status_code=502, detail=f"Shopify Billing API returned HTTP {status_code}.")
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Shopify Billing timed out. Please retry.")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Shopify Billing connection error: {str(e)}")
+
     payload = response.json()
     create_result = payload.get("data", {}).get("appSubscriptionCreate", {})
     errors = create_result.get("userErrors") or payload.get("errors") or []
     if errors:
         first_error = errors[0].get("message") if isinstance(errors[0], dict) else str(errors[0])
+        if first_error and ("owned by a Shop" in first_error or "Shopify partners area" in first_error):
+            return shopify_billing_fallback_response(
+                shop,
+                req.app_token,
+                "Shopify Billing rejected this app because it is still shop-owned. OPS is opening its own billing page while the app is moved to the Shopify Partner area.",
+            )
         raise HTTPException(status_code=400, detail=first_error or "Shopify Billing could not be started.")
 
     confirmation_url = create_result.get("confirmationUrl")
@@ -1308,7 +1401,6 @@ async def start_shopify_connect(req: ShopifyConnectStartRequest, payload: dict =
         "scope": SHOPIFY_SCOPES,
         "redirect_uri": redirect_uri,
         "state": state,
-        "grant_options[]": "offline",
     }
     install_url = f"https://{shop}/admin/oauth/authorize?{urlencode(params, doseq=True)}"
     return {"success": True, "install_url": install_url, "shop": shop, "scopes": SHOPIFY_SCOPES}
@@ -1334,11 +1426,12 @@ async def shopify_callback(request: Request):
     try:
         token_response = requests.post(
             f"https://{shop}/admin/oauth/access_token",
-            json={
+            data={
                 "client_id": SHOPIFY_API_KEY,
                 "client_secret": SHOPIFY_API_SECRET,
                 "code": code,
             },
+            headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"},
             timeout=30,
         )
         token_response.raise_for_status()

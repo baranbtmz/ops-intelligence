@@ -2169,7 +2169,17 @@ async function resumeAfterShopifyCallback(params) {
       await loadShopifyStatus();
       const shop = normalizeShopInput(params.get('shop') || '');
       const confirmed = connectedShops.some(s=>s.domain===shop && s.status==='connected');
-      showToast(confirmed ? '✅ Shopify store connected.' : '❌ Shopify returned, but OPS could not verify the store connection. Reinstall OPS from Shopify.');
+      if(confirmed) {
+        sessionStorage.removeItem('ops_pending_shopify_shop');
+        showToast('✅ Shopify store connected.');
+        const section = params.get('section');
+        if(section && ['home','connect','analysis','results','plans','compare','team','ledger'].includes(section)) {
+          setTimeout(()=>nav(section), 250);
+        }
+      } else {
+        showToast('❌ Shopify returned, but OPS could not verify active permissions. Please reinstall OPS from the Shopify permission screen.');
+        renderShopifyStatus();
+      }
     } else {
       const err = params.get('shopify_error') || 'connection_failed';
       showToast('❌ Shopify connection failed: '+err.replaceAll('_',' '));
@@ -2636,7 +2646,7 @@ function setAnalysisLoadingLabels(mode) {
 function renderShopifyStatus() {
   const el=document.getElementById('shopify-connection-status');
   if(!el) return;
-  const active=connectedShops.find(s=>s.status==='connected') || connectedShops[0];
+  const active=connectedShops.find(s=>s.status==='connected');
   if(active) {
     el.className='connect-state ok';
     el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Connected: '+active.domain+'</strong>'+
@@ -2646,8 +2656,9 @@ function renderShopifyStatus() {
       document.getElementById('connect-domain').value=active.domain;
     }
   } else {
+    const last=connectedShops[0];
     el.className='connect-state warn';
-    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div>'+
+    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">'+(last ? 'Permissions not verified: '+last.domain : 'Not connected')+'</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div>'+
       '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Current account limit: '+storeLimit.max+' Shopify store'+(storeLimit.max===1?'':'s')+'.</div></div>';
   }
 }
@@ -2668,7 +2679,11 @@ async function loadShopifyStatus() {
   if(!token) return;
   try {
     const r=await fetch(`${API}/shopify/status`,{headers:{'Authorization':`Bearer ${token}`}});
-    if(!r.ok) return;
+    if(!r.ok) {
+      connectedShops=[];
+      renderShopifyStatus();
+      return;
+    }
     const d=await r.json();
     connectedShops=d.stores||[];
     storeLimit={
@@ -2678,7 +2693,10 @@ async function loadShopifyStatus() {
       canAdd:d.can_add_store !== false
     };
     renderShopifyStatus();
-  } catch(e) {}
+  } catch(e) {
+    connectedShops=[];
+    renderShopifyStatus();
+  }
 }
 
 async function connectShopifyApp() {
@@ -2691,10 +2709,6 @@ async function connectShopifyApp() {
     showStoreLimitMessage();
     return;
   }
-  const installTab = window.open('about:blank', '_blank');
-  if(installTab) {
-    installTab.document.write('<!doctype html><title>Opening Shopify...</title><body style="font-family:system-ui;padding:32px;background:#fbf7ef;color:#11120d">Opening Shopify permission screen...</body>');
-  }
   try {
     const r=await fetch(`${API}/shopify/connect/start`,{
       method:'POST',
@@ -2703,18 +2717,14 @@ async function connectShopifyApp() {
     });
     const d=await r.json().catch(()=>({}));
     if(!r.ok){
-      if(installTab) installTab.close();
       showToast('❌ '+(d.detail||'Could not start Shopify connection.'));
       if(r.status===402) setTimeout(()=>nav('plans'),900);
       return;
     }
-    if(installTab) {
-      installTab.location.href=d.install_url;
-    } else {
-      window.location.assign(d.install_url);
-    }
+    sessionStorage.setItem('ops_pending_shopify_shop', shop);
+    showToast('Opening Shopify permission screen...');
+    window.location.assign(d.install_url);
   } catch(e) {
-    if(installTab) installTab.close();
     showToast('❌ Could not start Shopify connection: '+e.message);
   }
 }
@@ -2722,9 +2732,9 @@ async function connectShopifyApp() {
 async function analyzeConnectedShopify() {
   await loadShopifyStatus();
   const shop=normalizeShopInput(document.getElementById('connect-domain').value.trim());
-  const active=(shop && connectedShops.find(s=>s.domain===shop)) || connectedShops.find(s=>s.status==='connected') || connectedShops[0];
+  const active=(shop && connectedShops.find(s=>s.domain===shop && s.status==='connected')) || connectedShops.find(s=>s.status==='connected');
   if(!active){
-    showToast('Install OPS on Shopify first, or use manual token fallback.');
+    showToast('Install OPS on Shopify first. OPS will only analyze after active Shopify permissions are verified.');
     return;
   }
   document.getElementById('connect-domain').value=active.domain;
