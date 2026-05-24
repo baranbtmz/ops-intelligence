@@ -25,13 +25,16 @@ import hashlib
 import base64
 import secrets
 import re
+import io
+import pandas as pd
+import numpy as np
 from urllib.parse import urlencode, quote
 from datetime import datetime, timedelta, date
 
 # ── Analiz modülleri
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from data_layer import ShopifyConfig, WooCommerceConfig, run_pipeline, run_woocommerce_pipeline
+from data_layer import ShopifyConfig, WooCommerceConfig, MetricsEngine, run_pipeline, run_woocommerce_pipeline
 from ai_engine import AIConfig, AIAnalysisEngine, run_extended_analysis
 from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
@@ -693,6 +696,126 @@ def build_metrics_payload(report: dict) -> dict:
             "products": inventory_products,
         },
     }
+
+
+def find_upload_column(df: pd.DataFrame, candidates: list[str]) -> Optional[str]:
+    normalized = {
+        re.sub(r"[^a-z0-9]+", "", str(col).lower()): col
+        for col in df.columns
+    }
+    for candidate in candidates:
+        key = re.sub(r"[^a-z0-9]+", "", candidate.lower())
+        if key in normalized:
+            return normalized[key]
+    for key, col in normalized.items():
+        if any(re.sub(r"[^a-z0-9]+", "", c.lower()) in key for c in candidates):
+            return col
+    return None
+
+
+def read_upload_dataframe(filename: str, content: bytes) -> pd.DataFrame:
+    if filename.lower().endswith(".csv"):
+        return pd.read_csv(io.BytesIO(content))
+    return pd.read_excel(io.BytesIO(content))
+
+
+def build_report_from_upload(df: pd.DataFrame, platform: str, filename: str) -> dict:
+    if df.empty:
+        raise HTTPException(status_code=400, detail="The uploaded file has no rows.")
+
+    df = df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+
+    id_col = find_upload_column(df, ["order_id", "order id", "order", "name", "order number", "amazon order id", "etsy order id"])
+    date_col = find_upload_column(df, ["created_at", "created at", "date", "order date", "purchase date", "paid at"])
+    fulfilled_col = find_upload_column(df, ["fulfilled_at", "fulfilled at", "shipped at", "shipment date", "dispatch date"])
+    status_col = find_upload_column(df, ["fulfillment_status", "fulfillment status", "status", "order status"])
+    total_col = find_upload_column(df, ["total_price", "total price", "total", "order total", "amount", "revenue", "sales", "gross sales"])
+    qty_col = find_upload_column(df, ["item_count", "item count", "quantity", "qty", "items"])
+    email_col = find_upload_column(df, ["customer_email", "customer email", "email", "buyer email"])
+    product_col = find_upload_column(df, ["product_title", "product title", "product", "item name", "title", "sku title"])
+    sku_col = find_upload_column(df, ["sku", "seller sku", "merchant sku"])
+    inventory_col = find_upload_column(df, ["inventory", "stock", "current stock", "quantity available"])
+    price_col = find_upload_column(df, ["price", "item price", "unit price"])
+    category_col = find_upload_column(df, ["category", "product type", "type"])
+
+    if not total_col:
+        raise HTTPException(status_code=400, detail="Could not find a revenue/total column in the uploaded file.")
+
+    order_ids = df[id_col].astype(str) if id_col else pd.Series([f"upload-{i+1}" for i in range(len(df))])
+    created = pd.to_datetime(df[date_col], utc=True, errors="coerce") if date_col else pd.Series(pd.Timestamp.utcnow(), index=df.index)
+    created = created.fillna(pd.Timestamp.utcnow())
+    fulfilled = pd.to_datetime(df[fulfilled_col], utc=True, errors="coerce") if fulfilled_col else created + pd.to_timedelta(36, unit="h")
+
+    status_raw = df[status_col].astype(str).str.lower() if status_col else pd.Series("fulfilled", index=df.index)
+    fulfillment_status = np.where(
+        status_raw.str.contains("cancel", na=False),
+        "cancelled",
+        np.where(status_raw.str.contains("refund|return", na=False), "refunded", "fulfilled"),
+    )
+
+    totals = pd.to_numeric(
+        df[total_col].astype(str).str.replace(r"[^0-9,.-]", "", regex=True).str.replace(",", ".", regex=False),
+        errors="coerce",
+    ).fillna(0)
+    qty = pd.to_numeric(df[qty_col], errors="coerce").fillna(1).clip(lower=1).astype(int) if qty_col else pd.Series(1, index=df.index)
+    product_titles = df[product_col].fillna("Uploaded product").astype(str) if product_col else pd.Series("Uploaded product", index=df.index)
+    skus = df[sku_col].fillna("").astype(str) if sku_col else pd.Series("", index=df.index)
+    emails = df[email_col].fillna("").astype(str) if email_col else pd.Series("", index=df.index)
+
+    line_items = []
+    for idx in df.index:
+        line_items.append([{
+            "title": product_titles.loc[idx],
+            "sku": skus.loc[idx],
+            "quantity": int(qty.loc[idx] or 1),
+        }])
+
+    orders_df = pd.DataFrame({
+        "order_id": order_ids,
+        "created_at": created,
+        "fulfilled_at": fulfilled,
+        "fulfillment_status": fulfillment_status,
+        "total_price": totals,
+        "item_count": qty,
+        "customer_email": emails,
+        "product_title": product_titles,
+        "line_items": line_items,
+    })
+
+    grouped = pd.DataFrame({
+        "title": product_titles,
+        "sku": skus,
+        "price": pd.to_numeric(df[price_col], errors="coerce") if price_col else totals / qty.replace(0, 1),
+        "inventory": pd.to_numeric(df[inventory_col], errors="coerce") if inventory_col else pd.Series(50, index=df.index),
+        "category": df[category_col].fillna("Uploaded").astype(str) if category_col else pd.Series(platform.title(), index=df.index),
+    }).groupby(["title", "sku"], dropna=False).agg({
+        "price": "mean",
+        "inventory": "max",
+        "category": "first",
+    }).reset_index()
+
+    if grouped.empty:
+        grouped = pd.DataFrame([{"title": "Uploaded product", "sku": "", "price": float(totals.mean() or 0), "inventory": 50, "category": platform.title()}])
+
+    products_df = grouped.reset_index().rename(columns={"index": "product_id"})
+    products_df["product_id"] = products_df["product_id"] + 1
+    products_df["variant_id"] = products_df["product_id"]
+    products_df["price"] = pd.to_numeric(products_df["price"], errors="coerce").fillna(0)
+    products_df["cost"] = (pd.to_numeric(products_df["price"], errors="coerce").fillna(0) * 0.55).round(2)
+    products_df["inventory"] = pd.to_numeric(products_df["inventory"], errors="coerce").fillna(0).astype(int)
+    products_df["created_at"] = pd.Timestamp.utcnow()
+    products_df["margin_pct"] = np.where(products_df["price"] > 0, ((products_df["price"] - products_df["cost"]) / products_df["price"] * 100).round(1), 0)
+
+    engine = MetricsEngine(orders_df, products_df)
+    report = engine.full_report()
+    report["orders_df"] = orders_df
+    report["products_df"] = products_df
+    report["source_platform"] = platform
+    report["source_mode"] = "upload"
+    report["upload_filename"] = filename
+    report["record_counts"] = {"orders": int(len(orders_df)), "products": int(len(products_df))}
+    return report
 
 
 # ─────────────────────────────────────────────
@@ -1421,13 +1544,60 @@ async def upload_analysis(
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
-    raise HTTPException(
-        status_code=501,
-        detail=(
-            "CSV/XLS upload parsing is not production-ready yet. "
-            "Use live Shopify OAuth, WooCommerce REST, or demo mode instead."
+
+    db = get_supabase()
+    user_result = db.table("users").select("plan,analyses_this_month").eq("email", payload["sub"]).execute()
+    if not user_result.data:
+        raise HTTPException(status_code=404, detail="User not found.")
+    plan_key = user_result.data[0].get("plan", payload.get("plan", "free"))
+    plan = PLANS.get(plan_key, PLANS["free"])
+    used = user_result.data[0].get("analyses_this_month") or 0
+    limit = analysis_limit_for_plan(plan)
+    if used >= limit:
+        raise HTTPException(status_code=429, detail=f"Monthly analysis limit reached ({used}/{limit}). Current plan: {plan_key}.")
+
+    try:
+        df = read_upload_dataframe(filename, content)
+        report = build_report_from_upload(df, platform.lower().strip() or "generic", filename)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse upload: {str(e)}")
+
+    openai_key = os.environ.get("OPENAI_API_KEY", "")
+    if openai_key and plan["ai"]:
+        ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=False, language=language)
+    else:
+        ai_cfg = AIConfig(use_mock_ai=True, language=language)
+
+    engine = AIAnalysisEngine(ai_cfg)
+    ai_result = engine.analyze(report)
+    if not ai_result.get("success") or "analysis" not in ai_result:
+        ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language=language)).analyze(report)
+
+    extended = run_extended_analysis(report)
+    db.table("users").update({
+        "analyses_this_month": used + 1,
+        "last_analysis": datetime.now().isoformat(),
+    }).eq("email", payload["sub"]).execute()
+
+    result_data = make_json_safe({
+        "analysis": ai_result.get("analysis", {}),
+        **make_analysis_context(
+            report,
+            f"{platform.title()} Upload",
+            platform.lower().strip() or "upload",
+            ai_result.get("model", "ops-rules-upload-data"),
         ),
-    )
+        "extended": extended,
+        "metrics": build_metrics_payload(report),
+        "series": {
+            "daily_revenue": build_daily_revenue_points(report),
+        },
+    })
+    result_data["user_plan"] = plan_key
+    result_data["upload_filename"] = filename
+    return result_data
 
 
 # ─────────────────────────────────────────────

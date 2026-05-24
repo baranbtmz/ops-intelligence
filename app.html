@@ -1273,6 +1273,15 @@ body::before{
           <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
         </div>
 
+        <!-- Platform tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:12px;padding:4px;width:fit-content;max-width:100%;overflow-x:auto;border:1px solid var(--border)">
+          <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
+          <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
+          <div class="src-tab" id="tab-etsy" onclick="switchSource('etsy')">Etsy</div>
+          <div class="src-tab" id="tab-amazon" onclick="switchSource('amazon')">Amazon</div>
+          <div class="src-tab" id="tab-upload" onclick="switchSource('upload')">CSV / Excel</div>
+        </div>
+
         <div class="trust-strip">
           <div class="trust-card">
             <div class="trust-kicker">Founder-ready onboarding</div>
@@ -1307,12 +1316,6 @@ body::before{
               <div class="trust-mini-copy">Every result names the connector, record coverage, and engine so teams can trust what they are reading.</div>
             </div>
           </div>
-        </div>
-
-        <!-- Platform tabs -->
-        <div style="display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:12px;padding:4px;width:fit-content;border:1px solid var(--border)">
-          <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
-          <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
         </div>
 
         <!-- Shopify -->
@@ -1403,6 +1406,62 @@ body::before{
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Connect &amp; Analyze
           </button>
+        </div>
+
+        <!-- Etsy CSV -->
+        <div id="src-etsy" class="src-panel" style="display:none">
+          <div class="connect-grid">
+            <div class="connect-card">
+              <div class="connect-card-title">Etsy Orders Export</div>
+              <div class="card-sub">Upload Etsy order CSV/XLS exports. OPS maps order date, amount, status, SKU/product, quantity, and buyer fields into the same analysis engine.</div>
+              <div class="field"><label>Etsy CSV / Excel file</label><input type="file" id="etsy-file" accept=".csv,.xlsx,.xls"></div>
+              <button class="btn btn-ink" onclick="runUploadAnalysis('etsy')">Analyze Etsy Export</button>
+            </div>
+            <div class="connect-card">
+              <div class="connect-card-title">Expected columns</div>
+              <div class="trust-point"><strong>Orders</strong><span>Order ID, order date, total, status, buyer email.</span></div>
+              <div class="trust-point" style="margin-top:10px"><strong>Products</strong><span>Item name, SKU, quantity, price, inventory if available.</span></div>
+              <div class="connect-note" style="margin-top:14px">Etsy OAuth can be added later. For now, CSV upload keeps the data real and demo-safe.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amazon CSV -->
+        <div id="src-amazon" class="src-panel" style="display:none">
+          <div class="connect-grid">
+            <div class="connect-card">
+              <div class="connect-card-title">Amazon Seller Export</div>
+              <div class="card-sub">Upload Amazon order reports or sales exports. OPS reads Amazon Order ID, purchase date, SKU, quantity, item price, status, and buyer fields when present.</div>
+              <div class="field"><label>Amazon CSV / Excel file</label><input type="file" id="amazon-file" accept=".csv,.xlsx,.xls"></div>
+              <button class="btn btn-ink" onclick="runUploadAnalysis('amazon')">Analyze Amazon Export</button>
+            </div>
+            <div class="connect-card">
+              <div class="connect-card-title">Marketplace-ready analysis</div>
+              <div class="trust-point"><strong>Real upload</strong><span>Uploaded rows produce revenue, AOV, cancellation/refund, inventory and forecast signals.</span></div>
+              <div class="trust-point" style="margin-top:10px"><strong>Next step</strong><span>Amazon SP-API OAuth can be added when the seller app approval flow is ready.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generic upload -->
+        <div id="src-upload" class="src-panel" style="display:none">
+          <div class="connect-grid">
+            <div class="connect-card">
+              <div class="connect-card-title">Upload Your Own File</div>
+              <div class="card-sub">Use any CSV, XLS, or XLSX export with commerce columns. OPS automatically detects common names like date, total, status, product, SKU, quantity and customer email.</div>
+              <div class="field"><label>Platform label</label><input type="text" id="upload-platform" placeholder="TikTok Shop, manual sales, Faire..." autocomplete="off"></div>
+              <div class="field"><label>CSV / Excel file</label><input type="file" id="upload-file" accept=".csv,.xlsx,.xls"></div>
+              <button class="btn btn-ink" onclick="runUploadAnalysis('generic')">Analyze Uploaded File</button>
+            </div>
+            <div class="connect-card">
+              <div class="connect-card-title">Column guide</div>
+              <div style="display:grid;gap:10px">
+                <div class="trust-point"><strong>Required</strong><span>Total / amount / revenue column.</span></div>
+                <div class="trust-point"><strong>Recommended</strong><span>Order date, order id, status, quantity, product title, SKU, customer email.</span></div>
+                <div class="trust-point"><strong>Optional</strong><span>Inventory, price, category. Missing values are estimated conservatively for analysis.</span></div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </section>
@@ -2461,6 +2520,10 @@ function setAnalysisLoadingLabels(mode) {
     demo: ['Loading sample operating data', 'Calculating operating metrics', 'Building sample analysis', 'Preparing labeled demo results'],
     shopify: ['Fetching Shopify orders and inventory', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
     woocommerce: ['Fetching WooCommerce orders and products', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
+    etsy: ['Reading Etsy export file', 'Calculating marketplace metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
+    amazon: ['Reading Amazon seller export', 'Calculating marketplace metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
+    upload: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
+    generic: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
   }[mode] || ['Fetching store data', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing results'];
   labels.forEach((label, index) => {
     const step = document.getElementById(`step-${index + 1}`);
@@ -2591,7 +2654,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
   loadEl.classList.add('show');
   document.getElementById('analysis-shop-name').textContent=mock
     ? 'Demo Store'
-    : (platform === 'woocommerce' ? 'Pulling live WooCommerce data...' : 'Pulling live Shopify data...');
+    : (platform === 'woocommerce' ? 'Pulling live WooCommerce data...' : (['amazon','etsy','generic','upload'].includes(platform) ? 'Analyzing uploaded commerce file...' : 'Pulling live Shopify data...'));
   const steps=['step-1','step-2','step-3','step-4'];
   let si=0;
   const interval=setInterval(()=>{
@@ -2637,7 +2700,8 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       if(mock){
         const md=buildLocalMock(); lastResult=md; renderResults(md); renderOverview(md); nav('results'); recordLocalAnalysis(false);
       } else {
-        showToast('❌ '+(d.detail||'HTTP '+r.status+' — check your Shopify domain and token.'));
+        const sourceLabel = platform === 'woocommerce' ? 'WooCommerce credentials' : (['amazon','etsy','generic','upload'].includes(platform) ? 'uploaded file' : 'Shopify domain and token');
+        showToast('❌ '+(d.detail||'HTTP '+r.status+' — check your '+sourceLabel+'.'));
         nav('connect');
       }
       return;
@@ -2662,7 +2726,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
 
 // ── RENDER RESULTS
 function renderResults(data) {
-  const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store')||String(data.model||'').includes('mock-demo')||String(data.model||'').includes('demo');
+  const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store');
   const usedManualShopifyToken=!!(
     lastAnalysisRequest &&
     !lastAnalysisRequest.mock &&
@@ -2694,9 +2758,10 @@ function renderResults(data) {
   document.getElementById('r-score').textContent=score;
   document.getElementById('r-score').style.color=sc;
   document.getElementById('r-summary').textContent=an.executive_summary||'';
+  const uploadSources=['amazon','etsy','generic','upload'];
   const sourceLabel=isDemoResult
     ? 'Demo data'
-    : (data.data_source==='woocommerce' ? 'WooCommerce REST' : (usedManualShopifyToken ? 'Shopify Admin API token' : 'Shopify OAuth'));
+    : (data.data_source==='woocommerce' ? 'WooCommerce REST' : (uploadSources.includes(data.data_source) ? `${(data.data_source||'Upload').replace(/^./,c=>c.toUpperCase())} CSV/Excel upload` : (usedManualShopifyToken ? 'Shopify Admin API token' : 'Shopify OAuth')));
   const generatedLabel=data.generated_at
     ? new Date(data.generated_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
     : new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
@@ -3267,7 +3332,7 @@ function runComparison() {
 
 // ── SOURCE SWITCHER
 function switchSource(src) {
-  ['shopify','woo'].forEach(function(s) {
+  ['shopify','woo','etsy','amazon','upload'].forEach(function(s) {
     var tab = document.getElementById('tab-'+s);
     var panel = document.getElementById('src-'+s);
     if(tab) tab.classList.toggle('active', s===src);
@@ -3276,7 +3341,43 @@ function switchSource(src) {
 }
 
 async function runUploadAnalysis() {
-  showToast('File uploads are not enabled for production yet. Use Shopify OAuth, WooCommerce REST, or demo mode.');
+  var source = arguments[0] || 'generic';
+  var fileInput = document.getElementById(source+'-file') || document.getElementById('upload-file');
+  var file = fileInput && fileInput.files && fileInput.files[0];
+  if(!file){ showToast('Please choose a CSV or Excel file first.'); return; }
+  var platform = source === 'generic'
+    ? (document.getElementById('upload-platform').value.trim() || 'generic')
+    : source;
+  rememberAnalysisRequest({mock:false,domain:file.name,shopToken:'',connectedShop:'',platform});
+  nav('analysis');
+  setAnalysisLoadingLabels(source);
+  const loadEl=document.getElementById('analysis-loading');
+  loadEl.classList.add('show');
+  showToast('Analyzing uploaded file...');
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('platform', platform);
+    form.append('language', 'en');
+    const r = await fetch(`${API}/analysis/upload`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${token}`},
+      body: form
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.detail || 'Upload analysis failed.');
+    lastResult = d;
+    renderResults(d);
+    renderOverview(d);
+    nav('results');
+    recordLocalAnalysis(true);
+    showToast('Upload analysis ready ✓');
+  } catch(e) {
+    showToast('❌ '+e.message);
+    nav('connect');
+  } finally {
+    loadEl.classList.remove('show');
+  }
 }
 
 // ── WooCommerce
