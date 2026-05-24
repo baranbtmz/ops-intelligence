@@ -350,13 +350,13 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
 
     quick_wins = [
         f"Review and restock the first critical SKU: {critical_names[0]}" if critical_names else "Export low-stock products weekly and keep reorder points updated.",
-        "Check the oldest unfulfilled Shopify orders and resolve any orders older than 24 hours.",
+        f"Check the oldest unfulfilled {platform_label} orders and resolve any orders older than 24 hours.",
         f"Use the current AOV of €{aov:.2f} as the baseline for bundle and upsell tests.",
     ]
 
     return {
         "executive_summary": (
-            f"OPS analyzed {total_orders} Shopify orders, {valid_orders} valid orders, and {product_count} products/variants. "
+            f"OPS analyzed {total_orders} {platform_label} orders, {valid_orders} valid orders, and {product_count} products/variants. "
             f"The store generated €{revenue:,.2f} with an AOV of €{aov:.2f}. "
             f"The main operational priority is {'critical inventory coverage' if critical_count else 'maintaining fulfillment and revenue quality'}."
         ),
