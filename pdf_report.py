@@ -152,8 +152,8 @@ def make_styles():
             textColor=C_TEXT, leading=14,
         ),
         "kpi_value": ParagraphStyle(
-            "kpi_value", fontName=B, fontSize=22,
-            textColor=C_TEXT, leading=26,
+            "kpi_value", fontName=B, fontSize=17,
+            textColor=C_TEXT, leading=20,
         ),
         "kpi_label": ParagraphStyle(
             "kpi_label", fontName=N, fontSize=7,
@@ -251,6 +251,30 @@ class PDFReportGenerator:
     def _hr(self, color=C_BORDER, thickness=0.5) -> HRFlowable:
         return HRFlowable(width="100%", thickness=thickness,
                           color=color, spaceAfter=4*mm, spaceBefore=4*mm)
+
+    def _money(self, value, compact: bool = False) -> str:
+        try:
+            amount = float(value or 0)
+        except (TypeError, ValueError):
+            amount = 0
+        if compact and abs(amount) >= 1000:
+            return f"EUR {amount / 1000:.1f}K"
+        if compact:
+            return f"EUR {amount:,.0f}"
+        if amount == int(amount):
+            return f"EUR {amount:,.0f}"
+        return f"EUR {amount:,.2f}"
+
+    def _pct(self, value) -> str:
+        try:
+            amount = float(value or 0)
+        except (TypeError, ValueError):
+            amount = 0
+        return f"{amount:g}%"
+
+    def _small_text(self, value, max_len: int = 34) -> str:
+        text = str(value or "—")
+        return text if len(text) <= max_len else text[:max_len - 1] + "…"
 
     # ── KAPAK SAYFASI ────────────────────────
     def _cover(self) -> list:
@@ -352,22 +376,22 @@ class PDFReportGenerator:
         cancellation_rate = rev.get("cancellation_rate", rev.get("cancel_rate", 0))
 
         kpis = [
-            ("TOTAL REVENUE",       f"€{total_revenue:,.0f}", f"{total_orders} orders"),
-            ("AVG. BASKET (AOV)",   f"€{rev.get('aov',0):.0f}",          "Target: €250"),
-            ("CANCELLATION RATE",   f"%{cancellation_rate}", "Target: <2.5%"),
-            ("REFUND RATE",         f"%{rev.get('refund_rate',0)}",       "Industry: 5-8%"),
-            ("FULFILLMENT MEDIAN",  f"{ft.get('median',0)}s",            "Target: <24s"),
-            ("P95 FULFILLMENT",     f"{ft.get('p95',0)}s",               f">72s: {ft.get('orders_over_72h',0)} orders"),
+            ("TOTAL REVENUE",       self._money(total_revenue, compact=True), f"{total_orders} orders"),
+            ("AVG. BASKET (AOV)",   self._money(rev.get('aov',0)),       "Target: EUR 250"),
+            ("CANCELLATION RATE",   self._pct(cancellation_rate),        "Target: <2.5%"),
+            ("REFUND RATE",         self._pct(rev.get('refund_rate',0)), "Industry: 5-8%"),
+            ("FULFILLMENT MEDIAN",  f"{ft.get('median',0)}h",            "Target: <24h"),
+            ("P95 FULFILLMENT",     f"{ft.get('p95',0)}h",               f">72h: {ft.get('orders_over_72h',0)} orders"),
         ]
 
         rows = []
         row  = []
         for i, (label, value, note) in enumerate(kpis):
-            cell = Table([[
-                Paragraph(label, self._sp("kpi_label")),
-                Paragraph(value, self._sp("kpi_value")),
-                Paragraph(note,  self._sp("body")),
-            ]], colWidths=[(self.W/3 - 4*mm)])
+            cell = Table([
+                [Paragraph(label, self._sp("kpi_label"))],
+                [Paragraph(value, self._sp("kpi_value"))],
+                [Paragraph(note,  self._sp("body"))],
+            ], colWidths=[(self.W/3 - 4*mm)])
             cell.setStyle(TableStyle([
                 ("BACKGROUND",   (0,0), (-1,-1), C_SURFACE),
                 ("BOX",          (0,0), (-1,-1), 0.5, C_BORDER),
@@ -421,7 +445,7 @@ class PDFReportGenerator:
 
             # Başlık satırı
             header_data = [[
-                Paragraph(f"{'●'} {pri}", ParagraphStyle("pri",
+                Paragraph(pri, ParagraphStyle("pri",
                     fontName=_FONT_BOLD, fontSize=8,
                     textColor=sc, leading=11)),
                 Paragraph(area.upper(), self._sp("label")),
@@ -448,7 +472,7 @@ class PDFReportGenerator:
                 [Spacer(1, 1*mm)],
                 [Paragraph(f"Business Impact: {f.get('impact','—')}", self._sp("finding_body"))],
                 [Spacer(1, 2*mm)],
-                [Paragraph(f"→ Action: {recommendation}", self._sp("action"))],
+                [Paragraph(f"Action: {recommendation}", self._sp("action"))],
             ]
             content = Table(content_data, colWidths=[self.W])
             content.setStyle(TableStyle([
@@ -554,8 +578,8 @@ class PDFReportGenerator:
 
         # ROAS özet satırı
         meta_kpis = [
-            ("TOTAL SPEND",    f"€{ra.get('total_spend',0):,.0f}"),
-            ("TOTAL REVENUE",  f"€{ra.get('total_revenue',0):,.0f}"),
+            ("TOTAL SPEND",    self._money(ra.get('total_spend',0), compact=True)),
+            ("TOTAL REVENUE",  self._money(ra.get('total_revenue',0), compact=True)),
             ("BLENDED ROAS",   f"{ra.get('blended_roas',0)}x"),
             ("GOOD CAMPAIGNS", f"{ra.get('good_campaigns',0)}/{ra.get('total_campaigns',0)}"),
         ]
@@ -597,22 +621,22 @@ class PDFReportGenerator:
             story.append(Paragraph("CAMPAIGN PERFORMANCE", self._sp("label")))
             story.append(self._spacer(2))
 
-            headers = ["Campaign", "Spend €", "Revenue €", "ROAS", "CPC €", "Status"]
+            headers = ["Campaign", "Spend", "Revenue", "ROAS", "CPC", "Status"]
             table_data = [headers]
             for row in campaigns:
                 if not isinstance(row, dict):
                     continue
                 table_data.append([
                     str(row.get("campaign_name", "Campaign"))[:35],
-                    f"€{float(row.get('spend') or 0):,.0f}",
-                    f"€{float(row.get('revenue') or 0):,.0f}",
+                    self._money(row.get('spend') or 0),
+                    self._money(row.get('revenue') or 0),
                     f"{row.get('roas', 0)}x",
-                    f"€{row.get('cpc', 0)}",
+                    self._money(row.get('cpc', 0)),
                     str(row.get("durum") or row.get("status") or "—"),
                 ])
 
             if len(table_data) == 1:
-                table_data.append(["No campaign rows", "€0", "€0", "0x", "€0", "—"])
+                table_data.append(["No campaign rows", "EUR 0", "EUR 0", "0x", "EUR 0", "—"])
 
             camp_table = Table(table_data,
                                colWidths=[65*mm, 22*mm, 22*mm, 18*mm, 18*mm, 25*mm])
@@ -638,14 +662,14 @@ class PDFReportGenerator:
             story.append(Paragraph("CROSS ALARMS", self._sp("label")))
             story.append(self._spacer(2))
             for a in alarms:
-                sc = C_DANGER if a["severity"] == "critical" else C_WARN
-                icon = "🔴" if a["severity"] == "critical" else "⚠️"
+                severity = str(a.get("severity", "warning")).upper()
+                sc = C_DANGER if severity == "CRITICAL" else C_WARN
                 alarm_data = [
-                    [Paragraph(f"{icon} {a['title']}", ParagraphStyle("at",
+                    [Paragraph(f"{severity}: {a.get('title', 'Meta Ads signal')}", ParagraphStyle("at",
                         fontName=_FONT_BOLD, fontSize=9,
                         textColor=sc, leading=12))],
-                    [Paragraph(a["description"][:180], self._sp("finding_body"))],
-                    [Paragraph(f"→ {a['action'][:150]}", self._sp("action"))],
+                    [Paragraph(str(a.get("description", ""))[:180], self._sp("finding_body"))],
+                    [Paragraph(f"Action: {str(a.get('action', 'Review this signal.'))[:150]}", self._sp("action"))],
                 ]
                 alarm_table = Table(alarm_data, colWidths=[self.W])
                 alarm_table.setStyle(TableStyle([
@@ -675,10 +699,10 @@ class PDFReportGenerator:
         story.append(self._spacer(3))
 
         colors_map = {
-            "strengths":     (C_ACCENT,  "💪 STRENGTHS"),
-            "weaknesses":    (C_DANGER,  "⚠ WEAKNESSES"),
-            "opportunities": (colors.HexColor("#1a7a4a"), "🚀 OPPORTUNITIES"),
-            "threats":       (C_MUTED,   "🛡 THREATS"),
+            "strengths":     (C_ACCENT,  "STRENGTHS"),
+            "weaknesses":    (C_DANGER,  "WEAKNESSES"),
+            "opportunities": (colors.HexColor("#1a7a4a"), "OPPORTUNITIES"),
+            "threats":       (C_MUTED,   "THREATS"),
         }
 
         swot_data = []
@@ -734,7 +758,7 @@ class PDFReportGenerator:
         kpis = [
             ("TOTAL CUSTOMERS", str(churn.get("total_customers", 0))),
             ("CHURN RISK", f"{churn.get('churn_rate', 0)}%"),
-            ("REVENUE AT RISK", f"€{churn.get('potential_revenue_at_risk', 0):,.0f}"),
+            ("REVENUE AT RISK", self._money(churn.get('potential_revenue_at_risk', 0), compact=True)),
             ("HIGH RISK COUNT", str(churn.get("high_risk_count", 0))),
         ]
         self._kpi_row(story, kpis)
@@ -782,16 +806,16 @@ class PDFReportGenerator:
 
         products = pricing.get("products", [])[:8]
         if products:
-            headers = [Paragraph(h, self._sp("label")) for h in ["PRODUCT", "CURRENT €", "SUGGESTED €", "MARGIN %", "ACTION"]]
+            headers = [Paragraph(h, self._sp("label")) for h in ["PRODUCT", "CURRENT", "SUGGESTED", "MARGIN", "ACTION"]]
             rows = [headers]
             for p in products:
                 rec = p.get("recommendation","").upper()
                 rows.append([
-                    p.get("product","")[:30],
-                    f"€{p.get('current_price',0)}",
-                    f"€{p.get('suggested_price',0)}",
-                    f"{p.get('margin_pct',0)}%",
-                    rec,
+                    Paragraph(self._small_text(p.get("product",""), 32), self._sp("finding_body")),
+                    self._money(p.get('current_price',0)),
+                    self._money(p.get('suggested_price',0)),
+                    self._pct(p.get('margin_pct',0)),
+                    self._small_text(rec, 16),
                 ])
             t = Table(rows, colWidths=[self.W*0.35, self.W*0.15, self.W*0.15, self.W*0.15, self.W*0.2])
             t.setStyle(TableStyle([
@@ -820,10 +844,10 @@ class PDFReportGenerator:
         story.append(self._spacer(3))
 
         kpis = [
-            ("PREDICTED REVENUE", f"€{forecast.get('total_predicted_revenue',0):,.0f}"),
-            ("DAILY AVERAGE", f"€{forecast.get('avg_daily_predicted',0):,.0f}"),
+            ("PREDICTED REVENUE", self._money(forecast.get('total_predicted_revenue',0), compact=True)),
+            ("DAILY AVERAGE", self._money(forecast.get('avg_daily_predicted',0), compact=True)),
             ("PEAK DAY", str(forecast.get("peak_day",{}).get("date","—"))),
-            ("PEAK REVENUE", f"€{forecast.get('peak_day',{}).get('predicted_revenue',0):,.0f}"),
+            ("PEAK REVENUE", self._money(forecast.get('peak_day',{}).get('predicted_revenue',0), compact=True)),
         ]
         self._kpi_row(story, kpis)
         story.append(self._spacer(4))
@@ -835,10 +859,10 @@ class PDFReportGenerator:
         days = forecast.get("forecast_30_days", [])[:14]
         if days:
             story.append(self._spacer(4))
-            headers = [Paragraph(h, self._sp("label")) for h in ["DATE", "PREDICTED REVENUE", "PREDICTED ORDERS", "CONFIDENCE"]]
+            headers = [Paragraph(h, self._sp("label")) for h in ["DATE", "REVENUE", "ORDERS", "CONFIDENCE"]]
             rows = [headers] + [[
                 d.get("date", "—"),
-                f"€{d.get('predicted_revenue', 0):,.0f}",
+                self._money(d.get('predicted_revenue', 0)),
                 str(d.get("predicted_orders", "—")),
                 str(d.get("confidence", "medium")).upper(),
             ] for d in days]
@@ -885,11 +909,11 @@ class PDFReportGenerator:
             rows = [headers]
             for b in benchmarks:
                 rows.append([
-                    b["metric"],
-                    str(b["your_value"]),
-                    str(b["industry_average"]),
-                    str(b["top_10_pct"]),
-                    b["rating"],
+                    b.get("metric", "—"),
+                    str(b.get("your_value", "—")),
+                    str(b.get("industry_average", "—")),
+                    str(b.get("top_10_pct", "—")),
+                    b.get("rating", "—"),
                 ])
             t = Table(rows, colWidths=[self.W*0.35, self.W*0.15, self.W*0.17, self.W*0.13, self.W*0.2])
             t.setStyle(TableStyle([
@@ -907,20 +931,35 @@ class PDFReportGenerator:
         return story
 
     def _kpi_row(self, story, kpis):
-        """Yardımcı: KPI kartları satırı"""
-        kpi_data = [[
-            Paragraph(k, self._sp("label")),
-            Paragraph(v, self._sp("kpi_value"))
-        ] for k, v in kpis]
-        t = Table([[item for pair in kpi_data for item in pair]], colWidths=[self.W*0.15, self.W*0.1]*len(kpis))
+        """Render KPI cards without narrow label/value columns."""
+        cells = []
+        for label, value in kpis:
+            cells.append(Table(
+                [
+                    [Paragraph(label, self._sp("kpi_label"))],
+                    [Paragraph(str(value), self._sp("kpi_value"))],
+                ],
+                colWidths=[self.W / max(len(kpis), 1) - 4*mm],
+            ))
+
+        t = Table([cells], colWidths=[self.W / max(len(kpis), 1)] * len(kpis), rowHeights=[24*mm])
         t.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,-1), C_SURFACE),
-            ("FONTSIZE", (0,0), (-1,-1), 9),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("TOPPADDING", (0,0), (-1,-1), 8),
-            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
-            ("GRID", (0,0), (-1,-1), 0.3, C_BORDER),
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+            ("LEFTPADDING", (0,0), (-1,-1), 2),
+            ("RIGHTPADDING", (0,0), (-1,-1), 2),
         ]))
+        for cell in cells:
+            cell.setStyle(TableStyle([
+                ("BACKGROUND", (0,0), (-1,-1), C_SURFACE),
+                ("BOX", (0,0), (-1,-1), 0.5, C_BORDER),
+                ("LINEBEFORE", (0,0), (0,-1), 2, C_ACCENT),
+                ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+                ("ALIGN", (0,0), (-1,-1), "LEFT"),
+                ("LEFTPADDING", (0,0), (-1,-1), 9),
+                ("RIGHTPADDING", (0,0), (-1,-1), 9),
+                ("TOPPADDING", (0,0), (-1,-1), 7),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 7),
+            ]))
         story.append(t)
 
     def generate(self) -> bytes:
