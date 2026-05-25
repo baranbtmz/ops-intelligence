@@ -27,10 +27,13 @@ import base64
 import secrets
 import re
 import io
+import logging
 import pandas as pd
 import numpy as np
 from urllib.parse import urlencode, quote
 from datetime import datetime, timedelta, date
+
+logger = logging.getLogger("ops-intelligence")
 
 # ── Analiz modülleri
 import sys
@@ -2269,7 +2272,8 @@ async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
             "based_on": parsed.get("based_on") or context.get("record_counts") or {},
             "suggested_actions": parsed.get("suggested_actions") or [],
         })
-    except Exception:
+    except Exception as exc:
+        logger.warning("Ask OPS OpenAI fallback: %s", exc.__class__.__name__)
         return fallback_ops_answer(question, context, req.mode)
 
 
