@@ -2925,6 +2925,10 @@ function showAnalysisLoading(mode) {
   if(!loadEl) return null;
   if(loadEl.parentElement !== document.body) document.body.appendChild(loadEl);
   setAnalysisLoadingLabels(mode);
+  ['step-1','step-2','step-3','step-4'].forEach((s,i)=>{
+    const el=document.getElementById(s);
+    if(el) el.className=i===0?'loading-step active':'loading-step';
+  });
   document.body.classList.add('analysis-is-loading');
   loadEl.classList.add('show');
   return loadEl;
@@ -2934,6 +2938,13 @@ function hideAnalysisLoading() {
   const loadEl=document.getElementById('analysis-loading');
   if(loadEl) loadEl.classList.remove('show');
   document.body.classList.remove('analysis-is-loading');
+}
+
+function markAnalysisLoadingComplete() {
+  ['step-1','step-2','step-3','step-4'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el) el.className='loading-step done';
+  });
 }
 
 function renderShopifyStatus() {
@@ -3068,7 +3079,21 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       else el.className='loading-step';
     });
     si=Math.min(si+1,steps.length-1);
-  },1200);
+  }, mock ? 260 : 650);
+  if(mock){
+    setTimeout(()=>{
+      clearInterval(interval);
+      markAnalysisLoadingComplete();
+      const md=buildLocalMock();
+      lastResult=md;
+      renderResults(md);
+      renderOverview(md);
+      hideAnalysisLoading();
+      nav('results');
+      recordLocalAnalysis(false);
+    },720);
+    return;
+  }
   try {
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),180000);
