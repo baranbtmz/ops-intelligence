@@ -1,5 +1,5 @@
 [build]
-  command = "mkdir -p netlify-public && cp *.html netlify-public/ && cp -R assets netlify-public/"
+  command = "mkdir -p netlify-public && cp *.html netlify-public/ && cp _headers netlify-public/_headers && cp -R assets netlify-public/"
   publish = "netlify-public"
 
 [[headers]]
