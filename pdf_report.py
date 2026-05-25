@@ -585,22 +585,34 @@ class PDFReportGenerator:
         story.append(self._spacer(4))
 
         # Kampanya tablosu
-        camp_df = self.meta.get("campaign_summary")
-        if camp_df is not None and len(camp_df) > 0:
+        camp_summary = self.meta.get("campaign_summary")
+        if hasattr(camp_summary, "to_dict"):
+            campaigns = camp_summary.to_dict("records")
+        elif isinstance(camp_summary, list):
+            campaigns = camp_summary
+        else:
+            campaigns = []
+
+        if campaigns:
             story.append(Paragraph("CAMPAIGN PERFORMANCE", self._sp("label")))
             story.append(self._spacer(2))
 
             headers = ["Campaign", "Spend €", "Revenue €", "ROAS", "CPC €", "Status"]
             table_data = [headers]
-            for _, row in camp_df.iterrows():
+            for row in campaigns:
+                if not isinstance(row, dict):
+                    continue
                 table_data.append([
-                    row["campaign_name"][:35],
-                    f"€{row['spend']:,.0f}",
-                    f"€{row['revenue']:,.0f}",
-                    f"{row['roas']}x",
-                    f"€{row['cpc']}",
-                    row["durum"],
+                    str(row.get("campaign_name", "Campaign"))[:35],
+                    f"€{float(row.get('spend') or 0):,.0f}",
+                    f"€{float(row.get('revenue') or 0):,.0f}",
+                    f"{row.get('roas', 0)}x",
+                    f"€{row.get('cpc', 0)}",
+                    str(row.get("durum") or row.get("status") or "—"),
                 ])
+
+            if len(table_data) == 1:
+                table_data.append(["No campaign rows", "€0", "€0", "0x", "€0", "—"])
 
             camp_table = Table(table_data,
                                colWidths=[65*mm, 22*mm, 22*mm, 18*mm, 18*mm, 25*mm])
