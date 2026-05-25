@@ -256,6 +256,7 @@ class AIAskRequest(BaseModel):
     question: str
     context: Dict[str, Any] = {}
     mode: str = "founder"
+    language: str = "en"
 
 
 def make_analysis_context(report: dict, shop_name: str, data_source: str, model: str) -> dict:
@@ -2276,7 +2277,7 @@ def compact_ai_context(ctx: dict) -> dict:
     })
 
 
-def fallback_ops_answer(question: str, ctx: dict, mode: str) -> dict:
+def fallback_ops_answer(question: str, ctx: dict, mode: str, language: str = "en") -> dict:
     metrics = (ctx or {}).get("metrics") or {}
     analysis = (ctx or {}).get("analysis") or {}
     revenue = metrics.get("revenue") or {}
@@ -2303,7 +2304,34 @@ def fallback_ops_answer(question: str, ctx: dict, mode: str) -> dict:
         )
     )
     q = (question or "").lower()
-    if "refund" in q or "return" in q:
+    lang = "tr" if (language or "").lower().startswith("tr") else "en"
+    if lang == "tr":
+        if "iade" in q or "refund" in q or "return" in q:
+            answer = (
+                f"OPS iade baskısını %{refund_rate:.1f} seviyesinde görüyor. "
+                f"Muhtemel operasyon nedeni {ft_mean:.1f} saatlik fulfillment gecikmesi ve SKU bazlı ürün riski. "
+                f"Bu baskı sürerse yaklaşık €{leakage:,.0f} aylık gelir risk altında kalabilir."
+            )
+        elif "stok" in q or "stock" in q or "sku" in q or "envanter" in q:
+            names = ", ".join((p.get("title") or p.get("name") or "SKU") for p in critical_products[:3]) or "kritik SKU yok"
+            answer = (
+                f"OPS {len(critical_products)} üründe stok riski buldu. "
+                f"Önce {names} ürünlerine bak. Kampanyalar trafik göndermeye devam ederse kaçan talep ve boşa giden reklam harcaması oluşabilir."
+            )
+        elif "aov" in q or "bundle" in q or "sepet" in q:
+            answer = (
+                f"AOV yaklaşık €{float(revenue.get('aov') or 0):.0f}. "
+                "OPS bunu yüksek marjlı ana ürünleri yavaş dönen stoklarla bundle yaparak ve düşük elastikiyetli SKU'larda küçük fiyat artışı test ederek korurdu."
+            )
+        else:
+            top = findings[0] if findings else {}
+            action = quick_wins[0] if quick_wins else "En yüksek riskli bulguya bir sorumlu ata ve sonraki veri senkronundan sonra tekrar kontrol et."
+            answer = (
+                f"OPS şununla başlardı: {top.get('title', 'en yüksek riskli operasyon sinyali')}. "
+                f"Neden önemli: {top.get('description') or top.get('root_cause') or 'mağaza aktivitesini gereksiz marj kaybına çevirebilir.'} "
+                f"Sonraki aksiyon: {action}"
+            )
+    elif "refund" in q or "return" in q:
         answer = (
             f"OPS sees refund pressure at {refund_rate:.1f}%. "
             f"The likely operating driver is fulfillment drag at {ft_mean:.1f}h plus SKU-level product risk. "
@@ -2333,7 +2361,7 @@ def fallback_ops_answer(question: str, ctx: dict, mode: str) -> dict:
         "mode": mode,
         "model": "ops-rule-fallback",
         "answer": answer,
-        "confidence": "High" if (ctx or {}).get("record_counts", {}).get("orders", 0) >= 100 else "Medium",
+        "confidence": ("Yüksek" if (ctx or {}).get("record_counts", {}).get("orders", 0) >= 100 else "Orta") if lang == "tr" else ("High" if (ctx or {}).get("record_counts", {}).get("orders", 0) >= 100 else "Medium"),
         "based_on": {
             "orders": (ctx or {}).get("record_counts", {}).get("orders", 0),
             "products": (ctx or {}).get("record_counts", {}).get("products", 0),
@@ -2349,24 +2377,27 @@ async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Question is required.")
 
     context = compact_ai_context(req.context)
+    language = "tr" if (req.language or "").lower().startswith("tr") else "en"
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     if not openai_key:
-        return fallback_ops_answer(question, context, req.mode)
+        return fallback_ops_answer(question, context, req.mode, language)
 
     system = (
         "You are OPS, an AI operations analyst for Shopify founders. "
         "Answer like an opinionated AI COO, not a generic dashboard assistant. "
         "Use the provided context only. Focus on profit leaks, operational risk, cause, consequence, next action, and confidence. "
         "Be concise, evidence-based, and practical. Do not invent exact data not present in context. "
+        f"Answer in {'Turkish' if language == 'tr' else 'English'}. "
         "Return valid JSON only."
     )
     user_prompt = {
         "question": question,
         "mode": req.mode,
+        "language": language,
         "context": context,
         "response_contract": {
             "answer": "3-6 sentence answer with cause, consequence, and next action",
-            "confidence": "Low, Medium, or High",
+            "confidence": "Low, Medium, or High; use Turkish equivalents when language is tr",
             "based_on": "short evidence summary",
             "suggested_actions": "array of up to 3 action strings",
         },
@@ -2397,7 +2428,7 @@ async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
         })
     except Exception as exc:
         logger.warning("Ask OPS OpenAI fallback: %s", exc.__class__.__name__)
-        return fallback_ops_answer(question, context, req.mode)
+        return fallback_ops_answer(question, context, req.mode, language)
 
 
 # ─────────────────────────────────────────────

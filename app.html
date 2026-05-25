@@ -172,6 +172,13 @@ body.analysis-is-loading{overflow:hidden!important}
 .auth-proof-item::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(214,155,45,.12);flex-shrink:0}
 .auth-proof-label{font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--ink2)}
 .auth-proof-copy{display:none}
+.language-switch{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.72)}
+.language-switch.auth-lang{margin-bottom:14px}
+.language-switch.sidebar-lang{margin:0 22px 18px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
+.language-switch button{border:0;background:transparent;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:850;color:var(--muted);cursor:pointer}
+.language-switch button.active{background:var(--ink);color:#fff}
+.language-switch.sidebar-lang button{color:rgba(255,255,255,.46)}
+.language-switch.sidebar-lang button.active{background:#f3cf58;color:var(--ink)}
 
 .login-loader{
   position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;
@@ -953,49 +960,24 @@ body.analysis-is-loading{overflow:hidden!important}
 .plan-btn.current{opacity:.45;cursor:default;pointer-events:none}
 
 /* Connect */
-.connect-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-.connect-hero{
-  display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);gap:18px;
-  margin-bottom:18px;align-items:stretch
-}
+.connect-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;margin-bottom:20px;align-items:start}
+.connect-hero{margin-bottom:18px}
 .connect-hero-main{
-  background:linear-gradient(135deg,#fff 0%,#fbf8f0 54%,#f4ead5 100%);
-  border:1px solid rgba(214,155,45,.18);border-radius:26px;padding:26px 30px;
-  box-shadow:var(--sh);position:relative;overflow:hidden
+  background:#fff;border:1px solid rgba(224,216,204,.92);border-radius:24px;
+  padding:30px 32px;box-shadow:none
 }
-.connect-hero-main::before{
-  content:"";position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(120deg,rgba(214,155,45,.12),transparent 42%);
-  pointer-events:none
-}
-.connect-hero-main>*{position:relative;z-index:1}
-.connect-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
-.connect-hero-title{font-family:var(--serif-font);font-size:38px;line-height:1.02;letter-spacing:-.045em;color:var(--ink);max-width:18ch}
-.connect-hero-title em{font-style:italic;color:#9b701f}
-.connect-hero-copy{font-size:15px;line-height:1.65;color:var(--muted);max-width:62ch;margin-top:14px}
-.connect-benefits{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.connect-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.connect-hero-title{font-family:var(--sans-font);font-size:32px;font-weight:760;line-height:1.12;letter-spacing:0;color:var(--ink);max-width:760px}
+.connect-hero-title em{font-style:normal;color:var(--ink)}
+.connect-hero-copy{font-size:15px;line-height:1.65;color:var(--muted);max-width:720px;margin-top:12px}
+.connect-benefits{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .connect-benefit{
-  display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;
-  background:rgba(255,255,255,.72);border:1px solid rgba(17,18,13,.08);
-  font-size:12px;font-weight:700;color:var(--ink2)
+  display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;
+  background:#fbf8f0;border:1px solid rgba(224,216,204,.95);
+  font-size:11px;font-weight:750;color:var(--ink2)
 }
-.connect-benefit::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(214,155,45,.13)}
-.connect-proof-panel{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;
-  background:var(--white);border:1px solid var(--border);border-radius:26px;padding:18px;
-  box-shadow:var(--sh)
-}
-.connect-proof-tile{
-  background:var(--cream2);border:1px solid rgba(17,18,13,.06);border-radius:18px;padding:16px;
-  min-height:104px;display:flex;flex-direction:column;justify-content:space-between
-}
-.connect-proof-tile.featured{grid-column:1/-1;background:linear-gradient(135deg,var(--ink),#332916);color:#fff;border-color:rgba(214,155,45,.18)}
-.connect-proof-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.connect-proof-tile.featured .connect-proof-label{color:rgba(214,155,45,.9)}
-.connect-proof-value{font-size:26px;font-weight:800;letter-spacing:-.035em;color:var(--ink);line-height:1.05}
-.connect-proof-tile.featured .connect-proof-value{color:#fff;font-family:var(--serif-font);font-size:27px;font-weight:650}
-.connect-proof-copy{font-size:12px;line-height:1.55;color:var(--muted);margin-top:8px}
-.connect-proof-tile.featured .connect-proof-copy{color:rgba(255,255,255,.68)}
+.connect-benefit::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.connect-proof-panel{display:none}
 .source-tabs{
   display:flex;gap:6px;margin-bottom:18px;background:var(--cream2);border-radius:16px;
   padding:5px;width:fit-content;max-width:100%;overflow-x:auto;border:1px solid var(--border);
@@ -1006,12 +988,12 @@ body.analysis-is-loading{overflow:hidden!important}
 .src-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 8px rgba(21,19,11,.08)}
 .src-panel{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.connect-card{background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(249,244,235,.96));border:1px solid var(--border);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.connect-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:24px;position:relative;overflow:hidden;box-shadow:none}
 .connect-card-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .connect-card-title svg{width:16px;height:16px;color:var(--muted)}
 .connect-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
 .connect-card-eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
-.connect-card-title.big{font-size:24px;font-weight:800;letter-spacing:-.035em;margin-bottom:4px}
+.connect-card-title.big{font-size:24px;font-weight:800;letter-spacing:0;margin-bottom:4px}
 .connect-card-sub{font-size:13px;color:var(--muted);line-height:1.55;max-width:56ch}
 .connect-badge{
   display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;
@@ -1034,32 +1016,34 @@ body.analysis-is-loading{overflow:hidden!important}
   font-size:12px;line-height:1.6;color:var(--muted)
 }
 .connect-note strong{color:var(--ink)}
-.connect-inline-proof{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;
-  font-size:11px;color:var(--muted)
-}
-.connect-inline-proof span{
-  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
-  background:rgba(255,255,255,.78);border:1px solid rgba(17,18,13,.08)
-}
-.flow-card{background:linear-gradient(180deg,#fff,rgba(244,236,221,.92));border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh)}
+.connect-inline-proof{display:none}
+.flow-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:24px;box-shadow:none}
 .flow-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
-.flow-title{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.flow-title{font-size:20px;font-weight:800;letter-spacing:0;color:var(--ink)}
 .flow-sub{font-size:13px;color:var(--muted);line-height:1.55;margin-top:5px;max-width:44ch}
-.flow-steps{display:grid;gap:10px}
+.flow-steps{display:grid;gap:0;border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .flow-step{
   display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:flex-start;
-  background:rgba(255,255,255,.72);border:1px solid rgba(17,18,13,.06);border-radius:16px;padding:13px
+  background:#fff;padding:14px;border-bottom:1px solid var(--border)
 }
-.flow-num{width:30px;height:30px;border-radius:11px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.flow-step:last-child{border-bottom:none}
+.flow-num{width:30px;height:30px;border-radius:50%;background:#fbf4df;color:#9b701f;border:1px solid rgba(214,155,45,.28);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
 .flow-step strong{display:block;font-size:13px;color:var(--ink);margin-bottom:3px}
 .flow-step span{display:block;font-size:12px;color:var(--muted);line-height:1.5}
-.connect-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.connect-feature-grid{display:grid;gap:10px;margin-top:16px}
 .connect-feature{
-  padding:14px;border-radius:16px;background:#fff;border:1px solid rgba(17,18,13,.07)
+  padding:14px;border-radius:16px;background:#fbf8f0;border:1px solid rgba(224,216,204,.95)
 }
 .connect-feature strong{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .connect-feature span{display:block;font-size:12px;color:var(--ink2);line-height:1.55}
+.connect-primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.connect-secondary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.connect-secondary-actions .btn{padding:9px 14px}
+.connect-checklist{display:grid;gap:10px;margin-top:4px}
+.connect-check{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.connect-check-mark{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fbf4df;color:#9b701f;font-size:12px;font-weight:900}
+.connect-check strong{display:block;font-size:13px;color:var(--ink);margin-bottom:3px}
+.connect-check span{display:block;font-size:12px;color:var(--muted);line-height:1.5}
 
 /* PDF strip */
 .pdf-strip{background:linear-gradient(135deg,var(--ink2),var(--ink));border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;position:relative;overflow:hidden}
@@ -1341,6 +1325,10 @@ body.analysis-is-loading{overflow:hidden!important}
           <div class="auth-tagline">Founder-ready commerce operations intelligence</div>
         </div>
         <div class="auth-card">
+          <div class="language-switch auth-lang" aria-label="Language">
+            <button type="button" data-lang-button="en" onclick="setLanguage('en')">EN</button>
+            <button type="button" data-lang-button="tr" onclick="setLanguage('tr')">TR</button>
+          </div>
           <div class="auth-tabs">
             <div class="auth-tab active" onclick="switchTab('login')">Log In</div>
             <div class="auth-tab" onclick="switchTab('register')">Sign Up</div>
@@ -1391,6 +1379,10 @@ body.analysis-is-loading{overflow:hidden!important}
       <div class="sb-logo">
         <div class="sb-logotype"><img src="assets/ops-logo-transparent.png" alt="OPS"></div>
         <div class="sb-tagline">Intelligence Platform</div>
+      </div>
+      <div class="language-switch sidebar-lang" aria-label="Language">
+        <button type="button" data-lang-button="en" onclick="setLanguage('en')">EN</button>
+        <button type="button" data-lang-button="tr" onclick="setLanguage('tr')">TR</button>
       </div>
 
       <div class="sb-user">
@@ -1625,10 +1617,10 @@ body.analysis-is-loading{overflow:hidden!important}
               </div>
             </div>
             <div class="prompt-chips">
-              <button class="prompt-chip" onclick="askPreset('What should I fix first?')">What should I fix first?</button>
-              <button class="prompt-chip" onclick="askPreset('Where is revenue leaking?')">Where is revenue leaking?</button>
-              <button class="prompt-chip" onclick="askPreset('Which products are risky?')">Which products are risky?</button>
-              <button class="prompt-chip" onclick="askPreset('Why did refunds increase?')">Why did refunds increase?</button>
+              <button class="prompt-chip" onclick="askPreset('fix_first')">What should I fix first?</button>
+              <button class="prompt-chip" onclick="askPreset('revenue_leak')">Where is revenue leaking?</button>
+              <button class="prompt-chip" onclick="askPreset('risky_products')">Which products are risky?</button>
+              <button class="prompt-chip" onclick="askPreset('refunds')">Why did refunds increase?</button>
             </div>
             <div class="ask-input-row">
               <input class="ask-input" id="ask-input" placeholder="Ask OPS a question..." onkeydown="if(event.key==='Enter') askOps()">
@@ -1641,42 +1633,18 @@ body.analysis-is-loading{overflow:hidden!important}
       <!-- CONNECT -->
       <section id="sec-connect">
         <div class="pg-header">
-          <div><div class="pg-title">Connect Operating Signals</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
+          <div><div class="pg-title">Connect Store</div><div class="pg-sub">Choose a data source, connect it, then run one operating brief. Keep this screen focused on the next action.</div></div>
         </div>
 
         <div class="connect-hero">
           <div class="connect-hero-main">
-            <div class="connect-kicker">Commerce connector hub</div>
-            <div class="connect-hero-title">From store access to an <em>operating brief</em>.</div>
-            <div class="connect-hero-copy">Connect Shopify or WooCommerce directly, or upload marketplace exports. OPS keeps demo and live data separated, then turns revenue, fulfillment, inventory, churn, pricing, and forecast signals into one readable brief.</div>
+            <div class="connect-kicker">Start here</div>
+            <div class="connect-hero-title">Connect the store, then run the brief.</div>
+            <div class="connect-hero-copy">Use Shopify OAuth for the cleanest setup. If you only want to test the product flow, run the demo instead. Uploaded files stay available for marketplace exports.</div>
             <div class="connect-benefits">
-              <div class="connect-benefit">Read-only OAuth</div>
-              <div class="connect-benefit">Source labels</div>
-              <div class="connect-benefit">Full product tables</div>
-              <div class="connect-benefit">Action-first results</div>
-            </div>
-          </div>
-          <div class="connect-proof-panel">
-            <div class="connect-proof-tile featured">
-              <div>
-                <div class="connect-proof-label">Live reporting standard</div>
-                <div class="connect-proof-value">No demo findings in live runs.</div>
-              </div>
-              <div class="connect-proof-copy">Each report names the connector, record coverage, and analysis engine so a founder can trust what they are reading.</div>
-            </div>
-            <div class="connect-proof-tile">
-              <div class="connect-proof-label">Access model</div>
-              <div>
-                <div class="connect-proof-value">Backend-held</div>
-                <div class="connect-proof-copy">Tokens stay server side after install.</div>
-              </div>
-            </div>
-            <div class="connect-proof-tile">
-              <div class="connect-proof-label">Store policy</div>
-              <div>
-                <div class="connect-proof-value">1 free</div>
-                <div class="connect-proof-copy">Multiple connected stores require Pro.</div>
-              </div>
+              <div class="connect-benefit">1. Pick source</div>
+              <div class="connect-benefit">2. Connect access</div>
+              <div class="connect-benefit">3. Run brief</div>
             </div>
           </div>
         </div>
@@ -1695,28 +1663,27 @@ body.analysis-is-loading{overflow:hidden!important}
             <div class="connect-card">
               <div class="connect-card-head">
                 <div>
-                  <div class="connect-card-eyebrow">Primary connector</div>
+                  <div class="connect-card-eyebrow">Shopify setup</div>
                   <div class="connect-card-title big">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                     Shopify Store
                   </div>
-                  <div class="connect-card-sub">Enter the merchant domain, open Shopify's native install screen, then run a live operating brief from the connected store.</div>
+                  <div class="connect-card-sub">Enter the permanent Shopify domain, approve the install, then run the live brief.</div>
                 </div>
-                <div class="connect-badge">Production path</div>
               </div>
               <div id="shopify-connection-status" class="connect-state warn">
                 <span class="connect-dot"></span>
-                <div><strong style="color:var(--ink)">Not connected</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, and result pages with explicit source labels.</div></div>
+                <div><strong style="color:var(--ink)">Not connected</strong><div>Connect with Shopify OAuth to read live orders, products, inventory, and customers.</div></div>
               </div>
               <div class="connect-form-stack">
                 <div class="field"><label>Store Domain</label><input type="text" id="connect-domain" placeholder="storename.myshopify.com" autocomplete="off"></div>
-                <button class="btn btn-ink" style="width:100%;justify-content:center" onclick="connectShopifyApp()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                  Open Shopify Install
-                </button>
-                <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="analyzeConnectedShopify()">
-                  Run Shopify Operating Brief
-                </button>
+                <div class="connect-primary-actions">
+                  <button class="btn btn-ink" style="justify-content:center" onclick="connectShopifyApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    Open Shopify Install
+                  </button>
+                  <button class="btn btn-outline" style="justify-content:center" onclick="analyzeConnectedShopify()">Run Brief</button>
+                </div>
               </div>
               <details style="margin-top:14px">
                 <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
@@ -1725,45 +1692,29 @@ body.analysis-is-loading{overflow:hidden!important}
                   <button class="btn btn-outline" onclick="saveAndAnalyze()">Analyze with manual token</button>
                 </div>
               </details>
-              <div class="connect-meta">
-                <div><strong>Preferred</strong>OAuth install</div>
-                <div><strong>Scopes</strong>Read-only ops data</div>
-                <div><strong>Output</strong>Live operating brief</div>
+              <div class="connect-secondary-actions">
+                <button class="btn btn-outline" onclick="startDemo()">Try Demo</button>
               </div>
-              <div class="connect-note"><strong>Recommended path:</strong> use Shopify OAuth for repeatable production analysis. Manual tokens remain available only as a fallback when install flow is blocked.</div>
+              <div class="connect-note"><strong>Tip:</strong> use the exact <code>.myshopify.com</code> domain. Custom storefront domains usually redirect during install.</div>
             </div>
             <div class="flow-card">
               <div class="flow-head">
                 <div>
-                  <div class="flow-title">What happens after install</div>
-                  <div class="flow-sub">A predictable four-step connection path that keeps the merchant inside Shopify for approval and OPS for analysis.</div>
+                  <div class="flow-title">What to do next</div>
+                  <div class="flow-sub">Follow these in order. No extra setup is needed before the first live brief.</div>
                 </div>
-                <div class="connect-badge">Live data only</div>
               </div>
               <div class="flow-steps">
-                <div class="flow-step"><div class="flow-num">1</div><div><strong>Enter store domain</strong><span>Use the merchant's permanent .myshopify.com domain.</span></div></div>
-                <div class="flow-step"><div class="flow-num">2</div><div><strong>Approve in Shopify</strong><span>The install permission screen opens outside the embedded frame.</span></div></div>
-                <div class="flow-step"><div class="flow-num">3</div><div><strong>Store access securely</strong><span>OPS saves the offline access token on the backend, not in the browser.</span></div></div>
-                <div class="flow-step"><div class="flow-num">4</div><div><strong>Run the operating brief</strong><span>Orders, products, inventory, customers, and fulfillments feed the report.</span></div></div>
+                <div class="flow-step"><div class="flow-num">1</div><div><strong>Enter store domain</strong><span>Example: <code>brand-name.myshopify.com</code>.</span></div></div>
+                <div class="flow-step"><div class="flow-num">2</div><div><strong>Approve install</strong><span>Shopify opens its permission screen for the merchant.</span></div></div>
+                <div class="flow-step"><div class="flow-num">3</div><div><strong>Run brief</strong><span>OPS reads the latest commerce signals and builds the results page.</span></div></div>
               </div>
-              <div class="connect-feature-grid">
-                <div class="connect-feature"><strong>Security</strong><span>Offline token stays on the backend.</span></div>
-                <div class="connect-feature"><strong>Coverage</strong><span>Record counts appear on every result page.</span></div>
-                <div class="connect-feature"><strong>Credibility</strong><span>Demo visuals never masquerade as live findings.</span></div>
-              </div>
-              <div class="connect-inline-proof">
-                <span>Founder-ready onboarding</span>
-                <span>Connector + coverage labels</span>
-                <span>No fake live findings</span>
+              <div class="connect-checklist">
+                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Access is read-only</strong><span>OPS uses the connection to analyze orders, products, inventory, and customer signals.</span></div></div>
+                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Live data is labeled</strong><span>The report shows source and coverage so demo data does not mix with live findings.</span></div></div>
+                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Manual token is optional</strong><span>Only use it if Shopify install is blocked.</span></div></div>
               </div>
             </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="btn btn-ink" onclick="analyzeConnectedShopify()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Run Shopify Brief
-            </button>
-            <button class="btn btn-outline" onclick="startDemo()">Try Demo</button>
           </div>
         </div>
 
@@ -2399,6 +2350,150 @@ let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
 let storeLimit = {plan:'free', max:1, used:0, canAdd:true};
+let currentLang = localStorage.getItem('ops_lang') || 'en';
+
+const I18N = {
+  en: {
+    loginLoader:'Preparing your workspace',
+    authTitle:'Find where your store leaks profit',
+    authCopy:'OPS acts like an AI operations analyst for Shopify founders: it catches margin, inventory, fulfillment, and cancellation risk before it quietly compounds.',
+    authBadges:['Shopify OAuth ready','WooCommerce REST','Live data labeling'],
+    login:'Log In', signup:'Sign Up', password:'Password', fullName:'Full Name', yourName:'Your name', createAccount:'Create Account →',
+    authProof:['Connectors','Source-labeled reports','Founder-ready briefs'],
+    navOverview:'Overview', navDashboard:'Dashboard', navAnalysis:'Analysis', navConnect:'Connect Store', navBuild:'Build Brief', navResults:'Results', navAsk:'Ask OPS', navTools:'Tools', navCompare:'Compare Periods', navTeam:'Team', navLedger:'Ledger', navAccount:'Account', navPlans:'Plans & Billing', logout:'Log out',
+    homeSub:'Your AI operating signal across the last 90 days of store activity.', last30:'Last 30 days', buildBrief:'Build Brief',
+    askSub:'Natural-language operating intelligence for refund risk, product issues, revenue leaks, and next actions.', askDemo:'Try demo context', askTitle:'Your AI operations analyst.', askCopy:'Ask why a metric moved, which SKU is risky, what to fix first, or where profit is leaking. OPS answers with cause, consequence, confidence, and next action.', askMemoryLabel:'AI memory', askConfidenceLabel:'Confidence', askModeLabel:'Mode', founderMode:'Founder Mode', investorMode:'Investor Mode', askReady:'Ask me about refunds, stockouts, fulfillment drag, revenue leaks, product risk, or what to fix first. I will use the latest OPS brief as context.', opsReady:'OPS ready', askPlaceholder:'Ask OPS a question...', askButton:'Ask OPS →',
+    presets:{fix_first:'What should I fix first?', revenue_leak:'Where is revenue leaking?', risky_products:'Which products are risky?', refunds:'Why did refunds increase?'},
+    connectTitle:'Connect Store', connectSub:'Choose a data source, connect it, then run one operating brief. Keep this screen focused on the next action.', startHere:'Start here', connectHeroTitle:'Connect the store, then run the brief.', connectHeroCopy:'Use Shopify OAuth for the cleanest setup. If you only want to test the product flow, run the demo instead. Uploaded files stay available for marketplace exports.', connectSteps:['1. Pick source','2. Connect access','3. Run brief'], shopifySetup:'Shopify setup', shopifyStore:'Shopify Store', shopifyCopy:'Enter the permanent Shopify domain, approve the install, then run the live brief.', notConnected:'Not connected', notConnectedCopy:'Connect with Shopify OAuth to read live orders, products, inventory, and customers.', storeDomain:'Store Domain', openInstall:'Open Shopify Install', runBrief:'Run Brief', manualFallback:'Manual token fallback', adminToken:'Admin API Token', analyzeManual:'Analyze with manual token', tryDemo:'Try Demo', connectTip:'Tip:', connectTipCopy:'use the exact .myshopify.com domain. Custom storefront domains usually redirect during install.', whatNext:'What to do next', whatNextCopy:'Follow these in order. No extra setup is needed before the first live brief.', flow1:'Enter store domain', flow1Copy:'Example: brand-name.myshopify.com.', flow2:'Approve install', flow2Copy:'Shopify opens its permission screen for the merchant.', flow3:'Run brief', flow3Copy:'OPS reads the latest commerce signals and builds the results page.', readOnly:'Access is read-only', readOnlyCopy:'OPS uses the connection to analyze orders, products, inventory, and customer signals.', liveLabeled:'Live data is labeled', liveLabeledCopy:'The report shows source and coverage so demo data does not mix with live findings.', manualOptional:'Manual token is optional', manualOptionalCopy:'Only use it if Shopify install is blocked.',
+    analysisTitle:'Build Operator Brief', analysisSub:'Connect your store or try a demo.', demoAnalysis:'Demo Analysis', demoAnalysisCopy:'Use realistic sample data to preview the OPS experience. Demo outputs stay visibly separated from production runs and never overwrite live labels.', runDemo:'Run Demo Analysis', productionRules:'Production Analysis Rules', productionRulesCopy:'OPS keeps live analysis strict so result pages stay credible in operator, founder, board, and investor conversations.', liveConnectors:'Live connectors', liveConnectorsCopy:'Use Shopify OAuth or WooCommerce REST for production runs.', demoIsolation:'Demo isolation', demoIsolationCopy:'Sample overlays only appear in demo mode and stay labeled as demo.', resultContext:'Result context', resultContextCopy:'Every run shows source, timestamp, and model label on the results page.', shopifyLive:'Shopify Live Data', shopifyLiveCopy:'Use this only when OAuth is unavailable. Result pages will label this path separately from the preferred Shopify OAuth connection.', connectAnalyze:'Connect & Analyze',
+    loadingTitle:'Preparing your operating brief', loadingSub:'OPS is reading your commerce signals and building a source-labeled action report.',
+    resultsTitle:'OPS Operator Brief', refresh:'Refresh', waitingAnalysis:'Waiting for analysis', waitingCopy:'OPS will label live and sample runs separately.', sourceDetails:'Source details appear here after a run.', connector:'Connector', waiting:'Waiting', coverage:'Coverage', engine:'Analysis engine', scoreLabel:'Store Health Score / 100',
+    findings:'Findings', revenue:'Revenue', inventory:'Inventory', actions:'Actions', pricing:'Pricing', forecast:'Forecast', benchmark:'Benchmark', products:'Products', downloadPdf:'Download PDF',
+    thinking:'Thinking through the operating brief...', analyzing:'OPS analyzing', askFirst:'Ask OPS a question first.', localIntel:'Local OPS intelligence', confidence:'Confidence', nextActions:'Next actions'
+  },
+  tr: {
+    loginLoader:'Çalışma alanın hazırlanıyor',
+    authTitle:'Mağazanın nerede kâr kaçırdığını bul',
+    authCopy:'OPS, Shopify kurucuları için bir yapay zeka operasyon analisti gibi çalışır: marj, stok, teslimat ve iptal risklerini büyümeden yakalar.',
+    authBadges:['Shopify OAuth hazır','WooCommerce REST','Canlı veri etiketleme'],
+    login:'Giriş Yap', signup:'Kayıt Ol', password:'Şifre', fullName:'Ad Soyad', yourName:'Adınız', createAccount:'Hesap Oluştur →',
+    authProof:['Bağlantılar','Kaynak etiketli raporlar','Kurucuya hazır özetler'],
+    navOverview:'Genel Bakış', navDashboard:'Panel', navAnalysis:'Analiz', navConnect:'Mağaza Bağla', navBuild:'Özet Oluştur', navResults:'Sonuçlar', navAsk:'OPS’e Sor', navTools:'Araçlar', navCompare:'Dönem Karşılaştır', navTeam:'Ekip', navLedger:'Defter', navAccount:'Hesap', navPlans:'Planlar & Ödeme', logout:'Çıkış yap',
+    homeSub:'Son 90 günlük mağaza aktivitesinden yapay zeka operasyon sinyalin.', last30:'Son 30 gün', buildBrief:'Özet Oluştur',
+    askSub:'İade riski, ürün sorunları, gelir kaçakları ve sonraki aksiyonlar için doğal dilde operasyon zekası.', askDemo:'Demo bağlamını dene', askTitle:'Yapay zeka operasyon analistin.', askCopy:'Bir metrik neden değişti, hangi SKU riskli, önce ne düzeltilmeli veya kâr nerede kaçıyor diye sor. OPS neden, sonuç, güven ve sonraki aksiyonla cevaplar.', askMemoryLabel:'AI hafızası', askConfidenceLabel:'Güven', askModeLabel:'Mod', founderMode:'Kurucu Modu', investorMode:'Yatırımcı Modu', askReady:'İadeler, stok tükenmesi, teslimat gecikmesi, gelir kaçağı, ürün riski veya önce neyi düzeltmen gerektiğini sor. En son OPS özetini bağlam olarak kullanacağım.', opsReady:'OPS hazır', askPlaceholder:'OPS’e bir soru sor...', askButton:'OPS’e Sor →',
+    presets:{fix_first:'Önce neyi düzeltmeliyim?', revenue_leak:'Gelir nerede kaçıyor?', risky_products:'Hangi ürünler riskli?', refunds:'İadeler neden arttı?'},
+    connectTitle:'Mağaza Bağla', connectSub:'Veri kaynağını seç, bağla ve tek bir operasyon özeti çalıştır. Bu ekran sadece sıradaki aksiyona odaklanır.', startHere:'Buradan başla', connectHeroTitle:'Mağazayı bağla, sonra özeti çalıştır.', connectHeroCopy:'En temiz kurulum için Shopify OAuth kullan. Sadece ürün akışını denemek istersen demo çalıştır. Marketplace dışa aktarımları için dosya yükleme seçeneği durur.', connectSteps:['1. Kaynak seç','2. Erişimi bağla','3. Özeti çalıştır'], shopifySetup:'Shopify kurulumu', shopifyStore:'Shopify Mağazası', shopifyCopy:'Kalıcı Shopify domainini gir, kurulumu onayla, sonra canlı özeti çalıştır.', notConnected:'Bağlı değil', notConnectedCopy:'Canlı sipariş, ürün, stok ve müşteri sinyallerini okumak için Shopify OAuth ile bağlan.', storeDomain:'Mağaza Domaini', openInstall:'Shopify Kurulumunu Aç', runBrief:'Özeti Çalıştır', manualFallback:'Manuel token yedeği', adminToken:'Admin API Token', analyzeManual:'Manuel token ile analiz et', tryDemo:'Demo Dene', connectTip:'İpucu:', connectTipCopy:'tam .myshopify.com domainini kullan. Özel vitrin domainleri kurulumda yönlendirme yapabilir.', whatNext:'Sırada ne var?', whatNextCopy:'Bu adımları sırayla izle. İlk canlı özetten önce ekstra kurulum gerekmez.', flow1:'Mağaza domainini gir', flow1Copy:'Örnek: brand-name.myshopify.com.', flow2:'Kurulumu onayla', flow2Copy:'Shopify satıcı için izin ekranını açar.', flow3:'Özeti çalıştır', flow3Copy:'OPS en güncel ticaret sinyallerini okur ve sonuç sayfasını oluşturur.', readOnly:'Erişim salt okunur', readOnlyCopy:'OPS bağlantıyı sipariş, ürün, stok ve müşteri sinyallerini analiz etmek için kullanır.', liveLabeled:'Canlı veri etiketlenir', liveLabeledCopy:'Rapor kaynak ve kapsamı gösterir; demo veri canlı bulgulara karışmaz.', manualOptional:'Manuel token opsiyonel', manualOptionalCopy:'Sadece Shopify kurulumu engellenirse kullan.',
+    analysisTitle:'Operasyon Özeti Oluştur', analysisSub:'Mağazanı bağla veya demo dene.', demoAnalysis:'Demo Analizi', demoAnalysisCopy:'OPS deneyimini görmek için gerçekçi örnek veri kullan. Demo çıktıları canlı etiketlerin üstüne yazmaz ve ayrı görünür.', runDemo:'Demo Analizini Çalıştır', productionRules:'Canlı Analiz Kuralları', productionRulesCopy:'OPS canlı analizleri sıkı tutar; sonuçlar operatör, kurucu, yönetim ve yatırımcı görüşmelerinde güvenilir kalır.', liveConnectors:'Canlı bağlantılar', liveConnectorsCopy:'Canlı çalışmalar için Shopify OAuth veya WooCommerce REST kullan.', demoIsolation:'Demo ayrımı', demoIsolationCopy:'Örnek görseller sadece demo modunda görünür ve demo olarak etiketlenir.', resultContext:'Sonuç bağlamı', resultContextCopy:'Her çalışma kaynak, zaman ve model etiketini sonuç sayfasında gösterir.', shopifyLive:'Shopify Canlı Veri', shopifyLiveCopy:'Bunu yalnızca OAuth kullanılamadığında kullan. Sonuçlar bu yolu Shopify OAuth bağlantısından ayrı etiketler.', connectAnalyze:'Bağla & Analiz Et',
+    loadingTitle:'Operasyon özetin hazırlanıyor', loadingSub:'OPS ticaret sinyallerini okuyor ve kaynak etiketli aksiyon raporu oluşturuyor.',
+    resultsTitle:'OPS Operasyon Özeti', refresh:'Yenile', waitingAnalysis:'Analiz bekleniyor', waitingCopy:'OPS canlı ve örnek çalışmaları ayrı etiketleyecek.', sourceDetails:'Çalışma sonrası kaynak detayları burada görünür.', connector:'Bağlantı', waiting:'Bekleniyor', coverage:'Kapsam', engine:'Analiz motoru', scoreLabel:'Mağaza Sağlık Skoru / 100',
+    findings:'Bulgular', revenue:'Gelir', inventory:'Stok', actions:'Aksiyonlar', pricing:'Fiyatlama', forecast:'Tahmin', benchmark:'Kıyaslama', products:'Ürünler', downloadPdf:'PDF İndir',
+    thinking:'Operasyon özeti üzerinden düşünüyorum...', analyzing:'OPS analiz ediyor', askFirst:'Önce OPS’e bir soru sor.', localIntel:'Yerel OPS zekası', confidence:'Güven', nextActions:'Sonraki aksiyonlar'
+  }
+};
+
+function t(key) {
+  return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+}
+
+function setText(selector, value) {
+  const el=document.querySelector(selector);
+  if(el) el.textContent=value;
+}
+
+function setAllText(selector, values) {
+  document.querySelectorAll(selector).forEach((el,i)=>{ if(values[i]!==undefined) el.textContent=values[i]; });
+}
+
+function setLanguage(lang) {
+  currentLang = lang === 'tr' ? 'tr' : 'en';
+  localStorage.setItem('ops_lang', currentLang);
+  applyLanguage();
+}
+
+function applyLanguage() {
+  const L=I18N[currentLang] || I18N.en;
+  document.documentElement.lang=currentLang;
+  document.querySelectorAll('[data-lang-button]').forEach(btn=>btn.classList.toggle('active', btn.dataset.langButton===currentLang));
+  setText('#login-loader .login-loader-copy', L.loginLoader);
+  setText('.auth-trust-title', L.authTitle);
+  setText('.auth-trust-copy', L.authCopy);
+  setAllText('.auth-trust-badge', L.authBadges);
+  setAllText('.auth-tab', [L.login, L.signup]);
+  setAllText('#form-login label', ['Email', L.password]);
+  setAllText('#form-register label', [L.fullName, 'Email', L.password]);
+  const regName=document.getElementById('reg-name'); if(regName) regName.placeholder=L.yourName;
+  const regPass=document.getElementById('reg-password'); if(regPass) regPass.placeholder=currentLang==='tr'?'En az 6 karakter':'At least 6 characters';
+  const loginBtn=document.getElementById('login-btn'); if(loginBtn) loginBtn.textContent=L.login+' →';
+  const regBtn=document.querySelector('#form-register .auth-btn'); if(regBtn) regBtn.textContent=L.createAccount;
+  setAllText('.auth-proof-label', L.authProof);
+  setText('.sb-tagline', currentLang==='tr'?'Zeka Platformu':'Intelligence Platform');
+  setAllText('.sb-section', [L.navOverview, L.navAnalysis, L.navTools, L.navAccount]);
+  const navLabels={home:L.navDashboard,connect:L.navConnect,analysis:L.navBuild,results:L.navResults,ask:L.navAsk,compare:L.navCompare,team:L.navTeam,ledger:L.navLedger,plans:L.navPlans};
+  Object.entries(navLabels).forEach(([key,val])=>{const el=document.querySelector(`.nav-item[data-nav="${key}"]`); if(el) el.childNodes.forEach(n=>{if(n.nodeType===3) n.textContent=' '+val+' ';});});
+  document.querySelectorAll('[onclick="logout()"]').forEach(el=>{if(el.tagName==='BUTTON') el.lastChild.textContent=' '+L.logout; else el.childNodes.forEach(n=>{if(n.nodeType===3)n.textContent=' '+L.logout;});});
+  setText('#sec-home .pg-sub', L.homeSub);
+  const homeChip=document.querySelector('#sec-home .chip'); if(homeChip) homeChip.lastChild.textContent=' '+L.last30;
+  const homeBuild=document.querySelector('#sec-home .btn-ink.btn-sm'); if(homeBuild) homeBuild.lastChild.textContent=' '+L.buildBrief;
+  setText('#sec-ask .pg-title', L.navAsk);
+  setText('#sec-ask .pg-sub', L.askSub);
+  const askDemoBtn=document.querySelector('#sec-ask .pg-header .btn'); if(askDemoBtn) askDemoBtn.lastChild.textContent=' '+L.askDemo;
+  setText('.ask-title', L.askTitle);
+  setText('.ask-copy', L.askCopy);
+  setAllText('.ask-proof-k', [L.askMemoryLabel, L.askConfidenceLabel, L.askModeLabel]);
+  setText('#mode-founder', L.founderMode);
+  setText('#mode-investor', L.investorMode);
+  const firstMsg=document.querySelector('#ask-chat .chat-msg.ops'); if(firstMsg) firstMsg.childNodes[0].textContent=L.askReady;
+  const firstMeta=document.querySelector('#ask-chat .chat-meta'); if(firstMeta) firstMeta.textContent=L.opsReady;
+  const askInput=document.getElementById('ask-input'); if(askInput) askInput.placeholder=L.askPlaceholder;
+  const askBtn=document.querySelector('.ask-input-row .btn'); if(askBtn) askBtn.textContent=L.askButton;
+  const presetKeys=['fix_first','revenue_leak','risky_products','refunds'];
+  document.querySelectorAll('.prompt-chip').forEach((btn,i)=>{btn.textContent=L.presets[presetKeys[i]];});
+  setText('#sec-connect .pg-title', L.connectTitle);
+  setText('#sec-connect .pg-sub', L.connectSub);
+  setText('.connect-kicker', L.startHere);
+  setText('.connect-hero-title', L.connectHeroTitle);
+  setText('.connect-hero-copy', L.connectHeroCopy);
+  setAllText('.connect-benefit', L.connectSteps);
+  setText('.connect-card-eyebrow', L.shopifySetup);
+  const shopTitle=document.querySelector('.connect-card-title.big'); if(shopTitle) shopTitle.lastChild.textContent=' '+L.shopifyStore;
+  setText('.connect-card-sub', L.shopifyCopy);
+  setAllText('#shopify-connection-status strong', [L.notConnected]);
+  const connStatusCopy=document.querySelector('#shopify-connection-status strong + div'); if(connStatusCopy) connStatusCopy.textContent=L.notConnectedCopy;
+  setAllText('#src-shopify .field label', [L.storeDomain, L.adminToken]);
+  const installBtn=document.querySelector('.connect-primary-actions .btn-ink'); if(installBtn) installBtn.lastChild.textContent=' '+L.openInstall;
+  const runBtn=document.querySelector('.connect-primary-actions .btn-outline'); if(runBtn) runBtn.textContent=L.runBrief;
+  const summary=document.querySelector('#src-shopify summary'); if(summary) summary.textContent=L.manualFallback;
+  const manualBtn=document.querySelector('#src-shopify details .btn'); if(manualBtn) manualBtn.textContent=L.analyzeManual;
+  const demoBtn=document.querySelector('.connect-secondary-actions .btn'); if(demoBtn) demoBtn.textContent=L.tryDemo;
+  const note=document.querySelector('#src-shopify .connect-note'); if(note) note.innerHTML=`<strong>${L.connectTip}</strong> ${L.connectTipCopy}`;
+  setText('.flow-title', L.whatNext);
+  setText('.flow-sub', L.whatNextCopy);
+  setAllText('.flow-step strong', [L.flow1,L.flow2,L.flow3]);
+  setAllText('.flow-step span', [L.flow1Copy,L.flow2Copy,L.flow3Copy]);
+  setAllText('.connect-check strong', [L.readOnly,L.liveLabeled,L.manualOptional]);
+  setAllText('.connect-check span', [L.readOnlyCopy,L.liveLabeledCopy,L.manualOptionalCopy]);
+  setText('#sec-analysis .pg-title', L.analysisTitle);
+  setText('#analysis-shop-name', L.analysisSub);
+  setAllText('#sec-analysis .card-title', [L.demoAnalysis,L.productionRules,L.shopifyLive]);
+  setAllText('#sec-analysis .card-sub', [L.demoAnalysisCopy,L.productionRulesCopy,L.shopifyLiveCopy]);
+  const demoAnalysisBtn=document.querySelector('#sec-analysis .card .btn-ink'); if(demoAnalysisBtn) demoAnalysisBtn.lastChild.textContent=' '+L.runDemo;
+  setAllText('#sec-analysis .trust-point strong', [L.liveConnectors,L.demoIsolation,L.resultContext]);
+  setAllText('#sec-analysis .trust-point span', [L.liveConnectorsCopy,L.demoIsolationCopy,L.resultContextCopy]);
+  const liveBtn=document.querySelector('#sec-analysis .btn-gold'); if(liveBtn) liveBtn.lastChild.textContent=' '+L.connectAnalyze;
+  setText('.loading-title', L.loadingTitle);
+  setText('.loading-sub', L.loadingSub);
+  setText('#sec-results .pg-title', L.resultsTitle);
+  const refreshBtn=document.querySelector('#sec-results .pg-header .btn'); if(refreshBtn) refreshBtn.lastChild.textContent=' '+L.refresh;
+  setText('#result-signal-title', L.waitingAnalysis);
+  setText('#result-signal-copy', L.waitingCopy);
+  setText('#result-signal-meta', L.sourceDetails);
+  setAllText('.result-proof-label', [L.connector,L.coverage,L.engine]);
+  setText('#proof-source', L.waiting);
+  setText('.score-label', L.scoreLabel);
+  setAllText('.tabs .tab', [L.findings,L.revenue,L.inventory,L.actions,'SWOT','Meta Ads','Churn',L.pricing,L.forecast,L.benchmark,L.products]);
+  const pdfBtn=document.querySelector('.pdf-strip .btn'); if(pdfBtn) pdfBtn.textContent=L.downloadPdf;
+  updateAskContext(lastResult);
+}
 
 function updateUsageMeter() {
   if(!user) return;
@@ -2418,6 +2513,7 @@ function recordLocalAnalysis(countTowardUsage) {
 
 // ── INIT
 window.onload = () => {
+  applyLanguage();
   const params = getLaunchParams();
   if(params.has('shopify_connected') || params.has('shopify_error')) {
     resumeAfterShopifyCallback(params);
@@ -2702,6 +2798,7 @@ function showApp() {
     document.getElementById('team-badge').textContent = teamMembers.length;
     if(lastResult){renderOverview(lastResult);nav('home');}
     else nav('home');
+    applyLanguage();
   }
 }
 
@@ -2919,7 +3016,15 @@ function normalizeShopInput(v) {
 }
 
 function setAnalysisLoadingLabels(mode) {
-  const labels = {
+  const labelSets = currentLang === 'tr' ? {
+    demo: ['Örnek operasyon verisi yükleniyor', 'Operasyon metrikleri hesaplanıyor', 'Demo analizi oluşturuluyor', 'Etiketli demo sonuçları hazırlanıyor'],
+    shopify: ['Shopify siparişleri ve stokları çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Canlı sonuçlar hazırlanıyor'],
+    woocommerce: ['WooCommerce siparişleri ve ürünleri çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Canlı sonuçlar hazırlanıyor'],
+    etsy: ['Etsy dışa aktarımı okunuyor', 'Marketplace metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
+    amazon: ['Amazon seller dışa aktarımı okunuyor', 'Marketplace metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
+    upload: ['Yüklenen ticaret dosyası okunuyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
+    generic: ['Yüklenen ticaret dosyası okunuyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
+  } : {
     demo: ['Loading sample operating data', 'Calculating operating metrics', 'Building sample analysis', 'Preparing labeled demo results'],
     shopify: ['Fetching Shopify orders and inventory', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
     woocommerce: ['Fetching WooCommerce orders and products', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
@@ -2927,7 +3032,11 @@ function setAnalysisLoadingLabels(mode) {
     amazon: ['Reading Amazon seller export', 'Calculating marketplace metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
     upload: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
     generic: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
-  }[mode] || ['Fetching store data', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing results'];
+  };
+  const fallback = currentLang === 'tr'
+    ? ['Mağaza verisi çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Sonuçlar hazırlanıyor']
+    : ['Fetching store data', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing results'];
+  const labels = labelSets[mode] || fallback;
   labels.forEach((label, index) => {
     const step = document.getElementById(`step-${index + 1}`);
     if(step && step.lastChild) step.lastChild.textContent = label;
@@ -2968,16 +3077,16 @@ function renderShopifyStatus() {
   if(active) {
     el.className='connect-state ok';
     el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Connected: '+active.domain+'</strong>'+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Live Shopify permissions active: '+(active.scope||'orders, products, inventory')+'</div>'+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Store slots used: '+storeLimit.used+' / '+storeLimit.max+'. Add another store by upgrading or using a separate account.</div></div>';
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Canlı Shopify izinleri aktif: ':'Live Shopify permissions active: ')+(active.scope||'orders, products, inventory')+'</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Kullanılan mağaza hakkı: ':'Store slots used: ')+storeLimit.used+' / '+storeLimit.max+'. '+(currentLang==='tr'?'Başka mağaza eklemek için yükselt veya ayrı hesap kullan.':'Add another store by upgrading or using a separate account.')+'</div></div>';
     if(document.getElementById('connect-domain') && !document.getElementById('connect-domain').value) {
       document.getElementById('connect-domain').value=active.domain;
     }
   } else {
     const last=connectedShops[0];
     el.className='connect-state warn';
-    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">'+(last ? 'Permissions not verified: '+last.domain : 'Not connected')+'</strong><div>Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.</div>'+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">Current account limit: '+storeLimit.max+' Shopify store'+(storeLimit.max===1?'':'s')+'.</div></div>';
+    el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">'+(last ? (currentLang==='tr'?'İzinler doğrulanmadı: ':'Permissions not verified: ')+last.domain : t('notConnected'))+'</strong><div>'+(currentLang==='tr'?'Canlı sipariş, ürün, stok, churn, fiyatlama ve tahmin analizi için OPS’i Shopify OAuth ile kur.':'Install OPS through Shopify OAuth to unlock live orders, products, inventory, churn, pricing, and forecast analysis.')+'</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Mevcut hesap limiti: ':'Current account limit: ')+storeLimit.max+' Shopify '+(currentLang==='tr'?'mağazası':'store'+(storeLimit.max===1?'':'s'))+'.</div></div>';
   }
 }
 
@@ -3081,8 +3190,12 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
   rememberAnalysisRequest({mock,domain,shopToken,connectedShop,platform});
   const loadEl=showAnalysisLoading(mock ? 'demo' : platform);
   document.getElementById('analysis-shop-name').textContent=mock
-    ? 'Demo Store'
-    : (platform === 'woocommerce' ? 'Pulling live WooCommerce data...' : (['amazon','etsy','generic','upload'].includes(platform) ? 'Analyzing uploaded commerce file...' : 'Pulling live Shopify data...'));
+    ? (currentLang==='tr'?'Demo Mağaza':'Demo Store')
+    : (platform === 'woocommerce'
+      ? (currentLang==='tr'?'Canlı WooCommerce verisi çekiliyor...':'Pulling live WooCommerce data...')
+      : (['amazon','etsy','generic','upload'].includes(platform)
+        ? (currentLang==='tr'?'Yüklenen ticaret dosyası analiz ediliyor...':'Analyzing uploaded commerce file...')
+        : (currentLang==='tr'?'Canlı Shopify verisi çekiliyor...':'Pulling live Shopify data...')));
   const steps=['step-1','step-2','step-3','step-4'];
   let si=0;
   const interval=setInterval(()=>{
@@ -3116,7 +3229,7 @@ async function runAnalysis(mock=true,domain='',shopToken='',connectedShop='',pla
       r=await fetch(`${API}/analysis/run`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:false,use_mock_meta:!!mock&&platform==='shopify',language:'en'}),
+        body:JSON.stringify({use_mock:mock,platform,shopify_domain:domain,shopify_token:shopToken,connected_shop:connectedShop,fast_ai:false,use_mock_meta:!!mock&&platform==='shopify',language:currentLang}),
         signal:controller.signal
       });
       clearTimeout(timeout);
@@ -3424,8 +3537,12 @@ function updateAskContext(data) {
   const counts=data?.record_counts||{};
   const mem=document.getElementById('ask-memory');
   const conf=document.getElementById('ask-confidence');
-  if(mem) mem.textContent=data ? `${data.shop_name||'Store'} · ${data.data_source||'analysis'} brief loaded` : 'Run a brief to load context.';
-  if(conf) conf.textContent=data ? `Based on ${counts.orders||0} orders / ${counts.products||0} products` : 'Awaiting analysis context.';
+  if(mem) mem.textContent=data
+    ? `${data.shop_name||'Store'} · ${data.data_source||'analysis'} ${currentLang==='tr'?'özeti yüklendi':'brief loaded'}`
+    : (currentLang==='tr'?'Bağlam yüklemek için bir özet çalıştır.':'Run a brief to load context.');
+  if(conf) conf.textContent=data
+    ? (currentLang==='tr'?`${counts.orders||0} sipariş / ${counts.products||0} ürün bazında`:`Based on ${counts.orders||0} orders / ${counts.products||0} products`)
+    : (currentLang==='tr'?'Analiz bağlamı bekleniyor.':'Awaiting analysis context.');
 }
 
 function setOpsMode(mode) {
@@ -3434,7 +3551,7 @@ function setOpsMode(mode) {
     const el=document.getElementById('mode-'+m);
     if(el) el.classList.toggle('active', m===opsMode);
   });
-  showToast(opsMode === 'investor' ? 'Investor Mode enabled' : 'Founder Mode enabled');
+  showToast(opsMode === 'investor' ? t('investorMode')+' enabled' : t('founderMode')+' enabled');
 }
 
 function appendChat(role, text, meta) {
@@ -3450,13 +3567,18 @@ function appendChat(role, text, meta) {
 function localAskAnswer(question, context) {
   const intel=buildOpsIntelligence(context||buildLocalMock());
   const q=String(question||'').toLowerCase();
+  const tr=currentLang==='tr';
   if(q.includes('revenue') || q.includes('leak')) {
     const top=intel.leaks[0];
+    if(tr) return `OPS yaklaşık €${money0(intel.totalLeak)} potansiyel aylık kaçak görüyor. İlk bakılacak yer ${top?.name||'operasyonel sürtünme'} çünkü ${top?.why||'tutulan geliri sessizce azaltabilir'}. Sonraki aksiyon: 1 numaralı işi bir sorumluya ata ve bir sonraki senkron sonrası özeti tekrar kontrol et.`;
     return `OPS sees about €${money0(intel.totalLeak)} in potential monthly leakage. The first place to inspect is ${top?.name||'operational drag'} because ${top?.why||'it can quietly reduce retained revenue'}. Next action: assign the #1 queue item and re-check the brief after the next sync.`;
   }
   if(q.includes('product') || q.includes('sku') || q.includes('stock')) {
     const inv=context?.metrics?.inventory||{};
     const risky=(inv.products||[]).filter(p=>Number(p.current_stock??p.inventory??0)<=10).slice(0,3).map(getProductTitle);
+    if(tr) return risky.length
+      ? `OPS ürün riskini şuralarda görüyor: ${risky.join(', ')}. Neden önemli: düşük stok ve aktif talep birlikte kaçan sipariş ve boşa giden reklam harcaması yaratabilir. Sonraki aksiyon: reklam veya kampanya ölçeklemeden önce bu SKU’ları koru.`
+      : 'OPS ürün riskini izliyor ama son bağlamda kritik düşük stoklu SKU görünmüyor. Sonraki aksiyon: yavaş dönen ürünleri ve bundle adaylarını gözden geçir.';
     return risky.length
       ? `OPS found product risk in ${risky.join(', ')}. Why it matters: low stock plus active demand can create missed orders and wasted acquisition spend. Next action: protect these SKUs before scaling ads or promotions.`
       : 'OPS is monitoring product risk, but no critical low-stock SKU is visible in the latest context. Next action: review slow-turnover products and bundle candidates.';
@@ -3464,14 +3586,17 @@ function localAskAnswer(question, context) {
   if(q.includes('refund')) {
     const rev=context?.metrics?.revenue||{};
     const ft=context?.metrics?.fulfillment||{};
+    if(tr) return `İade riski ${Number(rev.refund_rate||0).toFixed(1)}% ve fulfillment ortalaması ${Number(ft.mean||0).toFixed(1)} saat. OPS geciken fulfillment veya belirli SKU’ların iade baskısını artırıp artırmadığını kontrol eder. Bu devam ederse tutulan gelir ve tekrar satın alma güveni zayıflayabilir.`;
     return `Refund risk is ${Number(rev.refund_rate||0).toFixed(1)}% and fulfillment is ${Number(ft.mean||0).toFixed(1)}h. OPS would check whether delayed fulfillment or specific SKUs are driving refund pressure. If sustained, this can reduce retained revenue and weaken repeat purchase confidence.`;
   }
   const p=intel.priorities[0];
+  if(tr) return `OPS ${p?.name||'en yüksek etkili operasyon aksiyonuyla'} başlardı. Neden önemli: ${p?.why||'son özete göre marjı korumanın en net yolu bu'}. Tahmini etki yaklaşık €${money0(p?.impact||intel.totalLeak*.4)} ve güven seviyesi ${p?.confidence||'Orta'}.`;
   return `OPS would start with ${p?.name||'the highest-impact operating action'}. Why it matters: ${p?.why||'it is the clearest path to protect margin from the latest brief'}. Estimated impact is around €${money0(p?.impact||intel.totalLeak*.4)} with ${p?.confidence||'Medium'} confidence.`;
 }
 
 function askPreset(question) {
   const input=document.getElementById('ask-input');
+  if(I18N[currentLang]?.presets?.[question]) question=I18N[currentLang].presets[question];
   if(input) input.value=question;
   askOps();
 }
@@ -3479,7 +3604,7 @@ function askPreset(question) {
 async function askOps() {
   const input=document.getElementById('ask-input');
   const question=(input?.value||'').trim();
-  if(!question){showToast('Ask OPS a question first.');return;}
+  if(!question){showToast(t('askFirst'));return;}
   const context=lastResult || buildLocalMock();
   if(!lastResult) {
     lastResult=context;
@@ -3488,26 +3613,26 @@ async function askOps() {
   }
   appendChat('user', question);
   if(input) input.value='';
-  appendChat('ops', 'Thinking through the operating brief...', 'OPS analyzing');
+  appendChat('ops', t('thinking'), t('analyzing'));
   const chat=document.getElementById('ask-chat');
   const pending=chat?.lastElementChild;
   try {
     const r=await fetch(`${API}/ai/ask`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({question,mode:opsMode,context}),
+      body:JSON.stringify({question,mode:opsMode,context,language:currentLang}),
     });
     const d=await r.json().catch(()=>({}));
     if(!r.ok || !d.answer) throw new Error(d.detail||'AI endpoint unavailable');
     if(pending) pending.remove();
     const based=typeof d.based_on==='string' ? d.based_on : `${d.based_on?.orders||context.record_counts?.orders||0} orders · ${d.based_on?.products||context.record_counts?.products||0} products`;
-    appendChat('ops', d.answer, `Confidence: ${d.confidence||'Medium'} · ${based}`);
+    appendChat('ops', d.answer, `${t('confidence')}: ${d.confidence||'Medium'} · ${based}`);
     if(Array.isArray(d.suggested_actions) && d.suggested_actions.length) {
-      appendChat('ops', 'Suggested actions: '+d.suggested_actions.slice(0,3).join(' · '), 'Next actions');
+      appendChat('ops', (currentLang==='tr'?'Önerilen aksiyonlar: ':'Suggested actions: ')+d.suggested_actions.slice(0,3).join(' · '), t('nextActions'));
     }
   } catch(e) {
     if(pending) pending.remove();
-    appendChat('ops', localAskAnswer(question, context), 'Local OPS intelligence');
+    appendChat('ops', localAskAnswer(question, context), t('localIntel'));
   }
 }
 
@@ -4200,7 +4325,7 @@ async function runUploadAnalysis() {
     const form = new FormData();
     form.append('file', file);
     form.append('platform', platform);
-    form.append('language', 'en');
+    form.append('language', currentLang);
     const r = await fetch(`${API}/analysis/upload`, {
       method: 'POST',
       headers: {'Authorization': `Bearer ${token}`},
