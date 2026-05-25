@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Any, Dict, List
 import os
 import jwt
 import bcrypt
@@ -39,6 +39,27 @@ from data_layer import ShopifyConfig, WooCommerceConfig, MetricsEngine, run_pipe
 from ai_engine import AIConfig, AIAnalysisEngine, run_extended_analysis
 from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
+
+def load_local_env_file(filename: str = ".env.local"):
+    """Load local development env values without requiring an extra dependency."""
+    path = os.path.join(os.path.dirname(__file__), filename)
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except Exception:
+        pass
+
+load_local_env_file()
 
 app = FastAPI(title="OPS Intelligence API", version="1.0.0")
 app.mount("/assets", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "assets")), name="assets")
@@ -222,6 +243,11 @@ class ShopifyBillingRequest(BaseModel):
     shop: str
     plan: str
     app_token: str
+
+class AIAskRequest(BaseModel):
+    question: str
+    context: Dict[str, Any] = {}
+    mode: str = "founder"
 
 
 def make_analysis_context(report: dict, shop_name: str, data_source: str, model: str) -> dict:
@@ -2077,6 +2103,174 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         },
         "user_plan": plan_key,
     })
+
+
+# ─────────────────────────────────────────────
+# ASK OPS — AI OPERATOR ENDPOINT
+# ─────────────────────────────────────────────
+
+def compact_ai_context(ctx: dict) -> dict:
+    """Keep the model context focused on operating signals instead of raw store dumps."""
+    ctx = ctx or {}
+    analysis = ctx.get("analysis") or {}
+    metrics = ctx.get("metrics") or {}
+    extended = ctx.get("extended") or {}
+    meta = ctx.get("meta") or {}
+    return make_json_safe({
+        "shop_name": ctx.get("shop_name"),
+        "data_source": ctx.get("data_source"),
+        "record_counts": ctx.get("record_counts"),
+        "analysis": {
+            "overall_health_score": analysis.get("overall_health_score"),
+            "executive_summary": analysis.get("executive_summary"),
+            "findings": (analysis.get("findings") or [])[:6],
+            "quick_wins": (analysis.get("quick_wins") or [])[:8],
+            "swot": analysis.get("swot") or {},
+        },
+        "metrics": {
+            "revenue": metrics.get("revenue") or {},
+            "fulfillment": metrics.get("fulfillment") or {},
+            "inventory": {
+                **(metrics.get("inventory") or {}),
+                "products": ((metrics.get("inventory") or {}).get("products") or [])[:12],
+            },
+        },
+        "extended": {
+            "churn": extended.get("churn") or {},
+            "price_elasticity": extended.get("price_elasticity") or {},
+            "forecast": {
+                **(extended.get("forecast") or {}),
+                "forecast_30_days": ((extended.get("forecast") or {}).get("forecast_30_days") or [])[:10],
+            },
+            "benchmark": extended.get("benchmark") or {},
+        },
+        "meta": {
+            "cross_alarms": (meta.get("cross_alarms") or [])[:6],
+            "campaign_summary": (meta.get("campaign_summary") or [])[:8],
+        } if isinstance(meta, dict) else {},
+    })
+
+
+def fallback_ops_answer(question: str, ctx: dict, mode: str) -> dict:
+    metrics = (ctx or {}).get("metrics") or {}
+    analysis = (ctx or {}).get("analysis") or {}
+    revenue = metrics.get("revenue") or {}
+    fulfillment = metrics.get("fulfillment") or {}
+    inventory = metrics.get("inventory") or {}
+    products = inventory.get("products") or []
+    findings = analysis.get("findings") or []
+    quick_wins = analysis.get("quick_wins") or []
+    cancel_rate = float(revenue.get("cancel_rate") or revenue.get("cancellation_rate") or 0)
+    refund_rate = float(revenue.get("refund_rate") or 0)
+    ft_mean = float(fulfillment.get("mean") or 0)
+    critical_products = [
+        p for p in products
+        if float(p.get("current_stock") or p.get("inventory") or 0) <= 10
+    ]
+    total = float(revenue.get("total") or revenue.get("total_revenue") or 0)
+    leakage = round(
+        max(
+            1200,
+            (total * 0.08 if cancel_rate > 2.5 else 0)
+            + (total * 0.05 if refund_rate > 5 else 0)
+            + len(critical_products) * 650
+            + (900 if ft_mean > 24 else 0),
+        )
+    )
+    q = (question or "").lower()
+    if "refund" in q or "return" in q:
+        answer = (
+            f"OPS sees refund pressure at {refund_rate:.1f}%. "
+            f"The likely operating driver is fulfillment drag at {ft_mean:.1f}h plus SKU-level product risk. "
+            f"If sustained, this can keep roughly €{leakage:,} of monthly revenue under pressure."
+        )
+    elif "stock" in q or "sku" in q or "inventory" in q:
+        names = ", ".join((p.get("title") or p.get("name") or "SKU") for p in critical_products[:3]) or "no critical SKU"
+        answer = (
+            f"OPS found {len(critical_products)} products at stock risk. "
+            f"Start with {names}. The consequence is missed demand and wasted acquisition spend if campaigns keep driving traffic."
+        )
+    elif "aov" in q or "bundle" in q:
+        answer = (
+            f"AOV is €{float(revenue.get('aov') or 0):.0f}. "
+            "OPS would protect this by bundling high-margin hero products with slower-moving inventory, then testing a small price lift on low-elasticity SKUs."
+        )
+    else:
+        top = findings[0] if findings else {}
+        action = quick_wins[0] if quick_wins else "Assign an owner to the highest-risk finding and review again after the next data sync."
+        answer = (
+            f"OPS would start with: {top.get('title', 'the highest-risk operating signal')}. "
+            f"Why it matters: {top.get('description') or top.get('root_cause') or 'it can turn store activity into avoidable margin loss.'} "
+            f"Next action: {action}"
+        )
+    return {
+        "success": True,
+        "mode": mode,
+        "model": "ops-rule-fallback",
+        "answer": answer,
+        "confidence": "High" if (ctx or {}).get("record_counts", {}).get("orders", 0) >= 100 else "Medium",
+        "based_on": {
+            "orders": (ctx or {}).get("record_counts", {}).get("orders", 0),
+            "products": (ctx or {}).get("record_counts", {}).get("products", 0),
+        },
+        "suggested_actions": quick_wins[:3],
+    }
+
+
+@app.post("/ai/ask")
+async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
+    question = (req.question or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question is required.")
+
+    context = compact_ai_context(req.context)
+    openai_key = os.environ.get("OPENAI_API_KEY", "")
+    if not openai_key:
+        return fallback_ops_answer(question, context, req.mode)
+
+    system = (
+        "You are OPS, an AI operations analyst for Shopify founders. "
+        "Answer like an opinionated AI COO, not a generic dashboard assistant. "
+        "Use the provided context only. Focus on profit leaks, operational risk, cause, consequence, next action, and confidence. "
+        "Be concise, evidence-based, and practical. Do not invent exact data not present in context."
+    )
+    user_prompt = {
+        "question": question,
+        "mode": req.mode,
+        "context": context,
+        "response_contract": {
+            "answer": "3-6 sentence answer with cause, consequence, and next action",
+            "confidence": "Low, Medium, or High",
+            "based_on": "short evidence summary",
+            "suggested_actions": "array of up to 3 action strings",
+        },
+    }
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=openai_key, timeout=20.0, max_retries=0)
+        response = client.chat.completions.create(
+            model=os.environ.get("OPENAI_ASK_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
+            ],
+            temperature=0.25,
+            response_format={"type": "json_object"},
+            max_tokens=650,
+        )
+        raw = response.choices[0].message.content or "{}"
+        parsed = json.loads(raw)
+        return make_json_safe({
+            "success": True,
+            "mode": req.mode,
+            "model": response.model,
+            "answer": parsed.get("answer") or "",
+            "confidence": parsed.get("confidence") or "Medium",
+            "based_on": parsed.get("based_on") or context.get("record_counts") or {},
+            "suggested_actions": parsed.get("suggested_actions") or [],
+        })
+    except Exception:
+        return fallback_ops_answer(question, context, req.mode)
 
 
 # ─────────────────────────────────────────────

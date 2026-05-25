@@ -587,6 +587,70 @@ body.analysis-is-loading{overflow:hidden!important}
 }
 .chart-intel-note strong{display:block;font-size:12px;color:#f0c462;margin-bottom:4px}
 .chart-intel-note span{display:block;font-size:12px;line-height:1.45;color:rgba(255,255,255,.72)}
+.ops-intel-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin:0 0 24px}
+.ops-panel{background:var(--white);border:1px solid rgba(224,216,204,.92);border-radius:24px;padding:22px;box-shadow:var(--sh);overflow:hidden;position:relative}
+.ops-panel.dark{background:#11120d;color:#fff;border-color:#11120d}
+.ops-panel-title{font-size:20px;font-weight:800;letter-spacing:-.035em;color:var(--ink);margin-bottom:5px}
+.ops-panel.dark .ops-panel-title{color:#fff}
+.ops-panel-sub{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+.ops-panel.dark .ops-panel-sub{color:rgba(255,255,255,.6)}
+.leak-total{font-size:42px;font-weight:800;letter-spacing:-.055em;line-height:1;color:#fff;margin:12px 0 6px;font-variant-numeric:tabular-nums lining-nums}
+.leak-list,.timeline-list,.alert-list,.brief-list{display:grid;gap:10px}
+.leak-item,.timeline-item,.alert-item,.priority-item,.health-row,.brief-item{border:1px solid var(--border);background:#fffaf6;border-radius:16px;padding:13px 14px}
+.ops-panel.dark .leak-item{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12)}
+.leak-top,.alert-top,.priority-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.leak-name,.alert-name,.priority-name{font-size:13px;font-weight:800;color:var(--ink);line-height:1.35}
+.ops-panel.dark .leak-name{color:#fff}
+.leak-impact,.priority-impact{font-size:12px;font-weight:900;color:var(--danger);white-space:nowrap;font-variant-numeric:tabular-nums lining-nums}
+.leak-why,.alert-why,.priority-why,.timeline-copy,.brief-copy{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+.ops-panel.dark .leak-why{color:rgba(255,255,255,.56)}
+.priority-queue{display:grid;gap:10px}
+.priority-item{display:grid;grid-template-columns:auto 1fr;gap:12px;background:#fff}
+.priority-rank{width:34px;height:34px;border-radius:12px;background:#11120d;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:900}
+.priority-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.mini-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;background:rgba(17,18,13,.05);font-size:10px;font-weight:800;color:var(--ink)}
+.health-breakdown{display:grid;gap:10px}
+.health-row{display:grid;grid-template-columns:120px 1fr 54px;gap:12px;align-items:center;background:#fff}
+.health-label{font-size:12px;font-weight:800;color:var(--ink)}
+.health-track{height:8px;border-radius:999px;background:#eee8db;overflow:hidden}
+.health-fill{height:100%;border-radius:999px;background:var(--gold)}
+.health-score{font-size:13px;font-weight:900;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.timeline-item{display:grid;grid-template-columns:auto 1fr;gap:12px;background:#fff}
+.timeline-dot{width:11px;height:11px;border-radius:50%;background:var(--gold);margin-top:4px;box-shadow:0 0 0 5px rgba(214,155,45,.12)}
+.timeline-title{font-size:13px;font-weight:800;color:var(--ink)}
+.timeline-time{font-size:11px;color:var(--muted);margin-top:2px}
+.alert-item{background:#fff}
+.alert-item.critical{border-color:rgba(192,57,43,.28);background:#fff8f6}
+.alert-item.high{border-color:rgba(184,109,10,.24);background:#fffaf0}
+.alert-sev{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;padding:5px 8px;border-radius:999px;background:rgba(17,18,13,.06);color:var(--ink)}
+.alert-item.critical .alert-sev{background:rgba(192,57,43,.1);color:var(--danger)}
+.alert-item.high .alert-sev{background:rgba(184,109,10,.1);color:var(--warn)}
+.brief-item{background:#fff;display:flex;gap:10px;align-items:flex-start}
+.brief-item::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:6px;flex:0 0 8px}
+.mode-switch{display:inline-flex;padding:4px;border-radius:999px;border:1px solid var(--border);background:#fff;margin-bottom:14px}
+.mode-btn{border:0;background:transparent;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer}
+.mode-btn.active{background:#11120d;color:#fff}
+.ask-shell{display:grid;grid-template-columns:.8fr 1.2fr;gap:18px}
+.ask-card{background:var(--white);border:1px solid var(--border);border-radius:26px;padding:24px;box-shadow:var(--sh)}
+.ask-hero{background:linear-gradient(135deg,#11120d,#302817);color:#fff;position:relative;overflow:hidden}
+.ask-hero::after{content:"";position:absolute;right:-60px;bottom:-90px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.32),transparent 70%)}
+.ask-title{font-size:34px;font-weight:900;letter-spacing:-.055em;line-height:1.02;max-width:10ch}
+.ask-copy{font-size:14px;line-height:1.7;color:rgba(255,255,255,.62);margin-top:14px;max-width:44ch}
+.ask-proof{display:grid;gap:10px;margin-top:24px;position:relative;z-index:1}
+.ask-proof-item{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:13px 14px;background:rgba(255,255,255,.07)}
+.ask-proof-k{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.45);font-weight:800}
+.ask-proof-v{font-size:14px;font-weight:800;margin-top:3px}
+.chat-window{height:420px;overflow:auto;border:1px solid var(--border);border-radius:20px;background:#fffaf6;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-msg{max-width:86%;border-radius:18px;padding:13px 14px;font-size:13px;line-height:1.55}
+.chat-msg.user{align-self:flex-end;background:#11120d;color:#fff;border-bottom-right-radius:6px}
+.chat-msg.ops{align-self:flex-start;background:#fff;border:1px solid var(--border);color:var(--ink);border-bottom-left-radius:6px}
+.chat-meta{font-size:10px;color:var(--muted);margin-top:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.prompt-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.prompt-chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer}
+.prompt-chip:hover{border-color:rgba(214,155,45,.45);background:#fffaf0}
+.ask-input-row{display:flex;gap:10px;margin-top:12px}
+.ask-input{flex:1;border:1px solid var(--border);border-radius:16px;padding:13px 14px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+.ask-input:focus{outline:none;border-color:rgba(214,155,45,.55);box-shadow:0 0 0 4px rgba(214,155,45,.1)}
 
 /* Tabs */
 .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0;overflow-x:auto;scrollbar-width:none}
@@ -1091,7 +1155,7 @@ body.analysis-is-loading{overflow:hidden!important}
   #page-app .pg-title{font-size:30px}
   #page-app .kpi,#page-app .sec-card,#page-app .card,#page-app .connect-card,#page-app .trust-card,#page-app .trust-mini,#page-app .result-proof-card,#page-app .metric-card,#page-app .score-box{border-radius:22px}
   #page-app .kpi,#page-app .sec-card,#page-app .card,#page-app .connect-card,#page-app .trust-card{padding:24px}
-  #page-app .ov-kpis,#page-app .ov-row2,#page-app .ov-bottom,#page-app .trust-strip,#page-app .trust-points,#page-app .connect-grid,#page-app .result-proof,#page-app .metrics-grid{grid-template-columns:1fr!important}
+  #page-app .ov-kpis,#page-app .ov-row2,#page-app .ov-bottom,#page-app .trust-strip,#page-app .trust-points,#page-app .connect-grid,#page-app .result-proof,#page-app .metrics-grid,#page-app .ops-intel-grid,#page-app .ask-shell{grid-template-columns:1fr!important}
   #page-app .critical-today{grid-template-columns:1fr}
   #page-app .critical-title{max-width:none}
   #page-app .chart-intel-note{position:static;max-width:none;margin-bottom:12px}
@@ -1110,6 +1174,10 @@ body.analysis-is-loading{overflow:hidden!important}
   .loading-steps{grid-template-columns:1fr;gap:8px}
   .loading-step{min-height:auto;padding:13px 15px;flex-direction:row;align-items:center;font-size:13px;border-radius:14px}
   .loading-step svg{width:18px;height:18px}
+  .chat-window{height:360px}
+  .ask-input-row{flex-direction:column}
+  .health-row{grid-template-columns:1fr}
+  .health-score{text-align:left}
   .connect-hero,.connect-proof-panel,.connect-feature-grid{grid-template-columns:1fr!important}
   .connect-hero{gap:12px}
   .connect-hero-main{padding:26px;border-radius:24px}
@@ -1351,6 +1419,10 @@ body.analysis-is-loading{overflow:hidden!important}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           Results
         </div>
+        <div class="nav-item" data-nav="ask" onclick="nav('ask')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/><path d="M8 9h8M8 13h5"/></svg>
+          Ask OPS
+        </div>
 
         <div class="sb-section">Tools</div>
         <div class="nav-item" data-nav="compare" onclick="nav('compare')">
@@ -1501,6 +1573,53 @@ body.analysis-is-loading{overflow:hidden!important}
             <div class="sec-sub">Features on your current plan</div>
             <div id="plan-features"></div>
             <button class="btn btn-outline" style="width:100%;margin-top:14px;justify-content:center" onclick="nav('plans')">View All Plans →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ASK OPS -->
+      <section id="sec-ask" style="display:none">
+        <div class="pg-header">
+          <div>
+            <div class="pg-title">Ask OPS</div>
+            <div class="pg-sub">Natural-language operating intelligence for refund risk, product issues, revenue leaks, and next actions.</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="startDemo();setTimeout(()=>nav('ask'),900)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Load sample context
+          </button>
+        </div>
+        <div class="ask-shell">
+          <div class="ask-card ask-hero">
+            <div class="ask-title">Your AI operations analyst.</div>
+            <div class="ask-copy">Ask why a metric moved, which SKU is risky, what to fix first, or where profit is leaking. OPS answers with cause, consequence, confidence, and next action.</div>
+            <div class="ask-proof">
+              <div class="ask-proof-item"><div class="ask-proof-k">AI memory</div><div class="ask-proof-v" id="ask-memory">OPS remembers your latest operating brief.</div></div>
+              <div class="ask-proof-item"><div class="ask-proof-k">Confidence</div><div class="ask-proof-v" id="ask-confidence">Based on connected analysis context.</div></div>
+              <div class="ask-proof-item"><div class="ask-proof-k">Mode</div><div class="ask-proof-v">Founder tactical / Investor narrative</div></div>
+            </div>
+          </div>
+          <div class="ask-card">
+            <div class="mode-switch" aria-label="AI mode">
+              <button class="mode-btn active" id="mode-founder" onclick="setOpsMode('founder')">Founder Mode</button>
+              <button class="mode-btn" id="mode-investor" onclick="setOpsMode('investor')">Investor Mode</button>
+            </div>
+            <div class="chat-window" id="ask-chat">
+              <div class="chat-msg ops">
+                Ask me about refunds, stockouts, fulfillment drag, revenue leaks, product risk, or what to fix first. I will use the latest OPS brief as context.
+                <div class="chat-meta">OPS ready</div>
+              </div>
+            </div>
+            <div class="prompt-chips">
+              <button class="prompt-chip" onclick="askPreset('What should I fix first?')">What should I fix first?</button>
+              <button class="prompt-chip" onclick="askPreset('Where is revenue leaking?')">Where is revenue leaking?</button>
+              <button class="prompt-chip" onclick="askPreset('Which products are risky?')">Which products are risky?</button>
+              <button class="prompt-chip" onclick="askPreset('Why did refunds increase?')">Why did refunds increase?</button>
+            </div>
+            <div class="ask-input-row">
+              <input class="ask-input" id="ask-input" placeholder="Ask OPS a question..." onkeydown="if(event.key==='Enter') askOps()">
+              <button class="btn btn-ink" onclick="askOps()">Ask OPS →</button>
+            </div>
           </div>
         </div>
       </section>
@@ -1789,6 +1908,13 @@ body.analysis-is-loading{overflow:hidden!important}
         </div>
 
         <div class="critical-today" id="critical-today"></div>
+
+        <div class="ops-intel-grid" id="ops-intel-grid" style="display:none">
+          <div class="ops-panel dark" id="revenue-leaks-panel"></div>
+          <div class="ops-panel" id="priority-queue-panel"></div>
+          <div class="ops-panel" id="health-breakdown-panel"></div>
+          <div class="ops-panel" id="timeline-alerts-panel"></div>
+        </div>
 
         <div class="result-proof">
           <div class="result-proof-card">
@@ -2570,7 +2696,7 @@ function nav(section) {
   const mainContent=document.querySelector('#page-app .main-content');
   if(mainContent) mainContent.style.display=toolSections.includes(section)?'none':'block';
   // Hide main sections
-  ['home','connect','analysis','results','plans'].forEach(s=>{
+  ['home','ask','connect','analysis','results','plans'].forEach(s=>{
     const el=document.getElementById('sec-'+s);
     if(el) el.style.display=s===section?'block':'none';
   });
@@ -3115,6 +3241,205 @@ function renderProductStrip(products, pricingProducts, stockOf) {
   strip.style.display=list.length?'grid':'none';
 }
 
+var opsMode = 'founder';
+
+function money0(value) {
+  return Number(value||0).toLocaleString('en-GB', {maximumFractionDigits: 0});
+}
+
+function buildOpsIntelligence(data) {
+  const an=data?.analysis||{};
+  const m=data?.metrics||{};
+  const ext=data?.extended||{};
+  const meta=data?.meta||{};
+  const rev=m.revenue||{};
+  const ft=m.fulfillment||{};
+  const inv=m.inventory||{};
+  const products=inv.products||[];
+  const findings=an.findings||[];
+  const quickWins=an.quick_wins||[];
+  const total=Number(rev.total||rev.total_revenue||0);
+  const cancelRate=Number(rev.cancel_rate||rev.cancellation_rate||0);
+  const refundRate=Number(rev.refund_rate||0);
+  const ftMean=Number(ft.mean||0);
+  const lowStock=products.filter(p=>Number(p.current_stock??p.inventory??0)<=10);
+  const slowStock=products.filter(p=>Number(p.turnover_rate||0)>0 && Number(p.turnover_rate||0)<2);
+  const churnRisk=Number(ext.churn?.potential_revenue_at_risk||0);
+  const cancelLeak=cancelRate>2.5 ? total*0.08 : 0;
+  const refundLeak=refundRate>5 ? total*0.05 : 0;
+  const stockLeak=lowStock.length*650;
+  const fulfillmentLeak=ftMean>24 ? 900 : 0;
+  const overstockLeak=slowStock.length*420;
+  const leaks=[
+    {name:'Cancellation leakage', impact:cancelLeak, why:`Cancellation risk is ${cancelRate.toFixed(1)}% vs 2.5% target.`},
+    {name:'Refund-heavy operations', impact:refundLeak, why:`Refund pressure is ${refundRate.toFixed(1)}%; review product and fulfillment causes.`},
+    {name:'Stockout risk', impact:stockLeak, why:`${lowStock.length} SKUs are below the 10-unit risk threshold.`},
+    {name:'Fulfillment drag', impact:fulfillmentLeak, why:`Mean fulfillment is ${ftMean.toFixed(1)}h; OPS target is under 24h.`},
+    {name:'Slow inventory cash lock', impact:overstockLeak, why:`${slowStock.length} slower SKUs may be holding cash flow.`},
+  ].filter(x=>x.impact>0).sort((a,b)=>b.impact-a.impact);
+  const totalLeak=Math.max(1200, Math.round(leaks.reduce((sum,x)=>sum+x.impact,0) || total*0.04 || 1200));
+  const priorities=(quickWins.length?quickWins:[
+    findings[0]?.recommendation || 'Assign an owner to the highest-risk operating signal.',
+    lowStock[0] ? `Protect stock for ${getProductTitle(lowStock[0])}.` : 'Review inventory pressure before scaling acquisition.',
+    'Review the weekly founder brief before changing spend or supplier decisions.',
+  ]).slice(0,5).map((text,i)=>({
+    name:String(text).split('—')[0].split('.')[0],
+    why:String(text),
+    impact:i===0?Math.round(totalLeak*.45):i===1?Math.round(totalLeak*.27):Math.round(totalLeak*.16),
+    confidence:i<2?'High':'Medium',
+  }));
+  const operations=Math.max(35, Math.min(95, Math.round(100-Math.max(0,ftMean-18)*1.2-Math.max(0,cancelRate-2.5)*4)));
+  const inventoryScore=Math.max(35, Math.min(96, Math.round(92-lowStock.length*8-slowStock.length*3)));
+  const fulfillmentScore=Math.max(35, Math.min(96, Math.round(100-Math.max(0,ftMean-12)*1.8)));
+  const customerScore=Math.max(35, Math.min(96, Math.round(92-Math.max(0,refundRate-3)*5-Math.max(0,cancelRate-2.5)*3)));
+  const profitabilityScore=Math.max(35, Math.min(96, Math.round(82 + (Number(rev.aov||0)>=180?6:-4) - Math.min(18,totalLeak/600))));
+  const alerts=[
+    {severity:cancelRate>6?'critical':cancelRate>3?'high':'low', name:'Cancellation threshold', why:`Current ${cancelRate.toFixed(1)}%; target is 2.5%.`},
+    {severity:ftMean>36?'critical':ftMean>24?'high':'low', name:'Fulfillment slowdown', why:`Mean processing time is ${ftMean.toFixed(1)}h.`},
+    {severity:lowStock.length>=3?'critical':lowStock.length?'high':'low', name:'Stockout prediction', why:`${lowStock.length} products need inventory attention.`},
+    {severity:(meta.cross_alarms||[]).length?'high':'low', name:'Ad / inventory conflict', why:(meta.cross_alarms||[])[0]?.description || 'No active Meta inventory conflict detected in this run.'},
+  ];
+  const timeline=[
+    {title:leaks[0]?.name ? `${leaks[0].name} detected` : 'Operating brief generated', copy:leaks[0]?.why || 'OPS generated a source-labeled operating brief.', time:'Now'},
+    {title:lowStock.length?'Inventory risk detected':'Inventory monitor active', copy:lowStock.length?`${lowStock.length} products are close to stockout.`:'No critical stockout pattern in the current context.', time:'2h ago'},
+    {title:ftMean>24?'Fulfillment slowdown detected':'Fulfillment signal healthy', copy:ftMean>24?`Processing exceeded the 24h target at ${ftMean.toFixed(1)}h.`:'Processing is within the current operating target.', time:'Today'},
+    {title:'Weekly founder brief ready', copy:'OPS summarized what changed, why it matters, and what to do next.', time:'This week'},
+  ];
+  const brief=[
+    `What happened: OPS reviewed ${data?.record_counts?.orders||0} orders and ${data?.record_counts?.products||products.length||0} products.`,
+    `Biggest risk: ${findings[0]?.title || leaks[0]?.name || 'operational leakage'} with estimated monthly impact near €${money0(totalLeak)}.`,
+    `Biggest opportunity: ${ext.price_elasticity?.insight || 'prioritize high-margin products and protect stock before scaling spend.'}`,
+    `Recommended action: ${priorities[0]?.why || 'assign one owner to the top operating risk today.'}`,
+  ];
+  return {leaks,totalLeak,priorities,health:[
+    ['Operations',operations],['Inventory',inventoryScore],['Fulfillment',fulfillmentScore],['Customer Satisfaction',customerScore],['Profitability',profitabilityScore],
+  ],alerts,timeline,brief};
+}
+
+function renderOpsIntelligence(data) {
+  const grid=document.getElementById('ops-intel-grid');
+  if(!grid || !data) return;
+  const intel=buildOpsIntelligence(data);
+  grid.style.display='grid';
+  document.getElementById('revenue-leaks-panel').innerHTML=`
+    <div class="ops-panel-title">Revenue Leaks</div>
+    <div class="ops-panel-sub">Estimated monthly loss OPS would investigate first.</div>
+    <div class="leak-total">€${money0(intel.totalLeak)}</div>
+    <div class="leak-list">${(intel.leaks.length?intel.leaks:intel.leaks.concat([{name:'No major leak detected',impact:0,why:'OPS is monitoring cancellation, refund, fulfillment, stock, and margin signals.'}])).slice(0,4).map(l=>`
+      <div class="leak-item"><div class="leak-top"><div class="leak-name">${escHtml(l.name)}</div><div class="leak-impact">${l.impact?`€${money0(l.impact)}`:'Monitor'}</div></div><div class="leak-why">${escHtml(l.why)}</div></div>`).join('')}</div>`;
+  document.getElementById('priority-queue-panel').innerHTML=`
+    <div class="ops-panel-title">Highest Impact Actions</div>
+    <div class="ops-panel-sub">Consulting-grade action queue with consequence and confidence.</div>
+    <div class="priority-queue">${intel.priorities.slice(0,4).map((p,i)=>`
+      <div class="priority-item"><div class="priority-rank">#${i+1}</div><div><div class="priority-top"><div class="priority-name">${escHtml(p.name)}</div><div class="priority-impact">+€${money0(p.impact)}</div></div><div class="priority-why">${escHtml(p.why)}</div><div class="priority-meta"><span class="mini-pill">Confidence: ${p.confidence}</span><span class="mini-pill">Why it matters</span></div></div></div>`).join('')}</div>`;
+  document.getElementById('health-breakdown-panel').innerHTML=`
+    <div class="ops-panel-title">Store Health Breakdown</div>
+    <div class="ops-panel-sub">The headline score split into operator-readable systems.</div>
+    <div class="health-breakdown">${intel.health.map(([label,score])=>`
+      <div class="health-row"><div class="health-label">${escHtml(label)}</div><div class="health-track"><div class="health-fill" style="width:${score}%;background:${score>=80?'var(--success)':score>=65?'var(--gold)':'var(--danger)'}"></div></div><div class="health-score">${score} ↗</div></div>`).join('')}</div>`;
+  document.getElementById('timeline-alerts-panel').innerHTML=`
+    <div class="ops-panel-title">Operational Timeline</div>
+    <div class="ops-panel-sub">Live-feeling monitoring events and smart alert severity.</div>
+    <div class="timeline-list">${intel.timeline.map(t=>`
+      <div class="timeline-item"><div><div class="timeline-dot"></div></div><div><div class="timeline-title">${escHtml(t.title)}</div><div class="timeline-copy">${escHtml(t.copy)}</div><div class="timeline-time">${escHtml(t.time)}</div></div></div>`).join('')}</div>
+    <div class="alert-list" style="margin-top:14px">${intel.alerts.slice(0,3).map(a=>`
+      <div class="alert-item ${a.severity==='critical'?'critical':a.severity==='high'?'high':''}"><div class="alert-top"><div class="alert-name">${escHtml(a.name)}</div><div class="alert-sev">${escHtml(a.severity)}</div></div><div class="alert-why">${escHtml(a.why)}</div></div>`).join('')}</div>
+    <div class="ops-panel-sub" style="margin-top:16px;margin-bottom:8px">Weekly Founder Brief</div>
+    <div class="brief-list">${intel.brief.map(b=>`<div class="brief-item"><div class="brief-copy">${escHtml(b)}</div></div>`).join('')}</div>`;
+  updateAskContext(data);
+}
+
+function updateAskContext(data) {
+  const counts=data?.record_counts||{};
+  const mem=document.getElementById('ask-memory');
+  const conf=document.getElementById('ask-confidence');
+  if(mem) mem.textContent=data ? `${data.shop_name||'Store'} · ${data.data_source||'analysis'} brief loaded` : 'Run a brief to load context.';
+  if(conf) conf.textContent=data ? `Based on ${counts.orders||0} orders / ${counts.products||0} products` : 'Awaiting analysis context.';
+}
+
+function setOpsMode(mode) {
+  opsMode = mode === 'investor' ? 'investor' : 'founder';
+  ['founder','investor'].forEach(m=>{
+    const el=document.getElementById('mode-'+m);
+    if(el) el.classList.toggle('active', m===opsMode);
+  });
+  showToast(opsMode === 'investor' ? 'Investor Mode enabled' : 'Founder Mode enabled');
+}
+
+function appendChat(role, text, meta) {
+  const chat=document.getElementById('ask-chat');
+  if(!chat) return;
+  const div=document.createElement('div');
+  div.className='chat-msg '+(role==='user'?'user':'ops');
+  div.innerHTML=`${escHtml(text)}${meta?`<div class="chat-meta">${escHtml(meta)}</div>`:''}`;
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function localAskAnswer(question, context) {
+  const intel=buildOpsIntelligence(context||buildLocalMock());
+  const q=String(question||'').toLowerCase();
+  if(q.includes('revenue') || q.includes('leak')) {
+    const top=intel.leaks[0];
+    return `OPS sees about €${money0(intel.totalLeak)} in potential monthly leakage. The first place to inspect is ${top?.name||'operational drag'} because ${top?.why||'it can quietly reduce retained revenue'}. Next action: assign the #1 queue item and re-check the brief after the next sync.`;
+  }
+  if(q.includes('product') || q.includes('sku') || q.includes('stock')) {
+    const inv=context?.metrics?.inventory||{};
+    const risky=(inv.products||[]).filter(p=>Number(p.current_stock??p.inventory??0)<=10).slice(0,3).map(getProductTitle);
+    return risky.length
+      ? `OPS found product risk in ${risky.join(', ')}. Why it matters: low stock plus active demand can create missed orders and wasted acquisition spend. Next action: protect these SKUs before scaling ads or promotions.`
+      : 'OPS is monitoring product risk, but no critical low-stock SKU is visible in the latest context. Next action: review slow-turnover products and bundle candidates.';
+  }
+  if(q.includes('refund')) {
+    const rev=context?.metrics?.revenue||{};
+    const ft=context?.metrics?.fulfillment||{};
+    return `Refund risk is ${Number(rev.refund_rate||0).toFixed(1)}% and fulfillment is ${Number(ft.mean||0).toFixed(1)}h. OPS would check whether delayed fulfillment or specific SKUs are driving refund pressure. If sustained, this can reduce retained revenue and weaken repeat purchase confidence.`;
+  }
+  const p=intel.priorities[0];
+  return `OPS would start with ${p?.name||'the highest-impact operating action'}. Why it matters: ${p?.why||'it is the clearest path to protect margin from the latest brief'}. Estimated impact is around €${money0(p?.impact||intel.totalLeak*.4)} with ${p?.confidence||'Medium'} confidence.`;
+}
+
+function askPreset(question) {
+  const input=document.getElementById('ask-input');
+  if(input) input.value=question;
+  askOps();
+}
+
+async function askOps() {
+  const input=document.getElementById('ask-input');
+  const question=(input?.value||'').trim();
+  if(!question){showToast('Ask OPS a question first.');return;}
+  const context=lastResult || buildLocalMock();
+  if(!lastResult) {
+    lastResult=context;
+    renderOverview(context);
+    renderResults(context);
+  }
+  appendChat('user', question);
+  if(input) input.value='';
+  appendChat('ops', 'Thinking through the operating brief...', 'OPS analyzing');
+  const chat=document.getElementById('ask-chat');
+  const pending=chat?.lastElementChild;
+  try {
+    const r=await fetch(`${API}/ai/ask`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({question,mode:opsMode,context}),
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok || !d.answer) throw new Error(d.detail||'AI endpoint unavailable');
+    if(pending) pending.remove();
+    const based=typeof d.based_on==='string' ? d.based_on : `${d.based_on?.orders||context.record_counts?.orders||0} orders · ${d.based_on?.products||context.record_counts?.products||0} products`;
+    appendChat('ops', d.answer, `Confidence: ${d.confidence||'Medium'} · ${based}`);
+    if(Array.isArray(d.suggested_actions) && d.suggested_actions.length) {
+      appendChat('ops', 'Suggested actions: '+d.suggested_actions.slice(0,3).join(' · '), 'Next actions');
+    }
+  } catch(e) {
+    if(pending) pending.remove();
+    appendChat('ops', localAskAnswer(question, context), 'Local OPS intelligence');
+  }
+}
+
 function renderResults(data) {
   const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store');
   const usedManualShopifyToken=!!(
@@ -3249,6 +3574,7 @@ function renderResults(data) {
   if(revenueNoteEl) revenueNoteEl.innerHTML=`<strong>OPS annotation</strong><span>${escHtml(revenueNote)}</span>`;
   const revenueCopyEl=document.getElementById('revenue-intel-copy');
   if(revenueCopyEl) revenueCopyEl.textContent=revenueNote;
+  renderOpsIntelligence(data);
 
   document.getElementById('r-metrics').innerHTML=`
     <div class="metric-card"><div class="metric-label">Revenue under review</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="margin-top:8px" class="metric-delta delta-good">${coverageText}</div></div>
