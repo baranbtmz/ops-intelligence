@@ -1,3 +1,13 @@
 [build]
   command = "mkdir -p netlify-public && cp *.html netlify-public/ && cp -R assets netlify-public/"
   publish = "netlify-public"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/app.html"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
