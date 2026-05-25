@@ -561,6 +561,32 @@ body.analysis-is-loading{overflow:hidden!important}
 .metric-value{font-family:var(--sans-font);font-size:24px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-.025em;font-variant-numeric:tabular-nums lining-nums}
 .metric-delta{font-size:11px;margin-top:4px}
 .delta-good{color:var(--success)}.delta-bad{color:var(--danger)}.delta-warn{color:var(--warn)}.delta-neutral{color:var(--muted)}
+.critical-today{
+  display:grid;grid-template-columns:1.15fr repeat(3,minmax(0,1fr));gap:14px;margin:0 0 24px;
+}
+.critical-lead,.critical-card{
+  border:1px solid rgba(224,216,204,.92);border-radius:24px;background:#fff;box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.critical-lead{padding:26px;background:linear-gradient(135deg,#11120d,#2b2418);color:#fff}
+.critical-lead::after{content:"";position:absolute;right:-40px;top:-70px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.28),transparent 70%)}
+.critical-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(214,155,45,.95);margin-bottom:9px}
+.critical-title{font-size:24px;font-weight:750;line-height:1.08;letter-spacing:-.04em;max-width:13ch}
+.critical-copy{font-size:13px;line-height:1.65;color:rgba(255,255,255,.66);margin-top:12px;max-width:48ch}
+.critical-card{padding:20px 20px 18px}
+.critical-card.danger{border-color:rgba(192,57,43,.22);background:#fff9f7}
+.critical-card.warn{border-color:rgba(184,109,10,.2);background:#fffaf0}
+.critical-card.good{border-color:rgba(26,122,74,.18);background:#fbfffc}
+.critical-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.critical-value{font-size:22px;font-weight:750;color:var(--ink);line-height:1.12;letter-spacing:-.035em}
+.critical-detail{font-size:12px;color:var(--muted);line-height:1.55;margin-top:9px}
+.critical-action{margin-top:14px;display:inline-flex;padding:7px 10px;border-radius:999px;background:rgba(17,18,13,.06);font-size:11px;font-weight:800;color:var(--ink)}
+.chart-intel-note{
+  position:absolute;right:24px;top:24px;z-index:3;max-width:260px;
+  background:rgba(17,18,13,.9);color:#fff;border:1px solid rgba(214,155,45,.26);
+  border-radius:16px;padding:12px 14px;box-shadow:0 18px 44px rgba(17,18,13,.18);
+}
+.chart-intel-note strong{display:block;font-size:12px;color:#f0c462;margin-bottom:4px}
+.chart-intel-note span{display:block;font-size:12px;line-height:1.45;color:rgba(255,255,255,.72)}
 
 /* Tabs */
 .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0;overflow-x:auto;scrollbar-width:none}
@@ -1066,6 +1092,9 @@ body.analysis-is-loading{overflow:hidden!important}
   #page-app .kpi,#page-app .sec-card,#page-app .card,#page-app .connect-card,#page-app .trust-card,#page-app .trust-mini,#page-app .result-proof-card,#page-app .metric-card,#page-app .score-box{border-radius:22px}
   #page-app .kpi,#page-app .sec-card,#page-app .card,#page-app .connect-card,#page-app .trust-card{padding:24px}
   #page-app .ov-kpis,#page-app .ov-row2,#page-app .ov-bottom,#page-app .trust-strip,#page-app .trust-points,#page-app .connect-grid,#page-app .result-proof,#page-app .metrics-grid{grid-template-columns:1fr!important}
+  #page-app .critical-today{grid-template-columns:1fr}
+  #page-app .critical-title{max-width:none}
+  #page-app .chart-intel-note{position:static;max-width:none;margin-bottom:12px}
   #page-app .result-signal{align-items:flex-start;flex-direction:column}
   #page-app .result-signal-meta{text-align:left}
   #page-app .product-strip{grid-template-columns:1fr}
@@ -1191,8 +1220,8 @@ body.analysis-is-loading{overflow:hidden!important}
             <span class="auth-brand-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></span>
             Intelligence Platform
           </div>
-          <h1 class="auth-trust-title">Run your store with <span>operational confidence</span></h1>
-          <p class="auth-trust-copy">Connect live commerce data, catch margin and inventory risk early, and turn every analysis into a clear founder action plan.</p>
+          <h1 class="auth-trust-title">Find where your store <span>leaks profit</span></h1>
+          <p class="auth-trust-copy">OPS acts like an AI operations analyst for Shopify founders: it catches margin, inventory, fulfillment, and cancellation risk before it quietly compounds.</p>
           <div class="auth-trust-badges">
             <div class="auth-trust-badge">Shopify OAuth ready</div>
             <div class="auth-trust-badge">WooCommerce REST</div>
@@ -1202,9 +1231,9 @@ body.analysis-is-loading{overflow:hidden!important}
         <div>
           <div class="auth-testimonials">
             <div class="auth-testimonial">
-              <div class="auth-testimonial-label">For operators</div>
-              <div class="auth-testimonial-copy">See stock pressure, fulfillment speed, cancel risk, and revenue movement in one daily workspace.</div>
-              <div class="auth-testimonial-name">Built for lean ecommerce teams</div>
+              <div class="auth-testimonial-label">AI COO Layer</div>
+              <div class="auth-testimonial-copy">See stock pressure, fulfillment drag, cancellation risk, and revenue leakage as operating decisions.</div>
+              <div class="auth-testimonial-name">Built for lean Shopify teams</div>
             </div>
             <div class="auth-testimonial">
               <div class="auth-testimonial-label">For founders</div>
@@ -1316,7 +1345,7 @@ body.analysis-is-loading{overflow:hidden!important}
         </div>
         <div class="nav-item" data-nav="analysis" onclick="nav('analysis')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Run Analysis
+          Build Brief
         </div>
         <div class="nav-item" data-nav="results" onclick="nav('results')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
@@ -1373,7 +1402,7 @@ body.analysis-is-loading{overflow:hidden!important}
         <div class="pg-header">
           <div>
             <div class="pg-title" id="home-title">Good morning<em>.</em></div>
-            <div class="pg-sub">Your operating signal across the last 90 days of store activity.</div>
+            <div class="pg-sub">Your AI operating signal across the last 90 days of store activity.</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="chip">
@@ -1382,7 +1411,7 @@ body.analysis-is-loading{overflow:hidden!important}
             </div>
             <button class="btn btn-ink btn-sm" onclick="startSmartAnalysis()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Run Analysis
+              Build Brief
             </button>
           </div>
         </div>
@@ -1479,7 +1508,7 @@ body.analysis-is-loading{overflow:hidden!important}
       <!-- CONNECT -->
       <section id="sec-connect">
         <div class="pg-header">
-          <div><div class="pg-title">Connect Live Store Data</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
+          <div><div class="pg-title">Connect Operating Signals</div><div class="pg-sub">Move from store access to a founder-ready operating brief with explicit source labels, coverage, and next actions on every run.</div></div>
         </div>
 
         <div class="connect-hero">
@@ -1681,7 +1710,7 @@ body.analysis-is-loading{overflow:hidden!important}
       <!-- ANALYSIS -->
       <section id="sec-analysis" style="display:none">
         <div class="pg-header">
-          <div><div class="pg-title">Run Analysis</div><div class="pg-sub" id="analysis-shop-name">Connect your store or try a demo.</div></div>
+          <div><div class="pg-title">Build Operator Brief</div><div class="pg-sub" id="analysis-shop-name">Connect your store or try a demo.</div></div>
         </div>
 
         <div class="card" style="margin-bottom:14px">
@@ -1741,7 +1770,7 @@ body.analysis-is-loading{overflow:hidden!important}
       <!-- RESULTS -->
       <section id="sec-results" style="display:none">
         <div class="pg-header" style="align-items:flex-start">
-          <div><div class="pg-title">Analysis Results</div><div class="pg-sub" id="results-meta">—</div></div>
+          <div><div class="pg-title">OPS Operator Brief</div><div class="pg-sub" id="results-meta">—</div></div>
           <button class="btn btn-outline btn-sm" onclick="rerunLastAnalysis()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             Refresh
@@ -1758,6 +1787,8 @@ body.analysis-is-loading{overflow:hidden!important}
           </div>
           <div class="result-signal-meta" id="result-signal-meta">Source details appear here after a run.</div>
         </div>
+
+        <div class="critical-today" id="critical-today"></div>
 
         <div class="result-proof">
           <div class="result-proof-card">
@@ -1803,7 +1834,7 @@ body.analysis-is-loading{overflow:hidden!important}
         <div class="tab-content active" id="tab-findings"><div id="r-findings"></div></div>
 
         <div class="tab-content" id="tab-revenue">
-          <div class="card"><div class="card-title">Daily Revenue Trend</div><div class="chart-wrap-tall"><canvas id="chart-revenue"></canvas></div></div>
+          <div class="card"><div class="card-title">Revenue Intelligence</div><div class="card-sub" id="revenue-intel-copy" style="margin-bottom:12px">OPS annotates trend movement with operational causes.</div><div class="chart-wrap-tall"><div class="chart-intel-note" id="revenue-chart-note"><strong>OPS annotation</strong><span>Revenue movement is checked against fulfillment, cancellation, and stock signals.</span></div><canvas id="chart-revenue"></canvas></div></div>
           <div class="card"><div class="card-title">Revenue Details</div><div id="r-revenue-detail"></div></div>
         </div>
 
@@ -2422,12 +2453,12 @@ function buildLocalMock() {
     success:true, shop_name:'Demo Store', user_plan: user?.plan||'pro', data_source:'demo', model:'mock-demo', record_counts:{orders:191,products:8},
     analysis:{
       overall_health_score:74,
-      executive_summary:'Your store shows solid revenue performance with opportunities in fulfillment speed and inventory management. Focus on reducing the 7% cancellation rate and restocking 3 critical products.',
+      executive_summary:'OPS detected €2.9K estimated cancellation leakage, 3 products at stockout risk, and fulfillment drag above the 24h target. Start with stock protection and same-day processing before reviewing secondary metrics.',
       findings:[
-        {severity:'critical',title:'High Cancellation Rate',description:'Your cancellation rate of 7.0% is significantly above the 2.5% industry benchmark.',impact:'Estimated €2,850 monthly revenue loss.',recommendation:'Implement order confirmation emails and reduce processing time to under 24h.'},
-        {severity:'warning',title:'3 Products Near Stockout',description:'Coconut Shampoo, Retinol Eye Cream and Jasmine Body Oil have fewer than 10 units remaining.',impact:'Risk of losing active ad spend with no inventory to fulfill.',recommendation:'Reorder immediately — lead time is typically 7-14 days.'},
-        {severity:'ok',title:'Strong Average Order Value',description:'Your AOV of €187 is above the EU beauty industry average of €85.',impact:'+€28,000 monthly vs industry peers.',recommendation:'Continue cross-selling bundles to maintain this advantage.'},
-        {severity:'info',title:'Fulfillment Speed Opportunity',description:'Mean fulfillment time of 38.4h is above the 24h target. P95 reaches 89h.',impact:'Slower delivery correlates with higher cancellation rates.',recommendation:'Set up same-day processing for orders before 2pm.'},
+        {severity:'critical',title:'Cancellation leakage detected',description:'Cancellation rate is 7.0%, 4.5 pts above the 2.5% target. OPS links this to fulfillment drag and delayed order confirmation.',impact:'Estimated €2,850 monthly revenue leakage.',recommendation:'Add order confirmation within 30 minutes and bring processing time under 24h.'},
+        {severity:'warning',title:'3 SKUs may stock out while demand is active',description:'Coconut Shampoo, Retinol Eye Cream, and Jasmine Body Oil are below the 10-unit risk threshold while product demand remains active.',impact:'Risk of wasted acquisition spend and missed orders if stock is not protected.',recommendation:'Reorder immediately and pause spend on any SKU below 5 units.'},
+        {severity:'ok',title:'AOV leverage remains strong',description:'AOV is €187, 120% above the €85 EU beauty benchmark. OPS sees bundle economics as a margin advantage.',impact:'+€28,000 monthly value vs category baseline.',recommendation:'Keep bundles active and test price lift on high-margin hero SKUs.'},
+        {severity:'info',title:'Fulfillment drag is pressuring retention',description:'Mean fulfillment time is 38.4h, with P95 at 89h. OPS believes delayed fulfillment may keep cancellation risk elevated.',impact:'Slow processing can turn profitable orders into refunds and cancellations.',recommendation:'Set up same-day processing for orders before 2pm.'},
       ],
       quick_wins:[
         'Restock Coconut Shampoo immediately — 6 units left, ads still running.',
@@ -2437,10 +2468,10 @@ function buildLocalMock() {
         'Pause ads for out-of-stock products to stop wasting ad budget.',
       ],
       swot:{
-        strengths:['Strong AOV (€187 vs €85 avg)','High fulfillment rate (94%)','Loyal repeat customers (22%)'],
-        weaknesses:['High cancellation rate (7%)','Slow fulfillment (38h avg)','3 products near stockout'],
-        opportunities:['Price increase on 3 high-margin products','Win-back campaign for 17 at-risk customers','Bundle upsells to increase AOV further'],
-        threats:['Stockout risk with active ad spend','Increasing competition in EU beauty market','Rising shipping costs'],
+        strengths:['AOV €187 is 120% above the €85 category benchmark','94% fulfillment coverage across analyzed orders','22% repeat customer share supports win-back economics'],
+        weaknesses:['Cancellation rate is 4.5 pts above target','Mean fulfillment time is 14.4h over the 24h target','3 SKUs are below the 10-unit risk threshold'],
+        opportunities:['Rose Elixir can support a €10 price lift with 76% margin','17 at-risk customers represent €4.2K revenue recovery potential','Bundle high-margin serum with low-turnover body care SKUs'],
+        threats:['Active demand can convert into stockouts on 3 products','Fulfillment delays may keep cancellation leakage above target','Rising CPC can waste spend when inventory is constrained'],
       },
     },
     metrics:{
@@ -3109,6 +3140,10 @@ function renderResults(data) {
   const rev=m.revenue||{};
   const ft=m.fulfillment||{};
   const inv=m.inventory||{};
+  const ext=data.extended||{};
+  const churn=ext.churn||{};
+  const products=inv.products||[];
+  const stockOf=p=>Number(p.current_stock??p.inventory??0);
   const moneyFormat=new Intl.NumberFormat('en-GB',{maximumFractionDigits:0});
 
   const sc=score>=75?'var(--success)':score>=50?'var(--warn)':'var(--danger)';
@@ -3116,7 +3151,9 @@ function renderResults(data) {
   const crossAlarms=Array.isArray(meta?.cross_alarms)?meta.cross_alarms:[];
   document.getElementById('r-score').textContent=score;
   document.getElementById('r-score').style.color=sc;
-  document.getElementById('r-summary').textContent=an.executive_summary||'';
+  document.getElementById('r-summary').textContent=an.executive_summary
+    ? `OPS view: ${an.executive_summary}`
+    : 'OPS is building an operating brief from the available store signals.';
   const uploadSources=['amazon','etsy','generic','upload'];
   const sourceLabel=isDemoResult
     ? 'Demo data'
@@ -3136,13 +3173,13 @@ function renderResults(data) {
   badgeEl.className='result-badge '+(isDemoResult?'demo':'live');
   badgeEl.textContent=isDemoResult?'Demo mode':'Live mode';
   document.getElementById('result-signal-title').textContent=isDemoResult
-    ? 'Sample results are isolated from live store reporting.'
-    : (usedManualShopifyToken ? 'This run used a live manual-token fallback.' : 'This run is based on connected store data only.');
+    ? 'OPS is showing a sample operating brief.'
+    : (usedManualShopifyToken ? 'OPS completed a live manual-token operating brief.' : 'OPS completed a source-labeled operating brief.');
   document.getElementById('result-signal-copy').textContent=isDemoResult
-    ? 'Use demo runs to understand the product flow. They never overwrite the live-data labels.'
+    ? 'Sample briefs stay isolated from live store reporting and help reviewers understand the workflow.'
     : (usedManualShopifyToken
-      ? 'OPS still treats this as live data, but labels it separately from the preferred OAuth path.'
-      : 'OPS does not inject sample findings into live Shopify or WooCommerce analyses.');
+      ? 'OPS labels this path separately from the preferred OAuth connection while keeping the output live-data only.'
+      : 'Live outputs are generated from connected store data only, with no sample findings mixed into results.');
   document.getElementById('result-signal-meta').textContent=`${sourceLabel} • ${generatedLabel} • ${modelLabel}`;
   document.getElementById('proof-source').textContent=sourceLabel;
   document.getElementById('proof-source-copy').textContent=isDemoResult
@@ -3167,12 +3204,57 @@ function renderResults(data) {
   const coverageText=hasDailyRevenue
     ? `${dailyRevenue.length} recorded days`
     : (isDemoResult ? 'Sample reporting window' : 'Connector returned summary metrics only');
+  const criticalProducts=products.filter(p=>stockOf(p)<=10);
+  const primaryFinding=findings.find(f=>f.severity==='critical')||findings.find(f=>f.severity==='warning')||findings[0]||{};
+  const firstQuickWin=quickWins[0]||'Review the highest-risk operating signal before scanning secondary metrics.';
+  const leakageBase=Number(churn.potential_revenue_at_risk||0);
+  const cancelLeak=parseFloat(cancelRate)>2.5 ? Number(rev.total||0)*0.08 : 0;
+  const stockLeak=criticalProducts.length*650;
+  const revenueAtRisk=Math.max(1200, Math.round(leakageBase + cancelLeak + stockLeak));
+  const urgentCount=findings.filter(f=>['critical','warning'].includes(f.severity)).length + (criticalProducts.length?1:0);
+  const actionValue=criticalProducts.length
+    ? `${criticalProducts.length} products need attention`
+    : (primaryFinding.title ? '1 action needs an owner' : 'Weekly action ready');
+  const criticalEl=document.getElementById('critical-today');
+  if(criticalEl){
+    criticalEl.innerHTML=`
+      <div class="critical-lead">
+        <div class="critical-kicker">Critical today</div>
+        <div class="critical-title">OPS found ${urgentCount||1} operating signals worth acting on now.</div>
+        <div class="critical-copy">Start here before reading the full brief: what matters, why it matters, and what to do next.</div>
+      </div>
+      <div class="critical-card danger">
+        <div class="critical-label">Estimated profit impact</div>
+        <div class="critical-value">€${moneyFormat.format(revenueAtRisk)}</div>
+        <div class="critical-detail">Potential leakage across cancellations, stock pressure, churn risk, and operating drag.</div>
+        <div class="critical-action">Protect margin first</div>
+      </div>
+      <div class="critical-card warn">
+        <div class="critical-label">Highest-risk signal</div>
+        <div class="critical-value">${escHtml(primaryFinding.title||'Operational risk detected')}</div>
+        <div class="critical-detail">${escHtml(primaryFinding.description||primaryFinding.root_cause||'OPS found a signal that should be reviewed before secondary reporting.')}</div>
+        <div class="critical-action">Review cause</div>
+      </div>
+      <div class="critical-card good">
+        <div class="critical-label">Recommended next action</div>
+        <div class="critical-value">${escHtml(actionValue)}</div>
+        <div class="critical-detail">${escHtml(firstQuickWin)}</div>
+        <div class="critical-action">Assign this week</div>
+      </div>`;
+  }
+  const revenueNote=parseFloat(cancelRate)>2.5 || Number(ft.mean||0)>24
+    ? `OPS is checking revenue movement against ${parseFloat(cancelRate)>2.5?'cancellation pressure':'fulfillment delay'} and stock risk, not treating it as a standalone chart.`
+    : 'OPS did not detect a major fulfillment-linked revenue anomaly in this run.';
+  const revenueNoteEl=document.getElementById('revenue-chart-note');
+  if(revenueNoteEl) revenueNoteEl.innerHTML=`<strong>OPS annotation</strong><span>${escHtml(revenueNote)}</span>`;
+  const revenueCopyEl=document.getElementById('revenue-intel-copy');
+  if(revenueCopyEl) revenueCopyEl.textContent=revenueNote;
 
   document.getElementById('r-metrics').innerHTML=`
-    <div class="metric-card"><div class="metric-label">Total Revenue</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="margin-top:8px" class="metric-delta delta-good">${coverageText}</div></div>
-    <div class="metric-card"><div class="metric-label">Avg. Order</div><div class="metric-value">€${Math.round(rev.aov||0)}</div><div style="margin-top:8px" class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">Target: €250</div></div>
-    <div class="metric-card"><div class="metric-label">Fulfillment</div><div class="metric-value">${(ft.mean||0).toFixed(1)}h</div><div style="margin-top:8px" class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">Median: ${(ft.median||0).toFixed(1)}h</div></div>
-    <div class="metric-card"><div class="metric-label">Cancel Rate</div><div class="metric-value">${cancelRate}%</div><div style="margin-top:8px" class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">Target: 2.5%</div></div>`;
+    <div class="metric-card"><div class="metric-label">Revenue under review</div><div class="metric-value">€${((rev.total||0)/1000).toFixed(1)}K</div><div style="margin-top:8px" class="metric-delta delta-good">${coverageText}</div></div>
+    <div class="metric-card"><div class="metric-label">AOV leverage</div><div class="metric-value">€${Math.round(rev.aov||0)}</div><div style="margin-top:8px" class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">Target: €250</div></div>
+    <div class="metric-card"><div class="metric-label">Fulfillment drag</div><div class="metric-value">${(ft.mean||0).toFixed(1)}h</div><div style="margin-top:8px" class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">Median: ${(ft.median||0).toFixed(1)}h</div></div>
+    <div class="metric-card"><div class="metric-label">Cancellation risk</div><div class="metric-value">${cancelRate}%</div><div style="margin-top:8px" class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">Target: 2.5%</div></div>`;
 
   const severityMap={critical:'CRITICAL',warning:'WARNING',ok:'GOOD',info:'INFO'};
   const tagMap={critical:'tag-critical',warning:'tag-warning',ok:'tag-ok',info:'tag-info'};
@@ -3198,8 +3280,6 @@ function renderResults(data) {
     </table>
     </div>`;
 
-  const products=inv.products||[];
-  const stockOf=p=>Number(p.current_stock??p.inventory??0);
   renderProductStrip(products, data.extended?.price_elasticity?.products, stockOf);
   const productRows=products.map((p,i)=>{
     const stock=stockOf(p);
@@ -3295,8 +3375,6 @@ function renderResults(data) {
     const lockEl=document.getElementById(`${feature}-lock`); if(lockEl) lockEl.style.display=isPro?'none':'flex';
   });
 
-  const ext=data.extended||{};
-  const churn=ext.churn||{};
   if(churn.total_customers){
     document.getElementById('r-churn-summary').innerHTML=`
       <div class="metric-card"><div class="metric-label">Total Customers</div><div class="metric-value">${churn.total_customers}</div></div>

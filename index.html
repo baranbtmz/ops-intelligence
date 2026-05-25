@@ -96,6 +96,30 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
 .btag{font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;font-weight:500;margin-bottom:10px}
 .btitle{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;color:var(--black);line-height:1.2;margin-bottom:8px}
 .bdesc{font-size:13px;color:var(--muted);line-height:1.6}
+.hero-proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(760px,100%);margin:-28px auto 48px;opacity:0;animation:fadeUp .7s .62s forwards}
+.hero-proof-card{background:rgba(255,255,255,.86);border:1px solid var(--border);border-radius:16px;padding:14px 16px;text-align:left;box-shadow:0 14px 36px rgba(13,12,10,.06)}
+.hero-proof-k{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.hero-proof-v{font-size:18px;color:var(--black);font-weight:600;line-height:1.2}
+.decision-sec{padding:80px 48px;background:#fff}
+.decision-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:.85fr 1.15fr;gap:24px;align-items:start}
+.decision-card{border:1px solid var(--border);border-radius:24px;padding:28px;background:var(--bg)}
+.decision-card.dark{background:var(--black);color:var(--white);border-color:var(--black)}
+.decision-title{font-size:16px;font-weight:600;color:var(--black);margin-bottom:16px}
+.decision-card.dark .decision-title{color:var(--white)}
+.decision-list{display:grid;gap:12px}
+.decision-item{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted);line-height:1.5}
+.decision-card.dark .decision-item{color:rgba(255,255,255,.62)}
+.decision-dot{width:8px;height:8px;border-radius:50%;background:var(--danger);margin-top:7px;flex:0 0 8px}
+.decision-card.dark .decision-dot{background:var(--gold)}
+.trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.trust-chip{border:1px solid var(--border);border-radius:14px;padding:13px 14px;background:#fff;font-size:12px;color:var(--text);font-weight:500}
+.trust-chip::before{content:"✓";color:var(--success);font-weight:700;margin-right:8px}
+.intel-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px}
+.intel-card.urgent{border-color:rgba(192,57,43,.28);background:#fff8f6}
+.intel-k{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:8px}
+.intel-v{font-size:22px;font-weight:600;color:var(--black);line-height:1.15;letter-spacing:-.03em}
+.intel-p{font-size:13px;color:var(--muted);line-height:1.55;margin-top:8px}
+.intel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
 
 /* DARK SECTION */
 .dark-sec{background:var(--black);padding:80px 48px}
@@ -301,6 +325,8 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
 .dark-sec{padding:60px 20px}.steps-grid{grid-template-columns:1fr}
 .pricing-sec{padding:60px 20px}.pricing-grid{grid-template-columns:1fr}
 .showcase-sec,.compare-sec,.faq-sec{padding:60px 20px}
+.hero-proof,.decision-inner,.intel-grid,.trust-grid{grid-template-columns:1fr}
+.decision-sec{padding:56px 20px}
 .showcase-head{display:block}.showcase-grid{grid-template-columns:1fr}.product-card.wide{grid-column:span 1}
 .compare-inner{grid-template-columns:1fr}.compare-list{position:static}.compare-row{grid-template-columns:1fr}.compare-cell.head:nth-child(2),.compare-cell.head:nth-child(3){display:none}.compare-detail-head{display:block}.compare-score,.compare-points{grid-template-columns:1fr}
 .review-wall{width:auto;display:block;transform:none;margin:0 20px}.review-col{margin-bottom:18px}
@@ -328,24 +354,24 @@ const TRANSLATIONS = {
     nav_about: "About",
     nav_login: "Log in",
     nav_cta: "Get started free →",
-    hero_badge: "AI-Powered E-Commerce Operations · Shopify & Meta Ads",
-    hero_title: "Stop guessing.<br><em>Start growing.</em>",
-    hero_sub: "Detect invisible operational losses in your Shopify store. Make every decision data-driven with AI.",
+    hero_badge: "AI operating intelligence for Shopify founders",
+    hero_title: "Find where your Shopify store <em>leaks profit.</em>",
+    hero_sub: "OPS acts like an AI operations analyst: it detects hidden risks, explains why they matter, and gives you the next action to protect margin.",
     hero_btn1: "Get started free →",
     hero_btn2: "How it works?",
-    features_tag: "Features",
-    features_h: "Know where every euro <em>goes.</em>",
-    features_p: "Automatically detect bottlenecks, ad waste, and inventory losses.",
-    b1_tag: "AI Analysis", b1_title: "Auto-detect operational bottlenecks", b1_desc: "GPT-4o analysis of 90 days of order data. Root causes of fulfillment delays, return patterns and revenue loss points.",
-    b2_tag: "Cross Alarm", b2_title: "Stock out, ads still running?", b2_desc: "OPS alerts you when Meta Ads budget keeps flowing to out-of-stock products. Prevent ad waste.",
-    b3_tag: "ROAS Analysis", b3_title: "Which campaign makes money?", b3_desc: "Rank Meta Ads campaigns by ROAS and conversion rate. Know which budget to cut.",
-    b4_tag: "PDF Report", b4_title: "Professional analysis report — one click", b4_desc: "Root cause, estimated revenue impact and action plan for every finding. Share with your team or investors.",
+    features_tag: "Decision intelligence",
+    features_h: "Stop reading reports. <em>Run the store.</em>",
+    features_p: "OPS turns Shopify data into profit leak detection, operational risk alerts, and weekly founder actions.",
+    b1_tag: "AI COO Layer", b1_title: "OPS tells you what needs attention today", b1_desc: "AI analysis of orders, stock, fulfillment, refunds, customers, and product movement. The output is a decision brief, not a passive report.",
+    b2_tag: "Profit Leak Detection", b2_title: "Stock out, ads still running?", b2_desc: "OPS flags wasted spend, low-stock products, slow fulfillment, refund pressure, and margin leaks before they compound.",
+    b3_tag: "Recommended Actions", b3_title: "Know exactly what to fix next", b3_desc: "Every finding includes evidence, estimated impact, and a specific operator action for the week.",
+    b4_tag: "Weekly Operator Brief", b4_title: "A founder-ready operating memo", b4_desc: "Critical risks, revenue opportunities, and next steps in one readable brief you can share with your team.",
     how_tag: "How it works",
-    how_h: "First results in <em>48 hours.</em>",
-    how_p: "No engineering sprint required. Connect your store, approve read-only access, and review the brief.",
-    step1_title: "Connect your store", step1_desc: "Integrate Shopify and Meta Ads with one click. Your data is encrypted and secure. Setup takes 2 minutes.",
-    step2_title: "AI analysis starts", step2_desc: "Our GPT-4o engine scans 90 days of orders, inventory and ad data. Auto-detects bottlenecks.",
-    step3_title: "Take action", step3_desc: "Prioritized action plan with estimated revenue impact. Clear list of what to do this week.",
+    how_h: "From raw Shopify data to <em>weekly decisions.</em>",
+    how_p: "Connect securely, let OPS inspect the operating signals, then act on the highest-impact risks first.",
+    step1_title: "Connect securely", step1_desc: "Use Shopify OAuth with read-only operational scopes. Store access can be removed anytime.",
+    step2_title: "OPS scans for leaks", step2_desc: "OPS looks for stock pressure, fulfillment delays, refund risk, ad inefficiency, pricing opportunities, and churn signals.",
+    step3_title: "Review the operator brief", step3_desc: "Get a prioritized list of what matters, why it matters, and what to do next.",
     pricing_tag: "Pricing",
     pricing_h: "A plan for your <em>size.</em>",
     pricing_p: "Start free. Starter covers 1 store; Pro covers 3 stores from one account.",
@@ -399,24 +425,24 @@ const TRANSLATIONS = {
     nav_about: "Über uns",
     nav_login: "Anmelden",
     nav_cta: "Kostenlos starten →",
-    hero_badge: "KI-gestützte E-Commerce-Operationen · Shopify & Meta Ads",
-    hero_title: "Schluss mit Raten.<br><em>Fang an zu wachsen.</em>",
-    hero_sub: "Entdecken Sie unsichtbare operative Verluste in Ihrem Shopify-Shop. Treffen Sie jede Entscheidung datengestützt mit KI.",
+    hero_badge: "KI-Operations-Intelligence für Shopify-Gründer",
+    hero_title: "Finden Sie, wo Ihr Shopify-Shop <em>Gewinn verliert.</em>",
+    hero_sub: "OPS arbeitet wie ein KI-Operations-Analyst: Es erkennt versteckte Risiken, erklärt die Ursache und empfiehlt die nächste Aktion zum Schutz Ihrer Marge.",
     hero_btn1: "Kostenlos starten →",
     hero_btn2: "So funktioniert's",
-    features_tag: "Funktionen",
-    features_h: "Wissen Sie, wohin jeder Euro <em>fließt.</em>",
-    features_p: "Engpässe, Anzeigenverschwendung und Lagerverluste automatisch erkennen.",
-    b1_tag: "KI-Analyse", b1_title: "Operative Engpässe automatisch erkennen", b1_desc: "GPT-4o-Analyse von 90 Tagen Bestelldaten. Grundursachen von Fulfillment-Verzögerungen, Retourenmustern und Umsatzverlusten.",
-    b2_tag: "Kreuzalarm", b2_title: "Lager leer, Anzeigen laufen noch?", b2_desc: "OPS warnt Sie, wenn Meta-Ads-Budget weiterhin zu nicht vorrätigen Produkten fließt. Anzeigenverschwendung verhindern.",
-    b3_tag: "ROAS-Analyse", b3_title: "Welche Kampagne verdient Geld?", b3_desc: "Meta-Ads-Kampagnen nach ROAS und Konversionsrate einordnen. Wissen, welches Budget zu kürzen ist.",
-    b4_tag: "PDF-Bericht", b4_title: "Professioneller Analysebericht — ein Klick", b4_desc: "Grundursache, geschätzter Umsatzeinfluss und Aktionsplan für jeden Befund. Teilen Sie ihn mit Ihrem Team oder Investoren.",
+    features_tag: "Decision Intelligence",
+    features_h: "Nicht nur Reports lesen. <em>Den Shop steuern.</em>",
+    features_p: "OPS verwandelt Shopify-Daten in Profit-Leak-Erkennung, operative Risikowarnungen und wöchentliche Founder-Aktionen.",
+    b1_tag: "KI-COO-Layer", b1_title: "OPS zeigt, was heute Aufmerksamkeit braucht", b1_desc: "KI-Analyse von Bestellungen, Bestand, Fulfillment, Rückerstattungen, Kunden und Produktbewegung. Das Ergebnis ist ein Entscheidungsbrief, kein passiver Bericht.",
+    b2_tag: "Profit-Leak-Erkennung", b2_title: "Stockout, während Anzeigen laufen?", b2_desc: "OPS markiert verschwendete Ausgaben, niedrigen Bestand, langsames Fulfillment, Refund-Druck und Margenlecks, bevor sie größer werden.",
+    b3_tag: "Empfohlene Aktionen", b3_title: "Genau wissen, was als Nächstes zu beheben ist", b3_desc: "Jeder Befund enthält Evidenz, geschätzte Auswirkung und eine konkrete operative Aktion für die Woche.",
+    b4_tag: "Weekly Operator Brief", b4_title: "Ein Founder-taugliches Operations-Memo", b4_desc: "Kritische Risiken, Umsatzchancen und nächste Schritte in einem lesbaren Brief für Ihr Team.",
     how_tag: "So funktioniert's",
-    how_h: "Erste Ergebnisse in <em>48 Stunden.</em>",
-    how_p: "Kein technisches Setup. Kein API-Wissen erforderlich. Einfach verbinden.",
-    step1_title: "Shop verbinden", step1_desc: "Shopify und Meta Ads mit einem Klick integrieren. Ihre Daten sind verschlüsselt und sicher. Setup dauert 2 Minuten.",
-    step2_title: "KI-Analyse startet", step2_desc: "Unser GPT-4o-Motor scannt 90 Tage Bestellungen, Lagerbestand und Anzeigendaten. Engpässe werden automatisch erkannt.",
-    step3_title: "Handeln", step3_desc: "Priorisierter Aktionsplan mit geschätztem Umsatzeinfluss. Klare Liste, was diese Woche zu tun ist.",
+    how_h: "Von rohen Shopify-Daten zu <em>wöchentlichen Entscheidungen.</em>",
+    how_p: "Sicher verbinden, OPS die operativen Signale prüfen lassen und zuerst die Risiken mit höchster Wirkung angehen.",
+    step1_title: "Sicher verbinden", step1_desc: "Shopify OAuth mit read-only Operations-Scopes. Zugriff kann jederzeit entfernt werden.",
+    step2_title: "OPS scannt nach Lecks", step2_desc: "OPS sucht nach Stock Pressure, Fulfillment-Verzug, Refund-Risiko, Ad-Ineffizienz, Pricing-Chancen und Churn-Signalen.",
+    step3_title: "Operator Brief prüfen", step3_desc: "Eine priorisierte Liste: was zählt, warum es zählt und was als Nächstes zu tun ist.",
     pricing_tag: "Preise",
     pricing_h: "Ein Plan für Ihre <em>Größe.</em>",
     pricing_p: "Kostenlos starten. Starter umfasst 1 Shop; Pro umfasst 3 Shops in einem Konto.",
@@ -470,24 +496,24 @@ const TRANSLATIONS = {
     nav_about: "Hakkımızda",
     nav_login: "Giriş Yap",
     nav_cta: "Ücretsiz Başla →",
-    hero_badge: "AI Destekli E-Ticaret Operasyonları · Shopify & Meta Ads",
-    hero_title: "Tahmin etmeyi bırak.<br><em>Büyümeye başla.</em>",
-    hero_sub: "Shopify mağazanızın görünmeyen operasyonel kayıplarını tespit edin. AI ile her kararı veriye dayandırın.",
+    hero_badge: "Shopify founder’ları için AI operasyon zekası",
+    hero_title: "Shopify mağazanızın nerede <em>kâr sızdırdığını bulun.</em>",
+    hero_sub: "OPS bir AI operasyon analisti gibi çalışır: gizli riskleri yakalar, neden önemli olduklarını açıklar ve marjı korumak için sonraki aksiyonu verir.",
     hero_btn1: "Ücretsiz Başla →",
     hero_btn2: "Nasıl çalışır?",
-    features_tag: "Özellikler",
-    features_h: "Her euro'nun nereye gittiğini <em>bilin.</em>",
-    features_p: "Darboğazları, reklam israfını ve stok kayıplarını otomatik tespit edin.",
-    b1_tag: "AI Analiz", b1_title: "Operasyonel darboğazları otomatik tespit edin", b1_desc: "90 günlük sipariş verisinin GPT-4o analizi. Teslimat gecikmeleri, iade örüntüleri ve gelir kaybı noktalarının kök nedenleri.",
-    b2_tag: "Çapraz Alarm", b2_title: "Stok bitti, reklam durmadı mı?", b2_desc: "Stoku tükenen ürünlere Meta Ads bütçesi akmaya devam ederse OPS sizi uyarır.",
-    b3_tag: "ROAS Analizi", b3_title: "Hangi kampanya para kazandırıyor?", b3_desc: "Meta Ads kampanyalarını ROAS ve dönüşüm oranına göre sırala.",
-    b4_tag: "PDF Rapor", b4_title: "Profesyonel analiz raporu — tek tıkla", b4_desc: "Her bulguda kök neden, tahmini gelir etkisi ve aksiyon planı.",
+    features_tag: "Karar zekası",
+    features_h: "Rapor okumayı bırakın. <em>Mağazayı yönetin.</em>",
+    features_p: "OPS Shopify verisini kâr sızıntısı tespiti, operasyonel risk alarmı ve haftalık founder aksiyonlarına dönüştürür.",
+    b1_tag: "AI COO Katmanı", b1_title: "OPS bugün neye odaklanmanız gerektiğini söyler", b1_desc: "Sipariş, stok, fulfillment, iade, müşteri ve ürün hareketlerini analiz eder. Çıktı pasif rapor değil, karar brief’idir.",
+    b2_tag: "Kâr Sızıntısı Tespiti", b2_title: "Stok bitmiş, reklam hâlâ çalışıyor mu?", b2_desc: "OPS reklam israfını, düşük stokları, yavaş fulfillment’ı, refund baskısını ve marj kaçaklarını büyümeden yakalar.",
+    b3_tag: "Önerilen Aksiyonlar", b3_title: "Sıradaki düzeltmeyi net görün", b3_desc: "Her bulgu kanıt, tahmini etki ve haftalık uygulanabilir operasyon aksiyonu içerir.",
+    b4_tag: "Weekly Operator Brief", b4_title: "Founder’a hazır operasyon notu", b4_desc: "Kritik riskler, gelir fırsatları ve sonraki adımlar tek okunabilir brief içinde.",
     how_tag: "Nasıl Çalışır",
-    how_h: "48 saatte <em>ilk sonuçlar.</em>",
-    how_p: "Teknik kurulum yok. API bilgisi gerekmez. Sadece bağlanın.",
-    step1_title: "Mağazanı Bağla", step1_desc: "Shopify ve Meta Ads hesaplarını tek tıkla entegre et. Kurulum 2 dakika.",
-    step2_title: "AI Analiz Başlar", step2_desc: "GPT-4o motorumuz 90 günlük sipariş, stok ve reklam verinizi tarar.",
-    step3_title: "Aksiyona Geç", step3_desc: "Önceliklendirilmiş aksiyon planı ve tahmini gelir etkisi.",
+    how_h: "Ham Shopify verisinden <em>haftalık kararlara.</em>",
+    how_p: "Güvenli bağlanın, OPS operasyon sinyallerini incelesin, en yüksek etkili risklerden başlayın.",
+    step1_title: "Güvenli bağlan", step1_desc: "Read-only operasyon izinleriyle Shopify OAuth. Erişimi istediğiniz an kaldırabilirsiniz.",
+    step2_title: "OPS sızıntıları tarar", step2_desc: "Stok baskısı, fulfillment gecikmesi, refund riski, reklam verimsizliği, fiyat fırsatları ve churn sinyalleri aranır.",
+    step3_title: "Operator brief’i incele", step3_desc: "Neyin önemli olduğunu, neden önemli olduğunu ve sıradaki aksiyonu öncelikli liste olarak görün.",
     pricing_tag: "Fiyatlandırma",
     pricing_h: "Büyüklüğünüze göre <em>plan.</em>",
     pricing_p: "Ücretsiz başlayın. Starter 1 mağaza; Pro aynı hesapta 3 mağaza içerir.",
@@ -594,30 +620,35 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="shape shape-1"></div>
     <div class="shape shape-2"></div>
     <div class="shape shape-3"></div>
-    <div class="badge"><span class="badge-dot"></span><span data-i18n="hero_badge">AI-Powered E-Commerce Operations · Shopify & Meta Ads</span></div>
-    <h1 class="hero-title" data-i18n="hero_title">Stop guessing.<br><em>Start growing.</em></h1>
-    <p class="hero-sub" data-i18n="hero_sub">Detect invisible operational losses in your Shopify store. Make every decision data-driven with AI.</p>
+    <div class="badge"><span class="badge-dot"></span><span data-i18n="hero_badge">AI operating intelligence for Shopify founders</span></div>
+    <h1 class="hero-title" data-i18n="hero_title">Find where your Shopify store <em>leaks profit.</em></h1>
+    <p class="hero-sub" data-i18n="hero_sub">OPS acts like an AI operations analyst: it detects hidden risks, explains why they matter, and gives you the next action to protect margin.</p>
     <div class="hero-actions">
       <a href="/app.html" class="btn-black" data-i18n="hero_btn1">Get started free →</a>
       <a href="#how" class="btn-ghost" data-i18n="hero_btn2">How it works?</a>
+    </div>
+    <div class="hero-proof">
+      <div class="hero-proof-card"><div class="hero-proof-k">Detected loss</div><div class="hero-proof-v">€8,400 hidden risk</div></div>
+      <div class="hero-proof-card"><div class="hero-proof-k">AI operator output</div><div class="hero-proof-v">Weekly action brief</div></div>
+      <div class="hero-proof-card"><div class="hero-proof-k">Founder clarity</div><div class="hero-proof-v">What to fix next</div></div>
     </div>
     <div class="mockup-wrap">
       <div class="mockup-box">
         <div class="topbar"><div class="m-dot d1"></div><div class="m-dot d2"></div><div class="m-dot d3"></div><div class="m-url">opsintelligence.org/app.html</div></div>
         <div class="mbody">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-weight:600;font-size:14px;color:var(--black)">OPS Intelligence</div><div style="background:#fff7e8;border:1px solid #ead7a4;color:#8a5c1a;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">Illustrative product preview</div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-weight:600;font-size:14px;color:var(--black)">OPS Intelligence</div><div style="background:#fff7e8;border:1px solid #ead7a4;color:#8a5c1a;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">AI operator preview</div></div>
           <div class="mkpis">
-            <div class="mkpi"><div class="mkpi-label">Decision Layer</div><div class="mkpi-val">3 feeds</div><div class="mkpi-delta">Shopify, WooCommerce, Meta</div></div>
-            <div class="mkpi"><div class="mkpi-label">Review Window</div><div class="mkpi-val">90 days</div><div class="mkpi-delta" style="color:var(--warn)">Real data when connected</div></div>
-            <div class="mkpi"><div class="mkpi-label">Operating Rhythm</div><div class="mkpi-val">Weekly</div><div class="mkpi-delta">Founder-ready action list</div></div>
-            <div class="mkpi"><div class="mkpi-label">Output</div><div class="mkpi-val">1 brief</div><div class="mkpi-delta" style="color:var(--success)">Score, causes, next steps</div></div>
+            <div class="mkpi"><div class="mkpi-label">Profit Leak</div><div class="mkpi-val">€2.4K</div><div class="mkpi-delta" style="color:var(--danger)">Potential loss detected</div></div>
+            <div class="mkpi"><div class="mkpi-label">Stock Risk</div><div class="mkpi-val">3 SKUs</div><div class="mkpi-delta" style="color:var(--warn)">May stock out in 9 days</div></div>
+            <div class="mkpi"><div class="mkpi-label">Operator Brief</div><div class="mkpi-val">Weekly</div><div class="mkpi-delta">Founder-ready actions</div></div>
+            <div class="mkpi"><div class="mkpi-label">Next Action</div><div class="mkpi-val">Pause</div><div class="mkpi-delta" style="color:var(--success)">Ad spend on risky SKU</div></div>
           </div>
-          <div class="malerts"><div class="malert-title">What founders see first</div>
-            <div class="malert-item"><div class="adot red"></div><span>Inventory risk versus active demand</span><span class="abadge">Priority</span></div>
-            <div class="malert-item"><div class="adot yellow"></div><span>Where cancellations or delays start compounding</span><span class="abadge warn">Watch</span></div>
-            <div class="malert-item"><div class="adot green"></div><span>Which products can absorb a pricing move</span><span class="abadge ok">Opportunity</span></div>
+          <div class="malerts"><div class="malert-title">Critical today</div>
+            <div class="malert-item"><div class="adot red"></div><span>OPS detected rising cancellation risk after fulfillment delays</span><span class="abadge">Fix today</span></div>
+            <div class="malert-item"><div class="adot yellow"></div><span>3 products may stock out before current ad cycle ends</span><span class="abadge warn">Watch</span></div>
+            <div class="malert-item"><div class="adot green"></div><span>Bundle opportunity detected for high-margin serum</span><span class="abadge ok">Opportunity</span></div>
           </div>
-          <div class="mchart"><div class="mchart-title">Sample dashboard layout</div>
+          <div class="mchart"><div class="mchart-title">Revenue drop annotated by OPS: fulfillment delay spike</div>
             <div class="mbars"><div class="mbar" style="height:40%"></div><div class="mbar" style="height:55%"></div><div class="mbar" style="height:45%"></div><div class="mbar" style="height:70%"></div><div class="mbar" style="height:60%"></div><div class="mbar" style="height:80%"></div><div class="mbar" style="height:65%"></div><div class="mbar hi" style="height:90%"></div><div class="mbar" style="height:75%"></div><div class="mbar" style="height:85%"></div><div class="mbar" style="height:70%"></div><div class="mbar hi" style="height:95%"></div><div class="mbar" style="height:80%"></div><div class="mbar" style="height:88%"></div></div>
           </div>
         </div>
@@ -627,27 +658,65 @@ window.addEventListener('DOMContentLoaded', () => {
 
   <div class="marquee"><div class="mq-track"><div class="mq-item"><span>Shopify</span><span class="sep">◆</span><span>WooCommerce</span><span class="sep">◆</span><span>Churn Prediction</span><span class="sep">◆</span><span>Price Elasticity</span><span class="sep">◆</span><span>30-Day Forecast</span><span class="sep">◆</span><span>Competitor Benchmarking</span><span class="sep">◆</span><span>Meta Ads</span><span class="sep">◆</span><span>ROAS Optimization</span><span class="sep">◆</span><span>Stock Alarm</span><span class="sep">◆</span><span>PDF Report</span><span class="sep">◆</span><span>AI Analysis</span><span class="sep">◆</span><span>7-Day Money Back</span><span class="sep">◆</span></div><div class="mq-item"><span>Shopify</span><span class="sep">◆</span><span>WooCommerce</span><span class="sep">◆</span><span>Churn Prediction</span><span class="sep">◆</span><span>Price Elasticity</span><span class="sep">◆</span><span>30-Day Forecast</span><span class="sep">◆</span><span>Competitor Benchmarking</span><span class="sep">◆</span><span>Meta Ads</span><span class="sep">◆</span><span>ROAS Optimization</span><span class="sep">◆</span><span>Stock Alarm</span><span class="sep">◆</span><span>PDF Report</span><span class="sep">◆</span><span>AI Analysis</span><span class="sep">◆</span><span>7-Day Money Back</span><span class="sep">◆</span></div></div></div>
 
+  <section class="decision-sec">
+    <div class="decision-inner">
+      <div>
+        <span class="tag rev">Why OPS</span>
+        <h2 class="sec-h rev" style="margin-top:10px">Your AI COO for the messy middle of Shopify operations.</h2>
+        <p class="sec-p rev">Dashboards show what happened. OPS identifies what is leaking profit, why it is happening, and what a founder should do next.</p>
+        <div class="trust-grid">
+          <div class="trust-chip">Read-only Shopify permissions</div>
+          <div class="trust-chip">OAuth secure install</div>
+          <div class="trust-chip">No customer PII stored</div>
+          <div class="trust-chip">Tokens stored server-side</div>
+          <div class="trust-chip">Delete access anytime</div>
+          <div class="trust-chip">Store-isolated analysis</div>
+        </div>
+      </div>
+      <div class="intel-grid">
+        <div class="intel-card urgent"><div class="intel-k">Profit leak detected</div><div class="intel-v">€2,430 potential revenue loss</div><div class="intel-p">OPS linked delayed fulfillment to a cancellation spike and recommends same-day processing for priority orders.</div></div>
+        <div class="intel-card"><div class="intel-k">Inventory risk</div><div class="intel-v">3 products may stock out in 9 days</div><div class="intel-p">Stock pressure is rising while demand stays active. OPS recommends pausing spend or reordering immediately.</div></div>
+        <div class="decision-card">
+          <div class="decision-title">Before OPS</div>
+          <div class="decision-list">
+            <div class="decision-item"><span class="decision-dot"></span><span>Refund spikes noticed too late</span></div>
+            <div class="decision-item"><span class="decision-dot"></span><span>Inventory blind spots hidden behind revenue</span></div>
+            <div class="decision-item"><span class="decision-dot"></span><span>Wasted ad spend continues on risky products</span></div>
+          </div>
+        </div>
+        <div class="decision-card dark">
+          <div class="decision-title">After OPS</div>
+          <div class="decision-list">
+            <div class="decision-item"><span class="decision-dot"></span><span>AI-detected operational risks</span></div>
+            <div class="decision-item"><span class="decision-dot"></span><span>Weekly action briefs with estimated impact</span></div>
+            <div class="decision-item"><span class="decision-dot"></span><span>Clear next steps for founders and operators</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div class="section" id="features">
-    <div class="rev"><span class="tag" data-i18n="features_tag">Features</span></div>
-    <h2 class="sec-h rev" data-i18n="features_h">Know where every euro <em>goes.</em></h2>
-    <p class="sec-p rev" data-i18n="features_p">Automatically detect bottlenecks, ad waste, and inventory losses.</p>
+    <div class="rev"><span class="tag" data-i18n="features_tag">Decision intelligence</span></div>
+    <h2 class="sec-h rev" data-i18n="features_h">Stop reading reports. <em>Run the store.</em></h2>
+    <p class="sec-p rev" data-i18n="features_p">OPS turns Shopify data into profit leak detection, operational risk alerts, and weekly founder actions.</p>
     <div class="bento">
-      <div class="bcard b1 rev"><div class="btag" data-i18n="b1_tag">AI Analysis</div><div class="btitle" data-i18n="b1_title">Auto-detect operational bottlenecks</div><div class="bdesc">GPT-4o analysis of 90 days of order data. Root causes of fulfillment delays, return patterns and revenue loss points.</div></div>
-      <div class="bcard b2 rev"><div class="btag" data-i18n="b2_tag">Cross Alarm</div><div class="btitle" data-i18n="b2_title">Stock out, ads still running?</div><div class="bdesc">OPS alerts you when Meta Ads budget keeps flowing to out-of-stock products. Prevent ad waste.</div></div>
-      <div class="bcard b3 rev"><div class="btag" data-i18n="b3_tag">ROAS Analysis</div><div class="btitle" data-i18n="b3_title">Which campaign makes money?</div><div class="bdesc">Rank Meta Ads campaigns by ROAS and conversion rate. Know exactly which budget to cut.</div></div>
-      <div class="bcard b4 rev"><div class="btag" data-i18n="b4_tag">PDF Report</div><div class="btitle" data-i18n="b4_title">Professional analysis report — one click</div><div class="bdesc">Root cause, estimated revenue impact and action plan for every finding. Share with your team or investors.</div></div>
+      <div class="bcard b1 rev"><div class="btag" data-i18n="b1_tag">AI COO Layer</div><div class="btitle" data-i18n="b1_title">OPS tells you what needs attention today</div><div class="bdesc">AI analysis of orders, stock, fulfillment, refunds, customers, and product movement. The output is a decision brief, not a passive report.</div></div>
+      <div class="bcard b2 rev"><div class="btag" data-i18n="b2_tag">Profit Leak Detection</div><div class="btitle" data-i18n="b2_title">Stock out, ads still running?</div><div class="bdesc">OPS flags wasted spend, low-stock products, slow fulfillment, refund pressure, and margin leaks before they compound.</div></div>
+      <div class="bcard b3 rev"><div class="btag" data-i18n="b3_tag">Recommended Actions</div><div class="btitle" data-i18n="b3_title">Know exactly what to fix next</div><div class="bdesc">Every finding includes evidence, estimated impact, and a specific operator action for the week.</div></div>
+      <div class="bcard b4 rev"><div class="btag" data-i18n="b4_tag">Weekly Operator Brief</div><div class="btitle" data-i18n="b4_title">A founder-ready operating memo</div><div class="bdesc">Critical risks, revenue opportunities, and next steps in one readable brief you can share with your team.</div></div>
     </div>
   </div>
 
   <div class="dark-sec" id="how">
     <div class="dark-inner">
       <span class="tag rev" data-i18n="how_tag">How it works</span>
-      <h2 class="sec-h rev" style="margin-top:10px" data-i18n="how_h">First results in <em>48 hours.</em></h2>
-      <p class="sec-p rev" style="color:rgba(255,255,255,.35)" data-i18n="how_p">No engineering sprint required. Connect your store, approve read-only access, and review the brief.</p>
+      <h2 class="sec-h rev" style="margin-top:10px" data-i18n="how_h">From raw Shopify data to <em>weekly decisions.</em></h2>
+      <p class="sec-p rev" style="color:rgba(255,255,255,.35)" data-i18n="how_p">Connect securely, let OPS inspect the operating signals, then act on the highest-impact risks first.</p>
       <div class="steps-grid">
-        <div class="step rev"><div class="step-num">01</div><div class="step-title" data-i18n="step1_title">Connect your store</div><div class="step-desc">Integrate Shopify and Meta Ads with one click. Your data is encrypted and secure. Setup takes 2 minutes.</div></div>
-        <div class="step rev"><div class="step-num">02</div><div class="step-title" data-i18n="step2_title">AI analysis starts</div><div class="step-desc">Our GPT-4o engine scans 90 days of orders, inventory and ad data. Auto-detects bottlenecks.</div></div>
-        <div class="step rev"><div class="step-num">03</div><div class="step-title" data-i18n="step3_title">Take action</div><div class="step-desc">Prioritized action plan with estimated revenue impact. A clear list of what to do this week.</div></div>
+        <div class="step rev"><div class="step-num">01</div><div class="step-title" data-i18n="step1_title">Connect securely</div><div class="step-desc">Use Shopify OAuth with read-only operational scopes. Store access can be removed anytime.</div></div>
+        <div class="step rev"><div class="step-num">02</div><div class="step-title" data-i18n="step2_title">OPS scans for leaks</div><div class="step-desc">OPS looks for stock pressure, fulfillment delays, refund risk, ad inefficiency, pricing opportunities, and churn signals.</div></div>
+        <div class="step rev"><div class="step-num">03</div><div class="step-title" data-i18n="step3_title">Review the operator brief</div><div class="step-desc">Get a prioritized list of what matters, why it matters, and what to do next.</div></div>
       </div>
     </div>
   </div>
@@ -748,7 +817,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="product-card blue rev">
           <div class="product-kicker" style="color:#4676df">02 · Diagnose</div>
           <h3 class="product-title">See revenue, inventory, fulfillment, and cancel risk in context.</h3>
-          <a href="/app.html" class="product-link">Open dashboard →</a>
+          <a href="/app.html" class="product-link">Open operator brief →</a>
           <div class="product-visual" style="color:#4777e7">
             <div class="mini-window">
               <div class="mini-bars"><span style="height:44%"></span><span style="height:72%"></span><span style="height:58%"></span><span style="height:86%"></span><span style="height:66%"></span></div>
@@ -913,10 +982,10 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="review-wall">
       <div class="review-col">
         <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">AM</div><div><div class="review-name">Amelia M.</div><div class="review-meta">Beauty store · EU</div></div></div><div class="review-meta">Founder</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Finally an operating brief, not another chart.</div><p class="review-copy">OPS shows which products, delays, and inventory issues deserve attention first. It feels like a weekly ops meeting already summarized.</p></div>
-        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">RN</div><div><div class="review-name">Robert N.</div><div class="review-meta">Apparel · UK</div></div></div><div class="review-meta">Operator</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">The quick wins make the dashboard useful.</div><p class="review-copy">The best part is the action list. It tells the team what to do this week instead of making us interpret ten charts.</p></div>
+        <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">RN</div><div><div class="review-name">Robert N.</div><div class="review-meta">Apparel · UK</div></div></div><div class="review-meta">Operator</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">The quick wins make the brief useful.</div><p class="review-copy">The best part is the action list. It tells the team what to do this week instead of making us interpret ten charts.</p></div>
       </div>
       <div class="review-col">
-        <div class="review-card featured rev"><div class="review-top"><div class="review-person"><div class="avatar">JT</div><div><div class="review-name">Jeff T.</div><div class="review-meta">Shopify operator · 2 stores</div></div></div><div class="review-meta">Operations lead</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Great for finding what quietly leaks margin.</div><p class="review-copy">Instead of checking five tabs, I can see revenue, stock pressure, fulfillment speed, and churn risk in one place. The report is written like a decision memo, not a generic dashboard export.</p></div>
+        <div class="review-card featured rev"><div class="review-top"><div class="review-person"><div class="avatar">JT</div><div><div class="review-name">Jeff T.</div><div class="review-meta">Shopify operator · 2 stores</div></div></div><div class="review-meta">Operations lead</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Great for finding what quietly leaks margin.</div><p class="review-copy">Instead of checking five tabs, I can see revenue, stock pressure, fulfillment speed, and churn risk in one place. OPS writes it like a decision memo, not a generic dashboard export.</p></div>
         <div class="review-card rev"><div class="review-top"><div class="review-person"><div class="avatar">MI</div><div><div class="review-name">Mira I.</div><div class="review-meta">Cosmetics · DE</div></div></div><div class="review-meta">Founder</div></div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="review-title">Cleaner than spreadsheets.</div><p class="review-copy">The product table and forecast view make weekly planning easier to explain. I can see which products need action before the next stock order.</p></div>
       </div>
       <div class="review-col">
@@ -985,7 +1054,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="pricing-grid">
-        <div class="pcard rev"><div class="pname">Free</div><div class="pamount">€0</div><div class="pperiod">/ month, forever</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 1 store connection</li><li>✓ 100 orders / month</li><li>✓ Basic metrics dashboard</li><li class="off">× AI Analysis Report</li><li class="off">× PDF Export</li><li class="off">× Meta Ads + ROAS</li><li class="off">× SWOT Analysis</li></ul><a href="/app.html" class="pbtn" data-i18n="free_btn">Get started free</a></div>
+        <div class="pcard rev"><div class="pname">Free</div><div class="pamount">€0</div><div class="pperiod">/ month, forever</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 1 store connection</li><li>✓ 100 orders / month</li><li>✓ Basic operating signals</li><li class="off">× AI Analysis Report</li><li class="off">× PDF Export</li><li class="off">× Meta Ads + ROAS</li><li class="off">× SWOT Analysis</li></ul><a href="/app.html" class="pbtn" data-i18n="free_btn">Get started free</a></div>
         <div class="pcard feat rev"><div class="popular" data-i18n="most_popular">Most popular</div><div class="pname">Starter</div><div class="pamount">€29</div><div class="pperiod">/ month</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 1 store connection</li><li>✓ 1,000 orders / month</li><li>✓ AI Analysis Report (GPT-4o)</li><li>✓ PDF Export</li><li>✓ Meta Ads + ROAS Analysis</li><li>✓ SWOT Analysis</li><li>✓ Competitor Benchmarking</li><li>✓ Email support</li><li class="off">× Churn Prediction</li><li class="off">× Price Elasticity</li><li class="off">× 30-Day Forecast</li></ul><a href="/app.html" class="pbtn white" data-i18n="starter_btn">Get Starter</a></div>
         <div class="pcard rev"><div class="pname">Pro</div><div class="pamount">€79</div><div class="pperiod">/ month</div><div style="background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--gold);text-align:center">🎁 7-day free trial — no card required</div><div class="pdiv"></div><ul class="pfeats"><li>✓ 3 store connections from one account</li><li>✓ 10,000 orders / month</li><li>✓ Everything in Starter</li><li>✓ 🔮 Churn Prediction (RFM AI)</li><li>✓ 💰 Price Elasticity Analysis</li><li>✓ 📅 30-Day Revenue Forecast</li><li>✓ Full Competitor Benchmarking</li><li>✓ Priority support</li></ul><a href="/app.html" class="pbtn" data-i18n="pro_btn">Start Free Trial →</a></div>
       </div>
