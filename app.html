@@ -615,6 +615,19 @@ body.analysis-is-loading{overflow:hidden!important}
 .health-track{height:8px;border-radius:999px;background:#eee8db;overflow:hidden}
 .health-fill{height:100%;border-radius:999px;background:var(--gold)}
 .health-score{font-size:13px;font-weight:900;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.health-focus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.health-focus-card{border:1px solid var(--border);background:#fffaf6;border-radius:16px;padding:14px}
+.health-focus-card.primary{background:linear-gradient(135deg,#11120d,#272218);border-color:#11120d;color:#fff}
+.health-focus-kicker{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+.health-focus-card.primary .health-focus-kicker{color:rgba(255,255,255,.52)}
+.health-focus-title{font-size:15px;font-weight:850;letter-spacing:-.02em;color:var(--ink);line-height:1.25}
+.health-focus-card.primary .health-focus-title{color:#fff}
+.health-focus-copy{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px}
+.health-focus-card.primary .health-focus-copy{color:rgba(255,255,255,.62)}
+.health-evidence{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.health-evidence-item{border:1px solid rgba(224,216,204,.82);border-radius:14px;padding:11px 12px;background:#fff}
+.health-evidence-value{font-size:18px;font-weight:850;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.health-evidence-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
 .timeline-item{display:grid;grid-template-columns:auto 1fr;gap:12px;background:#fff}
 .timeline-dot{width:11px;height:11px;border-radius:50%;background:var(--gold);margin-top:4px;box-shadow:0 0 0 5px rgba(214,155,45,.12)}
 .timeline-title{font-size:13px;font-weight:800;color:var(--ink)}
@@ -1177,6 +1190,7 @@ body.analysis-is-loading{overflow:hidden!important}
   .chat-window{height:360px}
   .ask-input-row{flex-direction:column}
   .health-row{grid-template-columns:1fr}
+  .health-focus-grid,.health-evidence{grid-template-columns:1fr}
   .health-score{text-align:left}
   .connect-hero,.connect-proof-panel,.connect-feature-grid{grid-template-columns:1fr!important}
   .connect-hero{gap:12px}
@@ -3337,9 +3351,23 @@ function buildOpsIntelligence(data) {
     `Biggest opportunity: ${ext.price_elasticity?.insight || 'prioritize high-margin products and protect stock before scaling spend.'}`,
     `Recommended action: ${priorities[0]?.why || 'assign one owner to the top operating risk today.'}`,
   ];
+  const healthScores=[
+    ['Operations',operations],['Inventory',inventoryScore],['Fulfillment',fulfillmentScore],['Customer Satisfaction',customerScore],['Profitability',profitabilityScore],
+  ];
+  const weakest=healthScores.slice().sort((a,b)=>a[1]-b[1])[0] || ['Operations',70];
+  const strongest=healthScores.slice().sort((a,b)=>b[1]-a[1])[0] || ['Fulfillment',85];
+  const focusCopy = weakest[0] === 'Customer Satisfaction'
+    ? `Refund and cancellation pressure are the current retention signals. Hold customers by improving the post-purchase experience first.`
+    : weakest[0] === 'Inventory'
+      ? `${lowStock.length} low-stock SKUs and ${slowStock.length} slow movers need attention before scaling demand.`
+      : weakest[0] === 'Profitability'
+        ? `Estimated leakage near €${money0(totalLeak)} is the margin signal to protect this week.`
+        : weakest[0] === 'Fulfillment'
+          ? `Fulfillment at ${ftMean.toFixed(1)}h should be brought under the 24h target before increasing acquisition.`
+          : `OPS sees ${weakest[0].toLowerCase()} as the next operating system to stabilize.`;
   return {leaks,totalLeak,priorities,health:[
     ['Operations',operations],['Inventory',inventoryScore],['Fulfillment',fulfillmentScore],['Customer Satisfaction',customerScore],['Profitability',profitabilityScore],
-  ],alerts,timeline,brief};
+  ],healthFocus:{weakest,strongest,focusCopy,orders:data?.record_counts?.orders||0,products:data?.record_counts?.products||products.length||0},alerts,timeline,brief};
 }
 
 function renderOpsIntelligence(data) {
@@ -3362,7 +3390,24 @@ function renderOpsIntelligence(data) {
     <div class="ops-panel-title">Store Health Breakdown</div>
     <div class="ops-panel-sub">The headline score split into operator-readable systems.</div>
     <div class="health-breakdown">${intel.health.map(([label,score])=>`
-      <div class="health-row"><div class="health-label">${escHtml(label)}</div><div class="health-track"><div class="health-fill" style="width:${score}%;background:${score>=80?'var(--success)':score>=65?'var(--gold)':'var(--danger)'}"></div></div><div class="health-score">${score} ↗</div></div>`).join('')}</div>`;
+      <div class="health-row"><div class="health-label">${escHtml(label)}</div><div class="health-track"><div class="health-fill" style="width:${score}%;background:${score>=80?'var(--success)':score>=65?'var(--gold)':'var(--danger)'}"></div></div><div class="health-score">${score} ↗</div></div>`).join('')}</div>
+    <div class="health-focus-grid">
+      <div class="health-focus-card primary">
+        <div class="health-focus-kicker">Next focus</div>
+        <div class="health-focus-title">${escHtml(intel.healthFocus.weakest[0])} · ${intel.healthFocus.weakest[1]}</div>
+        <div class="health-focus-copy">${escHtml(intel.healthFocus.focusCopy)}</div>
+      </div>
+      <div class="health-focus-card">
+        <div class="health-focus-kicker">Strongest signal</div>
+        <div class="health-focus-title">${escHtml(intel.healthFocus.strongest[0])} · ${intel.healthFocus.strongest[1]}</div>
+        <div class="health-focus-copy">Use this advantage while fixing the weaker operating system.</div>
+      </div>
+    </div>
+    <div class="health-evidence">
+      <div class="health-evidence-item"><div class="health-evidence-value">${money0(intel.healthFocus.orders)}</div><div class="health-evidence-label">Orders read</div></div>
+      <div class="health-evidence-item"><div class="health-evidence-value">${money0(intel.healthFocus.products)}</div><div class="health-evidence-label">Products</div></div>
+      <div class="health-evidence-item"><div class="health-evidence-value">€${money0(intel.totalLeak)}</div><div class="health-evidence-label">Leak signal</div></div>
+    </div>`;
   document.getElementById('timeline-alerts-panel').innerHTML=`
     <div class="ops-panel-title">Operational Timeline</div>
     <div class="ops-panel-sub">Live-feeling monitoring events and smart alert severity.</div>
