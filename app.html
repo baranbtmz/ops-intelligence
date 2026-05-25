@@ -2521,6 +2521,7 @@ async function login() {
     token=d.token;
     localStorage.setItem('ops_token',token);
     user=d.user;
+    if(d.billing) user.billing=d.billing;
     await enterAppWithLoader();
   } catch(e){
     err.textContent='Could not connect to server. Please try again.';
@@ -2559,7 +2560,7 @@ async function fetchMe() {
   try {
     const r=await fetch(`${API}/auth/me`,{headers:{'Authorization':`Bearer ${token}`}});
     if(!r.ok){logout();return;}
-    const d=await r.json(); user=d.user; showApp();
+    const d=await r.json(); user=d.user; if(d.billing) user.billing=d.billing; showApp();
   } catch(e){logout();}
 }
 
@@ -3861,7 +3862,7 @@ async function selectPlan(plan) {
       showToast('Opening Shopify billing to avoid duplicate payment...');
       window.location.href=billingState.shopify_pricing_url;
     } else {
-      showToast('This account is managed through Shopify billing. Open OPS inside Shopify to change plans.');
+      showToast(billingState.message || 'This account is managed through Shopify billing. Open OPS inside Shopify to change plans.');
     }
     if(btn){btn.textContent=origText;btn.disabled=false;}
     return;
@@ -4545,6 +4546,11 @@ async function cancelSubscription() {
     const r=await fetch(`${API}/payments/cancel-subscription`,{method:'POST',headers:{'Authorization':`Bearer ${token}`}});
     const d=await r.json();
     if(!r.ok){showToast(d.detail||'Cancellation failed.');return;}
+    if(d.success===false){
+      showToast(d.message || 'This subscription is managed outside OPS checkout.');
+      if(d.shopify_pricing_url) setTimeout(()=>{ window.location.href=d.shopify_pricing_url; }, 900);
+      return;
+    }
     token=d.token; localStorage.setItem('ops_token',token);
     user.plan='free';
     document.getElementById('sb-plan').textContent='Free Plan';

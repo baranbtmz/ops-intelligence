@@ -28,5 +28,9 @@ topics = [ "app/uninstalled" ]
 uri = "https://ops-intelligence-production.up.railway.app/shopify/webhooks/app-uninstalled"
 
 [[webhooks.subscriptions]]
+topics = [ "app_subscriptions/update" ]
+uri = "https://ops-intelligence-production.up.railway.app/shopify/webhooks/app-subscriptions-update"
+
+[[webhooks.subscriptions]]
 compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 uri = "https://ops-intelligence-production.up.railway.app/shopify/webhooks/privacy"
