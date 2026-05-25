@@ -3772,76 +3772,39 @@ function switchResultTab(tab) {
   setTimeout(()=>Object.values(charts||{}).forEach(c=>{try{c.resize();c.update('none')}catch(e){}}), 40);
 }
 
-function downloadPDF() {
+async function downloadPDF() {
   if(!lastResult){showToast('Run an analysis first.');return;}
-  var an=lastResult.analysis||{};
-  var rev=(lastResult.metrics&&lastResult.metrics.revenue)||{};
-  var score=an.overall_health_score||0;
-  var scoreColor=score>=75?'#1a7a4a':score>=50?'#c9963a':'#c0392b';
-  var findings=an.findings||[];
-  var wins=an.quick_wins||[];
   var shop=lastResult.shop_name||'Store';
-  var date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-  var cancelRate=((rev.cancel_rate||rev.cancellation_rate||0)).toFixed(1);
-  var rows=findings.map(function(f){
-    var bg=f.severity==='critical'?'#fef2f2':f.severity==='warning'?'#fffbeb':f.severity==='ok'?'#f0fdf4':'#fafaf5';
-    var bd=f.severity==='critical'?'#ef4444':f.severity==='warning'?'#f59e0b':f.severity==='ok'?'#22c55e':'#a8a08a';
-    return '<div style="margin-bottom:12px;padding:12px 14px;border-radius:8px;background:'+bg+';border-left:3px solid '+bd+'">'+
-      '<div style="font-size:9px;font-weight:700;color:'+bd+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">'+f.severity+'</div>'+
-      '<div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">'+f.title+'</div>'+
-      '<div style="font-size:12px;color:#555;line-height:1.5">'+(f.description||f.root_cause||'')+'</div>'+
-      (f.recommendation?'<div style="font-size:11px;color:#333;margin-top:5px;padding:7px 9px;background:rgba(0,0,0,.04);border-radius:5px">Recommendation: '+f.recommendation+'</div>':'')+
-      '</div>';
-  }).join('');
-  var winRows=wins.map(function(w,i){
-    return '<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #eee">'+
-      '<div style="font-size:16px;font-weight:300;color:#c9963a;min-width:22px;flex-shrink:0">'+('0'+(i+1)).slice(-2)+'</div>'+
-      '<div style="font-size:12px;color:#333;line-height:1.6">'+w+'</div></div>';
-  }).join('');
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>OPS Report</title>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#faf8f4;color:#1a1815;line-height:1.6}'+
-    '.pg{max-width:780px;margin:0 auto;padding:44px 36px}'+
-    '.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}'+
-    '.logo{font-size:26px;font-weight:300;letter-spacing:.08em;color:#111}'+
-    '.meta{text-align:right;font-size:11px;color:#999;line-height:1.7}'+
-    '.rule{width:36px;height:1px;background:#c9963a;margin:8px 0 4px}'+
-    '.tag{font-size:9px;color:#bbb;letter-spacing:.14em;text-transform:uppercase}'+
-    '.score-box{text-align:center;padding:28px;background:linear-gradient(135deg,#f2ede3,#faf8f4);border-radius:12px;border:1px solid #ddd5c4;margin-bottom:22px}'+
-    '.snum{font-size:64px;font-weight:200;line-height:1;letter-spacing:-2px;color:'+scoreColor+';font-variant-numeric:tabular-nums lining-nums}'+
-    '.slbl{font-size:9px;color:#aaa;letter-spacing:.16em;text-transform:uppercase;margin-top:5px}'+
-    '.sdesc{font-size:12px;color:#666;margin-top:8px;max-width:460px;margin-left:auto;margin-right:auto}'+
-    '.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}'+
-    '.kpi{background:#fff;border:1px solid #ddd5c4;border-radius:9px;padding:12px 14px}'+
-    '.klbl{font-size:8px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}'+
-    '.kval{font-size:20px;font-weight:300;color:#111;font-variant-numeric:tabular-nums lining-nums}'+
-    'h2{font-size:14px;font-weight:600;color:#111;margin:20px 0 12px;padding-bottom:7px;border-bottom:1px solid #e5e0d5}'+
-    '.foot{font-size:10px;color:#ccc;text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #eee}'+
-    '</style></head><body><div class="pg">'+
-    '<div class="hdr"><div><div class="logo">OPS.</div><div class="rule"></div><div class="tag">Intelligence Report</div></div>'+
-    '<div class="meta"><div>'+shop+'</div><div>'+date+'</div></div></div>'+
-    '<div class="score-box"><div class="snum">'+score+'</div><div class="slbl">Store Health Score / 100</div>'+
-    '<div class="sdesc">'+(an.executive_summary||'')+'</div></div>'+
-    '<div class="kpis">'+
-      '<div class="kpi"><div class="klbl">Total Revenue</div><div class="kval">EUR '+((rev.total||0)/1000).toFixed(1)+'K</div></div>'+
-      '<div class="kpi"><div class="klbl">Total Orders</div><div class="kval">'+(rev.orders||0)+'</div></div>'+
-      '<div class="kpi"><div class="klbl">Avg. Order</div><div class="kval">EUR '+Math.round(rev.aov||0)+'</div></div>'+
-      '<div class="kpi"><div class="klbl">Cancel Rate</div><div class="kval">'+cancelRate+'%</div></div>'+
-    '</div>'+
-    '<h2>Findings</h2>'+rows+
-    '<h2>Quick Wins</h2>'+winRows+
-    '<div class="foot">Generated by OPS Intelligence &middot; '+date+'</div>'+
-    '</div></body></html>';
-
-  // Convert HTML string to Blob and trigger direct download
-  var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'OPS_Report_' + shop.replace(/\s+/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.html';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
-  showToast('Report downloaded ✓');
+  if(!token){showToast('Please sign in again to download the PDF.');return;}
+  const btn=document.querySelector('.pdf-strip button');
+  const original=btn?.textContent||'Download PDF';
+  if(btn){btn.textContent='Preparing PDF...';btn.disabled=true;}
+  try {
+    const r=await fetch(`${API}/report/pdf`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({result:lastResult,shop_name:shop,meta:lastResult.meta||null})
+    });
+    if(!r.ok){
+      const text=await r.text();
+      let msg='Could not generate PDF report.';
+      try{const d=JSON.parse(text); msg=d.detail||msg;}catch(e){}
+      throw new Error(msg);
+    }
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='OPS_Report_'+shop.replace(/[^a-z0-9._-]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
+    showToast('PDF report downloaded ✓');
+  } catch(e) {
+    showToast('❌ '+e.message);
+  } finally {
+    if(btn){btn.textContent=original;btn.disabled=false;}
+  }
 }
 
 async function selectPlan(plan) {

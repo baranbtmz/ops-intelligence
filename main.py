@@ -11,7 +11,7 @@ uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
@@ -233,6 +233,11 @@ class AnalysisRequest(BaseModel):
     meta_account: Optional[str] = None
     use_mock_meta: bool = False
     language: str = "tr"
+
+class PDFReportRequest(BaseModel):
+    result: Dict[str, Any]
+    shop_name: Optional[str] = None
+    meta: Optional[Dict[str, Any]] = None
 
 class ShopifyConnectStartRequest(BaseModel):
     shop: str
@@ -2197,6 +2202,32 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         },
         "user_plan": plan_key,
     })
+
+
+@app.post("/report/pdf")
+async def create_pdf_report(req: PDFReportRequest, payload: dict = Depends(verify_token)):
+    result = make_json_safe(req.result or {})
+    shop_name = (req.shop_name or result.get("shop_name") or "OPS Store").strip()
+    meta_result = req.meta if req.meta is not None else result.get("meta")
+
+    if not result.get("analysis"):
+        raise HTTPException(status_code=400, detail="Run an analysis before downloading a PDF report.")
+
+    try:
+        pdf_bytes = generate_pdf_report(result, meta_result, shop_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF report could not be generated: {str(e)}")
+
+    safe_shop = re.sub(r"[^A-Za-z0-9._-]+", "_", shop_name).strip("_") or "OPS_Report"
+    filename = f"OPS_Report_{safe_shop}_{datetime.utcnow().strftime('%Y-%m-%d')}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 # ─────────────────────────────────────────────

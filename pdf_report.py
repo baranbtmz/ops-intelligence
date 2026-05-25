@@ -271,6 +271,7 @@ class PDFReportGenerator:
         # Mağaza bilgisi kutusu
         ft  = self.metrics.get("fulfillment_time", {})
         rev = self.metrics.get("revenue", {})
+        total_orders = rev.get("total_orders", rev.get("orders", 0))
         score = self.analysis.get("overall_health_score", 0)
 
         cover_data = [
@@ -280,7 +281,7 @@ class PDFReportGenerator:
              Paragraph("HEALTH SCORE", self._sp("label"))],
             [Paragraph(f"<b>{self.shop_name}</b>", self._sp("body_white")),
              Paragraph(datetime.now().strftime("%d.%m.%Y"), self._sp("body_white")),
-             Paragraph(f"{rev.get('total_orders',0):,}", self._sp("body_white")),
+             Paragraph(f"{total_orders:,}", self._sp("body_white")),
              Paragraph(f"{score}/100", self._sp("body_white"))],
         ]
         cover_table = Table(cover_data, colWidths=[self.W/4]*4)
@@ -346,11 +347,14 @@ class PDFReportGenerator:
         ft  = self.metrics.get("fulfillment_time", {})
         rev = self.metrics.get("revenue", {})
         inv = self.metrics.get("inventory", {})
+        total_revenue = rev.get("total_revenue", rev.get("total", 0))
+        total_orders = rev.get("total_orders", rev.get("orders", 0))
+        cancellation_rate = rev.get("cancellation_rate", rev.get("cancel_rate", 0))
 
         kpis = [
-            ("TOTAL REVENUE",       f"€{rev.get('total_revenue',0):,.0f}", f"{rev.get('total_orders',0)} orders"),
+            ("TOTAL REVENUE",       f"€{total_revenue:,.0f}", f"{total_orders} orders"),
             ("AVG. BASKET (AOV)",   f"€{rev.get('aov',0):.0f}",          "Target: €250"),
-            ("CANCELLATION RATE",   f"%{rev.get('cancellation_rate',0)}", "Target: <2.5%"),
+            ("CANCELLATION RATE",   f"%{cancellation_rate}", "Target: <2.5%"),
             ("REFUND RATE",         f"%{rev.get('refund_rate',0)}",       "Industry: 5-8%"),
             ("FULFILLMENT MEDIAN",  f"{ft.get('median',0)}s",            "Target: <24s"),
             ("P95 FULFILLMENT",     f"{ft.get('p95',0)}s",               f">72s: {ft.get('orders_over_72h',0)} orders"),
@@ -400,20 +404,27 @@ class PDFReportGenerator:
         story.append(AccentLine(self.W, C_ACCENT, 1.5))
         story.append(self._spacer(3))
 
-        findings = sorted(self.analysis.get("findings",[]), key=lambda x: x["priority"])
+        raw_findings = self.analysis.get("findings", [])
+        findings = sorted(raw_findings, key=lambda x: x.get("priority", 3))
         sev_colors = {"critical": C_DANGER, "warning": C_WARN, "ok": C_ACCENT}
         pri_labels = {1:"CRITICAL",2:"HIGH",3:"MEDIUM",4:"LOW",5:"MONITOR"}
 
-        for f in findings:
-            sc  = sev_colors.get(f["severity"], C_MUTED)
-            pri = pri_labels.get(f["priority"], str(f["priority"]))
+        for idx, f in enumerate(findings, 1):
+            priority = f.get("priority", idx)
+            severity = f.get("severity", "warning")
+            area = f.get("area") or severity or "Finding"
+            title = f.get("title") or area
+            root_cause = f.get("root_cause") or f.get("description") or ""
+            recommendation = f.get("recommendation") or "Review this signal and assign an owner for the next operating cycle."
+            sc  = sev_colors.get(severity, C_MUTED)
+            pri = pri_labels.get(priority, str(priority))
 
             # Başlık satırı
             header_data = [[
                 Paragraph(f"{'●'} {pri}", ParagraphStyle("pri",
                     fontName=_FONT_BOLD, fontSize=8,
                     textColor=sc, leading=11)),
-                Paragraph(f["area"].upper(), self._sp("label")),
+                Paragraph(area.upper(), self._sp("label")),
                 Paragraph(
                     f"Effort: {f.get('estimated_effort','—')}  |  Impact: {f.get('estimated_impact','—')}",
                     self._sp("label")
@@ -431,13 +442,13 @@ class PDFReportGenerator:
 
             # İçerik
             content_data = [
-                [Paragraph(f["title"], self._sp("finding_title"))],
+                [Paragraph(title, self._sp("finding_title"))],
                 [Spacer(1, 2*mm)],
-                [Paragraph(f"Root Cause: {f['root_cause']}", self._sp("finding_body"))],
+                [Paragraph(f"Root Cause: {root_cause}", self._sp("finding_body"))],
                 [Spacer(1, 1*mm)],
                 [Paragraph(f"Business Impact: {f.get('impact','—')}", self._sp("finding_body"))],
                 [Spacer(1, 2*mm)],
-                [Paragraph(f"→ Action: {f['recommendation']}", self._sp("action"))],
+                [Paragraph(f"→ Action: {recommendation}", self._sp("action"))],
             ]
             content = Table(content_data, colWidths=[self.W])
             content.setStyle(TableStyle([
@@ -813,7 +824,12 @@ class PDFReportGenerator:
         if days:
             story.append(self._spacer(4))
             headers = [Paragraph(h, self._sp("label")) for h in ["DATE", "PREDICTED REVENUE", "PREDICTED ORDERS", "CONFIDENCE"]]
-            rows = [headers] + [[d["date"], f"€{d['predicted_revenue']:,.0f}", str(d["predicted_orders"]), d["confidence"].upper()] for d in days]
+            rows = [headers] + [[
+                d.get("date", "—"),
+                f"€{d.get('predicted_revenue', 0):,.0f}",
+                str(d.get("predicted_orders", "—")),
+                str(d.get("confidence", "medium")).upper(),
+            ] for d in days]
             t = Table(rows, colWidths=[self.W*0.3, self.W*0.3, self.W*0.2, self.W*0.2])
             t.setStyle(TableStyle([
                 ("BACKGROUND", (0,0), (-1,0), C_SURFACE),
