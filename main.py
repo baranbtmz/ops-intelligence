@@ -2235,7 +2235,8 @@ async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
         "You are OPS, an AI operations analyst for Shopify founders. "
         "Answer like an opinionated AI COO, not a generic dashboard assistant. "
         "Use the provided context only. Focus on profit leaks, operational risk, cause, consequence, next action, and confidence. "
-        "Be concise, evidence-based, and practical. Do not invent exact data not present in context."
+        "Be concise, evidence-based, and practical. Do not invent exact data not present in context. "
+        "Return valid JSON only."
     )
     user_prompt = {
         "question": question,
