@@ -38,7 +38,7 @@ logger = logging.getLogger("ops-intelligence")
 # ── Analiz modülleri
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from data_layer import ShopifyConfig, WooCommerceConfig, MetricsEngine, run_pipeline, run_woocommerce_pipeline
+from data_layer import ShopifyConfig, WooCommerceConfig, MetricsEngine, run_pipeline, run_shopify_live_pipeline, run_woocommerce_pipeline
 from ai_engine import AIConfig, AIAnalysisEngine, run_extended_analysis
 from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
@@ -145,8 +145,14 @@ async def send_analysis_email(user_email: str, user_name: str, analysis_data: di
 @app.on_event("startup")
 async def download_fonts():
     import urllib.request
-    font_dir = "/app/fonts"
-    os.makedirs(font_dir, exist_ok=True)
+    preferred_dir = os.environ.get("OPS_FONT_DIR", "/app/fonts")
+    fallback_dir = os.path.join(os.path.dirname(__file__), "fonts")
+    try:
+        os.makedirs(preferred_dir, exist_ok=True)
+        font_dir = preferred_dir
+    except OSError:
+        font_dir = fallback_dir
+        os.makedirs(font_dir, exist_ok=True)
     fonts = {
         "DejaVuSans.ttf": "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2",
     }
@@ -645,6 +651,42 @@ def render_shopify_install_required(shop: str) -> HTMLResponse:
 </html>
 """)
     response.headers["Content-Security-Policy"] = f"frame-ancestors https://{shop} https://admin.shopify.com;"
+    return response
+
+
+def render_shopify_missing_shop() -> HTMLResponse:
+    response = HTMLResponse(f"""
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OPS Intelligence for Shopify</title>
+  <style>
+    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
+    .wrap{{min-height:100vh;display:grid;place-items:center;padding:28px}}
+    .card{{max-width:680px;background:#fff;border:1px solid #e0d8cc;border-radius:18px;padding:30px;box-shadow:0 16px 42px rgba(30,24,10,.08)}}
+    .k{{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#c89124;margin-bottom:10px}}
+    h1{{font-size:36px;line-height:1.05;letter-spacing:-.045em;margin:0 0 12px}}
+    p{{color:#756f64;line-height:1.65;margin:0 0 16px}}
+    a{{display:inline-flex;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:800;text-decoration:none;margin-top:8px}}
+    code{{background:#f4efe5;border:1px solid #e1d8c9;border-radius:8px;padding:2px 6px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <div class="k">Shopify app URL ready</div>
+      <h1>Open OPS from a Shopify store.</h1>
+      <p>This endpoint is healthy, but Shopify did not provide a <code>shop</code> parameter. Install or open OPS from Shopify Admin so the app can identify the merchant store and sync live orders, products, inventory, fulfillment, and locations.</p>
+      <p>Expected format: <code>/shopify/app?shop=your-store.myshopify.com</code></p>
+      <a href="{FRONTEND_PUBLIC_URL}/app.html" target="_top">Open OPS web workspace</a>
+    </section>
+  </div>
+</body>
+</html>
+""")
+    response.headers["Content-Security-Policy"] = "frame-ancestors https://admin.shopify.com;"
     return response
 
 
@@ -1317,7 +1359,13 @@ async def shopify_install(shop: str):
 @app.get("/shopify/app", response_class=HTMLResponse)
 async def shopify_app_home(request: Request):
     params = dict(request.query_params)
-    shop = normalize_shop_domain(params.get("shop", ""))
+    raw_shop = params.get("shop", "")
+    if not raw_shop:
+        return render_shopify_missing_shop()
+    try:
+        shop = normalize_shop_domain(raw_shop)
+    except HTTPException:
+        return render_shopify_missing_shop()
     id_token = params.get("id_token", "")
     if id_token and verify_shopify_hmac(params):
         try:
@@ -1329,7 +1377,11 @@ async def shopify_app_home(request: Request):
         except HTTPException as e:
             print(f"Shopify token exchange rejected for {shop}: {e.detail}")
 
-    connected = find_shopify_store_by_domain(shop)
+    try:
+        connected = find_shopify_store_by_domain(shop)
+    except Exception as e:
+        logger.warning("Shopify app store lookup failed for %s: %s", shop, e)
+        connected = None
     if not connected:
         return render_shopify_install_required(shop)
 
@@ -1648,9 +1700,8 @@ async def shopify_embedded_analyze(
             "Showing a review-safe quick check without incrementing usage."
         )
 
-    permission_warning = ""
     try:
-        report = run_pipeline(ShopifyConfig(
+        report = run_shopify_live_pipeline(ShopifyConfig(
             shop_domain=shop,
             access_token=connected["access_token"],
             api_version=SHOPIFY_API_VERSION,
@@ -1660,20 +1711,11 @@ async def shopify_embedded_analyze(
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else 502
         if status_code in (401, 403):
-            # Review stores can block protected order data until Shopify approves the
-            # app. Keep the embedded flow functional and clearly label the fallback.
-            permission_warning = (
-                "Shopify order data is restricted until app review approves protected "
-                "customer data access. Showing isolated demo analysis for review."
+            raise HTTPException(
+                status_code=status_code,
+                detail="Shopify rejected the stored access token. Reinstall OPS permissions from this Shopify admin, then run the check again.",
             )
-            report = run_pipeline(ShopifyConfig(
-                use_mock=True,
-                mock_order_count=200,
-            ))
-            report["source_platform"] = "shopify"
-            report["source_mode"] = "demo"
-        else:
-            raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
+        raise HTTPException(status_code=502, detail=f"Shopify API returned HTTP {status_code}.")
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Shopify API timed out. Please retry.")
     except requests.exceptions.RequestException as e:
@@ -1707,8 +1749,10 @@ async def shopify_embedded_analyze(
             "daily_revenue": build_daily_revenue_points(report),
         },
     }
-    if permission_warning:
-        payload["warning"] = permission_warning
+    sync_warnings = ((report.get("sync_status") or {}).get("warnings") or [])
+    if sync_warnings:
+        payload["sync_status"] = report.get("sync_status")
+        payload["warning"] = " ".join(w.get("message", "") for w in sync_warnings if isinstance(w, dict)).strip()
     if usage_warning:
         payload["warning"] = f"{payload.get('warning', '')}\n{usage_warning}".strip()
     return make_json_safe(payload)
@@ -2080,13 +2124,14 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
                 use_mock=req.use_mock,
             ))
         else:
-            report = run_pipeline(ShopifyConfig(
+            shopify_config = ShopifyConfig(
                 shop_domain=shop_domain,
                 access_token=shop_token,
                 api_version=SHOPIFY_API_VERSION,
                 use_mock=req.use_mock,
                 mock_order_count=200,
-            ))
+            )
+            report = run_pipeline(shopify_config) if req.use_mock else run_shopify_live_pipeline(shopify_config)
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else 502
         if platform == "woocommerce":
@@ -2201,6 +2246,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         "series": {
             "daily_revenue": build_daily_revenue_points(report),
         },
+        "sync_status": report.get("sync_status", {}),
         "user_plan": plan_key,
     })
 

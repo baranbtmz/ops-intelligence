@@ -19,6 +19,40 @@ from typing import Optional
 random.seed(42)
 np.random.seed(42)
 
+ORDER_COLUMNS = [
+    "order_id",
+    "order_number",
+    "created_at",
+    "fulfilled_at",
+    "financial_status",
+    "fulfillment_status",
+    "total_price",
+    "subtotal_price",
+    "shipping_cost",
+    "item_count",
+    "line_items",
+    "product_titles",
+    "product_title",
+    "customer_email",
+    "customer_country",
+    "shipping_carrier",
+    "tags",
+]
+
+PRODUCT_COLUMNS = [
+    "product_id",
+    "variant_id",
+    "title",
+    "category",
+    "sku",
+    "price",
+    "cost",
+    "inventory",
+    "image_url",
+    "created_at",
+    "margin_pct",
+]
+
 
 # ─────────────────────────────────────────────
 # KONFİGÜRASYON
@@ -434,7 +468,11 @@ class DataTransformer:
                 "tags":               o.get("tags", ""),
             })
 
-        df = pd.DataFrame(records)
+        df = pd.DataFrame(records, columns=ORDER_COLUMNS)
+        if df.empty:
+            df["created_at"] = pd.to_datetime(df["created_at"], utc=True, errors="coerce")
+            df["fulfilled_at"] = pd.to_datetime(df["fulfilled_at"], utc=True, errors="coerce")
+            return df
 
         # Tarih dönüşümleri
         df["created_at"] = pd.to_datetime(df["created_at"], utc=True, errors="coerce")
@@ -486,14 +524,18 @@ class DataTransformer:
                     "created_at":    p.get("created_at"),
                 })
 
-        df = pd.DataFrame(records)
+        df = pd.DataFrame(records, columns=[c for c in PRODUCT_COLUMNS if c != "margin_pct"])
+        if df.empty:
+            df["created_at"] = pd.to_datetime(df["created_at"], utc=True, errors="coerce")
+            df["margin_pct"] = pd.Series(dtype="float64")
+            return df[PRODUCT_COLUMNS]
         df["created_at"] = pd.to_datetime(df["created_at"], utc=True, errors="coerce")
         df["margin_pct"] = np.where(
             df["price"] > 0,
             ((df["price"] - df["cost"]) / df["price"] * 100).round(1),
             0
         )
-        return df
+        return df[PRODUCT_COLUMNS]
 
 
 # ─────────────────────────────────────────────
@@ -519,6 +561,23 @@ class MetricsEngine:
         Hedef: <24 saat (Amazon etkisiyle müşteri beklentisi)
         Kritik: >72 saat = müşteri memnuniyeti riski
         """
+        if self.orders.empty:
+            return {
+                "metric": "Order Fulfillment Time",
+                "unit": "hours",
+                "mean": 0,
+                "median": 0,
+                "p75": 0,
+                "p95": 0,
+                "max": 0,
+                "orders_over_72h": 0,
+                "orders_over_24h": 0,
+                "total_fulfilled": 0,
+                "fulfillment_hours_series": pd.DataFrame(columns=["order_id", "created_at", "fulfillment_hours"]),
+                "status": "No orders synced",
+                "risk": "Unknown",
+            }
+
         fulfilled = self.orders[
             (self.orders["fulfillment_status"] == "fulfilled") &
             (self.orders["fulfilled_at"].notna())
@@ -584,10 +643,24 @@ class MetricsEngine:
         Yüksek = verimli stok yönetimi
         Düşük  = fazla stok / satılmayan ürün
         """
+        if self.products.empty:
+            empty = pd.DataFrame(columns=[
+                "product_id", "variant_id", "title", "category", "sku", "price",
+                "inventory", "image_url", "sold_units", "turnover_rate",
+                "days_of_stock", "status",
+            ])
+            return {
+                "metric": "Inventory Turnover",
+                "period_days": period_days,
+                "details": empty,
+                "avg_turnover": 0,
+                "critical_items": empty,
+            }
+
         # Dönemsel satış adedi (iptal ve iadeler hariç)
         sales = self.orders[
             ~self.orders["fulfillment_status"].isin(["cancelled", "refunded"])
-        ]
+        ] if not self.orders.empty else self.orders
 
         # Ürün bazlı satış miktarı Shopify line item'larından hesaplanır.
         product_sales = {}
@@ -649,6 +722,21 @@ class MetricsEngine:
     # ── 3. DÖNÜŞÜM VE GELİR ANALİZİ ────────────────
     def revenue_metrics(self) -> dict:
         """Gelir ve sipariş bazlı metrikler"""
+        if self.orders.empty:
+            return {
+                "metric": "Revenue Metrics",
+                "total_revenue": 0,
+                "total_orders": 0,
+                "valid_orders": 0,
+                "cancelled_orders": 0,
+                "refunded_orders": 0,
+                "aov": 0,
+                "avg_items_per_order": 0,
+                "cancellation_rate": 0,
+                "refund_rate": 0,
+                "daily_revenue_series": pd.Series(dtype="float64"),
+            }
+
         valid = self.orders[~self.orders["fulfillment_status"].isin(["cancelled", "refunded"])]
 
         daily_revenue = valid.groupby(
@@ -664,8 +752,8 @@ class MetricsEngine:
             "refunded_orders":   len(self.orders[self.orders["fulfillment_status"] == "refunded"]),
             "aov":               round(valid["total_price"].mean(), 2),  # Average Order Value
             "avg_items_per_order": round(valid["item_count"].mean(), 1),
-            "cancellation_rate": round(len(self.orders[self.orders["fulfillment_status"] == "cancelled"]) / len(self.orders) * 100, 1),
-            "refund_rate":       round(len(self.orders[self.orders["fulfillment_status"] == "refunded"]) / len(self.orders) * 100, 1),
+            "cancellation_rate": round(len(self.orders[self.orders["fulfillment_status"] == "cancelled"]) / max(len(self.orders), 1) * 100, 1),
+            "refund_rate":       round(len(self.orders[self.orders["fulfillment_status"] == "refunded"]) / max(len(self.orders), 1) * 100, 1),
             "daily_revenue_series": daily_revenue,
         }
 
@@ -720,6 +808,71 @@ def run_pipeline(config: Optional[ShopifyConfig] = None) -> dict:
         "products": int(len(products_df)),
     }
 
+    return report
+
+
+def run_shopify_live_pipeline(config: ShopifyConfig, allow_partial: bool = True) -> dict:
+    """
+    Review-safe Shopify live pipeline.
+
+    Shopify review stores can have partial data, no orders, or a temporary
+    protected-data restriction on orders. This keeps the app functional while
+    still using every live object that Shopify allows the token to read.
+    """
+    if config.use_mock:
+        return run_pipeline(config)
+
+    client = ShopifyClient(config)
+    warnings = []
+    raw_orders = []
+    raw_products = []
+
+    try:
+        raw_orders = client.fetch_orders()
+    except requests.exceptions.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else 0
+        if not allow_partial or status_code == 401:
+            raise
+        warnings.append({
+            "resource": "orders",
+            "status": status_code,
+            "message": "Shopify did not allow order reads for this token; product and inventory data were still synced.",
+        })
+
+    try:
+        raw_products = client.fetch_products()
+    except requests.exceptions.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else 0
+        if not allow_partial or status_code == 401:
+            raise
+        warnings.append({
+            "resource": "products",
+            "status": status_code,
+            "message": "Shopify did not allow product reads for this token; order data was still synced.",
+        })
+
+    transformer = DataTransformer()
+    orders_df = transformer.orders_to_dataframe(raw_orders)
+    products_df = transformer.products_to_dataframe(raw_products)
+
+    engine = MetricsEngine(orders_df, products_df)
+    report = engine.full_report()
+    report["orders_df"] = orders_df
+    report["products_df"] = products_df
+    report["source_platform"] = "shopify"
+    report["source_mode"] = "live"
+    report["record_counts"] = {
+        "orders": int(len(orders_df)),
+        "products": int(len(products_df)),
+    }
+    report["sync_status"] = {
+        "mode": "partial" if warnings else "complete",
+        "warnings": warnings,
+        "raw_counts": {
+            "orders": int(len(raw_orders)),
+            "products": int(len(raw_products)),
+        },
+    }
     return report
 
 
