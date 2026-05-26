@@ -1754,6 +1754,8 @@ async def shopify_embedded_analyze(
         raise HTTPException(status_code=504, detail="Shopify API timed out. Please retry.")
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=not (openai_key and plan["ai"]), language="en")
@@ -2192,6 +2194,8 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         if platform == "woocommerce":
             raise HTTPException(status_code=502, detail=f"WooCommerce connection error: {str(e)}")
         raise HTTPException(status_code=502, detail=f"Shopify connection error: {str(e)}")
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis could not be started: {str(e)}")
 

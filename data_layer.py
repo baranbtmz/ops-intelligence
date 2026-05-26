@@ -851,6 +851,12 @@ def run_shopify_live_pipeline(config: ShopifyConfig, allow_partial: bool = True)
             "message": "Shopify did not allow product reads for this token; order data was still synced.",
         })
 
+    if not raw_orders and not raw_products:
+        raise RuntimeError(
+            "Shopify returned zero orders and zero products for this install. "
+            "Reinstall OPS permissions, then run the live sync again."
+        )
+
     transformer = DataTransformer()
     orders_df = transformer.orders_to_dataframe(raw_orders)
     products_df = transformer.products_to_dataframe(raw_products)
