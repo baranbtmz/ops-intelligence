@@ -626,19 +626,25 @@ def render_shopify_install_required(shop: str) -> HTMLResponse:
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Connect OPS to Shopify</title>
   <style>
-    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
-    .wrap{{min-height:100vh;display:grid;place-items:center;padding:28px}}
-    .card{{max-width:620px;background:#fff;border:1px solid #e0d8cc;border-radius:14px;padding:26px;box-shadow:0 16px 40px rgba(30,24,10,.08)}}
-    h1{{font-family:Georgia,serif;font-size:34px;font-weight:400;margin:0 0 10px}}
-    p{{color:#887f70;line-height:1.6}}
-    a{{display:inline-flex;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:700;text-decoration:none;margin-top:8px}}
+    body{{margin:0;background:radial-gradient(circle at 82% 4%,rgba(214,155,45,.14),transparent 32%),linear-gradient(180deg,#fffdf9,#f7f2e9);color:#11120d;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}}
+    .wrap{{min-height:100vh;display:grid;place-items:center;padding:30px}}
+    .card{{width:min(760px,100%);background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,250,243,.94));border:1px solid #e4d9c8;border-radius:30px;padding:38px;box-shadow:0 30px 88px rgba(24,22,15,.11);position:relative;overflow:hidden}}
+    .card::after{{content:"";position:absolute;right:-80px;bottom:-110px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.18),transparent 68%)}}
+    .k{{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#d69b2d;margin-bottom:14px;position:relative;z-index:1}}
+    h1{{font-size:clamp(38px,5vw,60px);line-height:1;letter-spacing:-.06em;margin:0 0 16px;position:relative;z-index:1}}
+    p{{color:#827969;line-height:1.7;font-size:15px;max-width:62ch;position:relative;z-index:1}}
+    .chips{{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0;position:relative;z-index:1}}
+    .chip{{border:1px solid #e4d9c8;background:#fff;border-radius:999px;padding:9px 11px;font-size:12px;font-weight:850;color:#827969}}
+    a{{display:inline-flex;border-radius:15px;background:#11120d;color:#fff;padding:14px 18px;font-weight:850;text-decoration:none;margin-top:8px;box-shadow:0 18px 40px rgba(24,22,15,.16);position:relative;z-index:1}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="card">
-      <h1>Connect OPS</h1>
-      <p>OPS needs Shopify permission for {shop}. The approval screen will open now. If Safari blocks the redirect, use the button below.</p>
+      <div class="k">Secure Shopify install</div>
+      <h1>Connect OPS to this store.</h1>
+      <p>OPS needs read-only Shopify permission for {shop}. The Shopify approval screen will open now; after approval, OPS can sync orders, products, inventory, fulfillment, and location signals.</p>
+      <div class="chips"><span class="chip">Read-only scopes</span><span class="chip">Live data labeled</span><span class="chip">Founder brief ready</span></div>
       <a href="{install_url}" target="_top">Open Shopify permission screen</a>
     </section>
   </div>
@@ -663,14 +669,15 @@ def render_shopify_missing_shop() -> HTMLResponse:
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>OPS Intelligence for Shopify</title>
   <style>
-    body{{margin:0;background:#faf8f4;color:#17140f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}}
-    .wrap{{min-height:100vh;display:grid;place-items:center;padding:28px}}
-    .card{{max-width:680px;background:#fff;border:1px solid #e0d8cc;border-radius:18px;padding:30px;box-shadow:0 16px 42px rgba(30,24,10,.08)}}
-    .k{{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#c89124;margin-bottom:10px}}
-    h1{{font-size:36px;line-height:1.05;letter-spacing:-.045em;margin:0 0 12px}}
-    p{{color:#756f64;line-height:1.65;margin:0 0 16px}}
-    a{{display:inline-flex;border-radius:12px;background:#11100c;color:#fff;padding:13px 16px;font-weight:800;text-decoration:none;margin-top:8px}}
-    code{{background:#f4efe5;border:1px solid #e1d8c9;border-radius:8px;padding:2px 6px}}
+    body{{margin:0;background:radial-gradient(circle at 82% 4%,rgba(214,155,45,.14),transparent 32%),linear-gradient(180deg,#fffdf9,#f7f2e9);color:#11120d;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}}
+    .wrap{{min-height:100vh;display:grid;place-items:center;padding:30px}}
+    .card{{width:min(780px,100%);background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,250,243,.94));border:1px solid #e4d9c8;border-radius:30px;padding:38px;box-shadow:0 30px 88px rgba(24,22,15,.11);position:relative;overflow:hidden}}
+    .card::after{{content:"";position:absolute;right:-80px;bottom:-110px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.18),transparent 68%)}}
+    .k{{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#d69b2d;margin-bottom:14px;position:relative;z-index:1}}
+    h1{{font-size:clamp(38px,5vw,60px);line-height:1;letter-spacing:-.06em;margin:0 0 16px;position:relative;z-index:1}}
+    p{{color:#827969;line-height:1.7;font-size:15px;max-width:62ch;position:relative;z-index:1}}
+    a{{display:inline-flex;border-radius:15px;background:#11120d;color:#fff;padding:14px 18px;font-weight:850;text-decoration:none;margin-top:8px;box-shadow:0 18px 40px rgba(24,22,15,.16);position:relative;z-index:1}}
+    code{{background:#fff;border:1px solid #e4d9c8;border-radius:10px;padding:3px 7px;color:#27251d}}
   </style>
 </head>
 <body>
@@ -1414,44 +1421,58 @@ async def shopify_app_home(request: Request):
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>OPS Intelligence</title>
   <style>
-    :root{{--ink:#17140f;--muted:#756f64;--line:#ded7cc;--soft:#f4f1ea;--gold:#d39b2a;--green:#0f7a4a;--purple:#cfc5ff}}
+    :root{{--ink:#11120d;--ink2:#27251d;--muted:#827969;--line:#e4d9c8;--soft:#f7f2e9;--soft2:#fffaf3;--gold:#d69b2d;--gold2:#f1bf4f;--green:#1a7a4a;--danger:#c0392b;--shadow:0 24px 70px rgba(24,22,15,.075)}}
     *{{box-sizing:border-box}}
-    body{{margin:0;background:#f2f1ef;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif}}
-    .shell{{max-width:1240px;margin:0 auto;padding:24px 28px 42px}}
-    .appbar{{height:64px;background:#fff;border:1px solid #ddd8cf;border-radius:16px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 1px 0 rgba(0,0,0,.04)}}
-    .brand{{display:flex;align-items:center;gap:12px;font-weight:800;font-size:21px;letter-spacing:-.03em}}
-    .mark{{width:34px;height:34px;border-radius:9px;background:#11100c;color:#fff;display:grid;place-items:center;font-family:Georgia,serif;font-size:18px}}
-    .muted{{color:var(--muted)}} .small{{font-size:12px;line-height:1.5}}
+    body{{margin:0;background:radial-gradient(circle at 86% 0%,rgba(214,155,45,.12),transparent 30%),linear-gradient(180deg,#fffdf9 0%,#f7f2e9 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}}
+    body::before{{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(24,22,15,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(24,22,15,.022) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(180deg,rgba(0,0,0,.52),transparent 76%)}}
+    .shell{{max-width:1320px;margin:0 auto;padding:26px 30px 48px;position:relative}}
+    .appbar{{position:sticky;top:18px;z-index:20;min-height:72px;background:rgba(255,255,255,.76);border:1px solid rgba(228,217,200,.9);border-radius:24px;padding:12px 16px 12px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 18px 52px rgba(24,22,15,.075);backdrop-filter:blur(18px)}}
+    .brand{{display:flex;align-items:center;gap:14px;font-weight:850;font-size:21px;letter-spacing:-.035em;min-width:0}}
+    .brand>div:last-child{{min-width:0}}
+    .mark{{width:42px;height:42px;border-radius:15px;background:linear-gradient(135deg,#11120d,#2a2418);color:#fff;display:grid;place-items:center;font-size:19px;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 34px rgba(24,22,15,.14)}}
+    .muted{{color:var(--muted)}} .small{{font-size:12px;line-height:1.55}}
     .actions{{display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
-    button,a.btn{{appearance:none;border:0;border-radius:12px;background:#25221c;color:#fff;padding:12px 16px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}}
-    button.secondary,a.secondary{{background:#fff;color:#25221c;border:1px solid #d8d2c7;box-shadow:none}}
-    .hero{{margin-top:24px;background:linear-gradient(135deg,#fff 0%,#faf6ec 58%,#efe2c4 100%);border:1px solid rgba(211,155,42,.22);border-radius:20px;padding:26px;display:grid;grid-template-columns:1.15fr .85fr;gap:22px;box-shadow:0 18px 44px rgba(26,21,12,.07)}}
-    h1{{font-size:34px;line-height:1.05;letter-spacing:-.045em;margin:0 0 10px}}
-    .kicker{{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:900;margin-bottom:10px}}
-    .hero p{{margin:0;color:var(--muted);font-size:15px;line-height:1.6;max-width:68ch}}
-    .banner{{background:#cec6ff;border:1px solid #b7acf6;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}}
-    .banner strong{{display:block;font-size:20px;letter-spacing:-.03em;margin-bottom:5px}} .banner span{{font-size:13px;color:#504b66;line-height:1.45}}
-    .grid{{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}}
-    .card{{background:#fff;border:1px solid #ddd8cf;border-radius:18px;padding:22px;box-shadow:0 12px 32px rgba(26,21,12,.06)}}
-    .card-head{{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}}
-    h2{{font-size:22px;letter-spacing:-.035em;margin:0}} h3{{font-size:16px;margin:0 0 4px}}
-    .pill{{display:inline-flex;border-radius:999px;background:rgba(15,122,74,.09);border:1px solid rgba(15,122,74,.18);color:var(--green);padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}}
-    .stats{{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #e3ded5;border-radius:16px;overflow:hidden;background:#fff;margin-top:16px}}
-    .stat{{padding:20px;text-align:center;border-right:1px solid #e3ded5}} .stat:last-child{{border-right:0}}
-    .label{{font-size:12px;color:var(--muted);margin-bottom:8px}} .value{{font-size:31px;font-weight:800;letter-spacing:-.04em}}
-    .row{{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee9df;font-size:14px}}
+    button,a.btn{{appearance:none;border:0;border-radius:15px;background:#11120d;color:#fff;padding:13px 17px;min-height:44px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 30px rgba(24,22,15,.14);transition:transform .2s ease,box-shadow .2s ease,background .2s ease}}
+    button:hover,a.btn:hover{{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px rgba(24,22,15,.18)}}
+    button.secondary,a.secondary{{background:rgba(255,255,255,.72);color:#25221c;border:1px solid rgba(216,210,199,.96);box-shadow:0 10px 28px rgba(24,22,15,.045)}}
+    .hero{{margin-top:24px;background:linear-gradient(135deg,#11120d 0%,#292315 60%,#5b431c 100%);border:1px solid rgba(214,155,45,.28);border-radius:34px;padding:40px;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr);gap:28px;box-shadow:0 34px 90px rgba(24,22,15,.18);overflow:hidden;position:relative;color:#fff}}
+    .hero::after{{content:"";position:absolute;right:-110px;bottom:-150px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.34),transparent 68%);pointer-events:none}}
+    h1{{font-size:clamp(42px,5vw,72px);line-height:.98;letter-spacing:-.065em;margin:0 0 18px;max-width:820px;position:relative;z-index:1}}
+    .kicker{{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#f1c563;font-weight:900;margin-bottom:14px;position:relative;z-index:1}}
+    .hero p{{margin:0;color:rgba(255,255,255,.68);font-size:16px;line-height:1.75;max-width:72ch;position:relative;z-index:1}}
+    .hero-micro{{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px;position:relative;z-index:1}}
+    .micro{{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);border-radius:999px;padding:10px 12px;color:rgba(255,255,255,.72);font-size:12px;font-weight:850}}
+    .banner{{background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.2);border-radius:28px;padding:22px;display:grid;align-content:space-between;gap:22px;position:relative;z-index:1;color:var(--ink);box-shadow:0 24px 70px rgba(0,0,0,.12)}}
+    .banner strong{{display:block;font-size:28px;line-height:1;letter-spacing:-.055em;margin-bottom:10px}} .banner span{{font-size:13px;color:var(--muted);line-height:1.55}}
+    .live-stack{{display:grid;gap:9px}}
+    .live-row{{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(228,217,200,.9);border-radius:16px;background:#fffaf6}}
+    .dot{{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(214,155,45,.11)}}
+    .live-row:nth-child(2) .dot{{background:var(--green);box-shadow:0 0 0 6px rgba(26,122,74,.09)}}
+    .live-row:nth-child(3) .dot{{background:var(--ink);box-shadow:0 0 0 6px rgba(17,18,13,.07)}}
+    .live-row b{{font-size:13px;letter-spacing:-.01em}} .live-row em{{font-style:normal;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}}
+    .grid{{display:grid;grid-template-columns:1.02fr .98fr;gap:18px;margin-top:18px}}
+    .card{{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,252,246,.92));border:1px solid rgba(228,217,200,.9);border-radius:28px;padding:26px;box-shadow:var(--shadow);position:relative;overflow:hidden}}
+    .card::after{{content:"";position:absolute;right:-70px;top:-92px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.09),transparent 68%);pointer-events:none}}
+    .card-head{{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;position:relative;z-index:1}}
+    h2{{font-size:26px;line-height:1.1;letter-spacing:-.045em;margin:0}} h3{{font-size:16px;margin:0 0 4px;letter-spacing:-.02em}}
+    .pill{{display:inline-flex;border-radius:999px;background:rgba(26,122,74,.09);border:1px solid rgba(26,122,74,.18);color:var(--green);padding:8px 10px;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}}
+    .stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}}
+    .stat{{padding:20px;border:1px solid rgba(228,217,200,.9);border-radius:24px;background:rgba(255,255,255,.88);box-shadow:0 16px 46px rgba(24,22,15,.045);position:relative;overflow:hidden}}
+    .stat::after{{content:"";position:absolute;right:-34px;bottom:-44px;width:110px;height:110px;border-radius:50%;background:var(--gold);opacity:.08}}
+    .label{{font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}} .value{{font-size:34px;font-weight:900;letter-spacing:-.055em;line-height:1}}
+    .row{{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid rgba(238,233,223,.95);font-size:14px;position:relative;z-index:1}}
     .row:last-child{{border-bottom:0}} .scope{{max-width:58%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
-    .usage{{height:8px;border-radius:999px;background:#eee8dc;overflow:hidden;margin-top:8px}} .usage span{{display:block;height:100%;width:{usage_pct}%;background:linear-gradient(90deg,var(--gold),#ebc66d)}}
-    .plan-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}}
-    .plan{{border:1px solid #e1dbd1;border-radius:15px;padding:15px;background:#fbfaf7}} .plan.active{{background:#18150f;color:#fff;border-color:#18150f}}
-    .plan-name{{font-size:12px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:900}} .plan.active .plan-name{{color:rgba(255,255,255,.55)}}
-    .price{{font-size:30px;font-weight:900;margin:8px 0 4px;letter-spacing:-.04em}} .plan-copy{{font-size:12px;line-height:1.45;color:var(--muted)}} .plan.active .plan-copy{{color:rgba(255,255,255,.62)}}
-    #result{{white-space:pre-wrap;background:#18150f;color:#f8f1df;border-radius:15px;padding:16px;font-size:13px;line-height:1.55;min-height:112px;margin-top:16px}}
+    .usage{{height:9px;border-radius:999px;background:#eee8dc;overflow:hidden;margin:10px 0 6px;position:relative;z-index:1}} .usage span{{display:block;height:100%;width:{usage_pct}%;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 0 1px rgba(214,155,45,.12)}}
+    .plan-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;position:relative;z-index:1}}
+    .plan{{border:1px solid #e1dbd1;border-radius:20px;padding:17px;background:#fffaf6;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}} .plan:hover{{transform:translateY(-2px);border-color:rgba(214,155,45,.32);box-shadow:0 18px 42px rgba(24,22,15,.06)}} .plan.active{{background:#11120d;color:#fff;border-color:#11120d;box-shadow:0 20px 54px rgba(24,22,15,.16)}}
+    .plan-name{{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:900}} .plan.active .plan-name{{color:rgba(255,255,255,.55)}}
+    .price{{font-size:34px;font-weight:900;margin:10px 0 5px;letter-spacing:-.055em;line-height:1}} .plan-copy{{font-size:12px;line-height:1.5;color:var(--muted)}} .plan.active .plan-copy{{color:rgba(255,255,255,.62)}}
+    #result{{white-space:pre-wrap;background:linear-gradient(135deg,#11120d,#292315);color:#f8f1df;border:1px solid rgba(214,155,45,.18);border-radius:22px;padding:18px;font-size:13px;line-height:1.62;min-height:132px;margin-top:18px;position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}}
     .ops-list{{display:grid;gap:12px}}
-    .ops-item{{display:grid;grid-template-columns:42px 1fr auto;gap:14px;align-items:center;border:1px solid #e5dfd4;border-radius:15px;padding:14px;background:#fff}}
-    .ico{{width:42px;height:42px;border-radius:12px;background:#f3ecd9;color:#a87314;display:grid;place-items:center;font-weight:900}}
-    @media(max-width:900px){{.hero,.grid{{grid-template-columns:1fr}}.stats,.plan-grid{{grid-template-columns:1fr 1fr}}.actions{{justify-content:flex-start}}}}
-    @media(max-width:560px){{.shell{{padding:14px}}.appbar{{height:auto;align-items:flex-start;flex-direction:column}}.hero{{padding:18px}}.stats,.plan-grid{{grid-template-columns:1fr}}.stat{{border-right:0;border-bottom:1px solid #e3ded5}}.stat:last-child{{border-bottom:0}}.scope{{max-width:100%;white-space:normal;text-align:left}}.row{{flex-direction:column}}}}
+    .ops-item{{display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;border:1px solid rgba(229,223,212,.96);border-radius:20px;padding:16px;background:#fff;position:relative;z-index:1}}
+    .ico{{width:46px;height:46px;border-radius:16px;background:#f3ecd9;color:#a87314;display:grid;place-items:center;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}}
+    @media(max-width:980px){{.hero,.grid{{grid-template-columns:1fr}}.stats,.plan-grid{{grid-template-columns:1fr 1fr}}.actions{{justify-content:flex-start}}}}
+    @media(max-width:620px){{.shell{{padding:14px}}.appbar{{position:relative;top:auto;height:auto;align-items:flex-start;flex-direction:column;border-radius:20px}}.hero{{padding:24px;border-radius:26px}}h1{{font-size:42px}}.stats,.plan-grid{{grid-template-columns:1fr}}.scope{{max-width:100%;white-space:normal;text-align:left}}.row{{flex-direction:column}}.ops-item{{grid-template-columns:46px 1fr}}.ops-item>button,.ops-item>.pill{{grid-column:1/-1;width:100%}}}}
   </style>
 </head>
 <body>
@@ -1467,11 +1488,24 @@ async def shopify_app_home(request: Request):
     <section class="hero">
       <div>
         <div class="kicker">Operations intelligence</div>
-        <h1>Your Shopify store is connected to OPS.</h1>
-        <p>Use this Shopify app home as the lightweight control room. Run a quick live check here, manage plan access through Shopify Billing, then open the full OPS workspace for deeper analysis, product tables, forecasts, churn, pricing, ledger and team workflows.</p>
+        <h1>Your Shopify operating layer is live.</h1>
+        <p>OPS keeps this embedded app focused: confirm the store connection, run a live sync check, manage Shopify billing, then open the full workspace when you need the deeper founder brief.</p>
+        <div class="hero-micro">
+          <div class="micro">Read-only Shopify access</div>
+          <div class="micro">Live data labeled</div>
+          <div class="micro">Founder-ready workspace</div>
+        </div>
       </div>
       <div class="banner">
-        <div><strong>Founder-ready brief</strong><span>Live store data stays labeled, scoped, and separated from demo results.</span></div>
+        <div>
+          <strong>3 live checks</strong>
+          <span>OPS verifies connection, sync coverage, and plan access before sending the merchant into the full dashboard.</span>
+        </div>
+        <div class="live-stack">
+          <div class="live-row"><span class="dot"></span><b>Store connected</b><em>Live</em></div>
+          <div class="live-row"><span class="dot"></span><b>Orders & products</b><em>Sync</em></div>
+          <div class="live-row"><span class="dot"></span><b>Founder brief</b><em>Ready</em></div>
+        </div>
         <button class="secondary" onclick="runAnalysis()">Run quick check</button>
       </div>
     </section>
@@ -1485,7 +1519,7 @@ async def shopify_app_home(request: Request):
 
     <div class="grid">
       <section class="card">
-        <div class="card-head"><div><h2>Connection status</h2><div class="small muted">Permissions and usage for this Shopify install.</div></div><span class="pill">Connected</span></div>
+        <div class="card-head"><div><h2>Connection status</h2><div class="small muted">Store identity, plan usage, and Shopify permission scope.</div></div><span class="pill">Connected</span></div>
         <div class="row"><span>Shop domain</span><strong>{shop}</strong></div>
         <div class="row"><span>Plan</span><strong>{plan_key.title()}</strong></div>
         <div class="row"><span>Usage</span><strong>{used}/{max_analyses} analyses</strong></div>
@@ -1498,18 +1532,18 @@ async def shopify_app_home(request: Request):
         <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a live summary. For the full report and all product rows, use “Go to OPS Intelligence”.</div>
       </section>
       <section class="card">
-        <div class="card-head"><div><h2>Plans & Shopify Billing</h2><div class="small muted">Merchants can upgrade without leaving Shopify.</div></div></div>
+        <div class="card-head"><div><h2>Plans & Shopify Billing</h2><div class="small muted">Upgrade path stays inside the Shopify-owned billing flow.</div></div><span class="pill">Billing</span></div>
         <div class="plan-grid">
           <div class="plan {'active' if plan_key == 'free' else ''}"><div class="plan-name">Free</div><div class="price">€0</div><div class="plan-copy">1 store, basic live check.</div></div>
           <div class="plan {'active' if plan_key == 'starter' else ''}"><div class="plan-name">Starter</div><div class="price">€29</div><div class="plan-copy">1 store, AI brief, PDF, 10 analyses.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('starter')">Choose Starter</button></div>
           <div class="plan {'active' if plan_key == 'pro' else ''}"><div class="plan-name">Pro</div><div class="price">€79</div><div class="plan-copy">3 stores, forecast, churn, pricing.</div><button class="secondary" style="margin-top:12px;width:100%" onclick="startBilling('pro')">Choose Pro</button></div>
         </div>
-        <p class="small muted">Billing status: {billing_status}. Paid plan buttons open Shopify-hosted plan selection when the app has Partner-owned pricing configured; otherwise OPS opens its own billing page as a fallback.</p>
+        <p class="small muted" style="margin-top:16px">Billing status: {billing_status}. Paid plan buttons open Shopify-hosted plan selection when the app has Partner-owned pricing configured; otherwise OPS opens its own billing page as a fallback.</p>
       </section>
     </div>
 
     <section class="card" style="margin-top:18px">
-      <div class="card-head"><div><h2>What merchants do here</h2><div class="small muted">A Shopify-native landing area, with deep analysis handled in OPS.</div></div></div>
+      <div class="card-head"><div><h2>Merchant workflow</h2><div class="small muted">A compact Shopify-native entry point. The full operating system stays one click away.</div></div><span class="pill">Control room</span></div>
       <div class="ops-list">
         <div class="ops-item"><div class="ico">1</div><div><h3>Confirm connection</h3><div class="small muted">The app shows whether Shopify permissions are active and which store is connected.</div></div><span class="pill">Inside Shopify</span></div>
         <div class="ops-item"><div class="ico">2</div><div><h3>Run quick check</h3><div class="small muted">A lightweight summary can run from Shopify admin for confidence.</div></div><button class="secondary" onclick="runAnalysis()">Analyze</button></div>
