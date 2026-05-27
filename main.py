@@ -1435,6 +1435,13 @@ async def shopify_app_home(request: Request):
     button,a.btn{{appearance:none;border:0;border-radius:15px;background:#11120d;color:#fff;padding:13px 17px;min-height:44px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 30px rgba(24,22,15,.14);transition:transform .2s ease,box-shadow .2s ease,background .2s ease}}
     button:hover,a.btn:hover{{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px rgba(24,22,15,.18)}}
     button.secondary,a.secondary{{background:rgba(255,255,255,.72);color:#25221c;border:1px solid rgba(216,210,199,.96);box-shadow:0 10px 28px rgba(24,22,15,.045)}}
+    .command{{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid rgba(228,217,200,.9);border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(16px);box-shadow:0 18px 48px rgba(24,22,15,.055)}}
+    .command-copy{{display:flex;align-items:center;gap:11px;min-width:0;font-size:13px;font-weight:850;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+    .command-copy span{{color:var(--muted);font-weight:750}}
+    .pulse{{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 7px rgba(214,155,45,.12);animation:pulse 2.4s ease-in-out infinite;flex:0 0 10px}}
+    .command-actions{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+    .command-actions button{{min-height:38px;padding:9px 12px;border-radius:13px;font-size:12px}}
+    @keyframes pulse{{0%,100%{{box-shadow:0 0 0 6px rgba(214,155,45,.12)}}50%{{box-shadow:0 0 0 11px rgba(214,155,45,.055)}}}}
     .hero{{margin-top:24px;background:linear-gradient(135deg,#11120d 0%,#292315 60%,#5b431c 100%);border:1px solid rgba(214,155,45,.28);border-radius:34px;padding:40px;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr);gap:28px;box-shadow:0 34px 90px rgba(24,22,15,.18);overflow:hidden;position:relative;color:#fff}}
     .hero::after{{content:"";position:absolute;right:-110px;bottom:-150px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.34),transparent 68%);pointer-events:none}}
     h1{{font-size:clamp(42px,5vw,72px);line-height:.98;letter-spacing:-.065em;margin:0 0 18px;max-width:820px;position:relative;z-index:1}}
@@ -1467,12 +1474,24 @@ async def shopify_app_home(request: Request):
     .plan{{border:1px solid #e1dbd1;border-radius:20px;padding:17px;background:#fffaf6;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}} .plan:hover{{transform:translateY(-2px);border-color:rgba(214,155,45,.32);box-shadow:0 18px 42px rgba(24,22,15,.06)}} .plan.active{{background:#11120d;color:#fff;border-color:#11120d;box-shadow:0 20px 54px rgba(24,22,15,.16)}}
     .plan-name{{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:900}} .plan.active .plan-name{{color:rgba(255,255,255,.55)}}
     .price{{font-size:34px;font-weight:900;margin:10px 0 5px;letter-spacing:-.055em;line-height:1}} .plan-copy{{font-size:12px;line-height:1.5;color:var(--muted)}} .plan.active .plan-copy{{color:rgba(255,255,255,.62)}}
-    #result{{white-space:pre-wrap;background:linear-gradient(135deg,#11120d,#292315);color:#f8f1df;border:1px solid rgba(214,155,45,.18);border-radius:22px;padding:18px;font-size:13px;line-height:1.62;min-height:132px;margin-top:18px;position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}}
+    #result{{background:linear-gradient(135deg,#11120d,#292315);color:#f8f1df;border:1px solid rgba(214,155,45,.18);border-radius:22px;padding:18px;font-size:13px;line-height:1.62;min-height:132px;margin-top:18px;position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}}
+    .result-k{{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#f1c563;margin-bottom:9px}}
+    .result-title{{font-size:20px;font-weight:900;line-height:1.15;letter-spacing:-.035em;color:#fff;margin-bottom:8px}}
+    .result-copy{{color:rgba(255,255,255,.68);line-height:1.6}}
+    .result-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:16px 0}}
+    .result-stat{{border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;background:rgba(255,255,255,.06)}}
+    .result-stat span{{display:block;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-bottom:7px}}
+    .result-stat b{{display:block;font-size:20px;line-height:1;font-weight:900;letter-spacing:-.04em;color:#fff}}
+    .result-note{{border:1px solid rgba(214,155,45,.24);border-radius:16px;padding:12px 13px;background:rgba(214,155,45,.09);color:rgba(255,255,255,.76)}}
+    .result-loading{{display:grid;gap:10px}}
+    .skeleton{{height:18px;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.2),rgba(255,255,255,.08));background-size:220% 100%;animation:shimmer 1.2s ease-in-out infinite}}
+    .skeleton:nth-child(2){{width:74%}}.skeleton:nth-child(3){{width:54%}}
+    @keyframes shimmer{{from{{background-position:120% 0}}to{{background-position:-120% 0}}}}
     .ops-list{{display:grid;gap:12px}}
     .ops-item{{display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;border:1px solid rgba(229,223,212,.96);border-radius:20px;padding:16px;background:#fff;position:relative;z-index:1}}
     .ico{{width:46px;height:46px;border-radius:16px;background:#f3ecd9;color:#a87314;display:grid;place-items:center;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}}
-    @media(max-width:980px){{.hero,.grid{{grid-template-columns:1fr}}.stats,.plan-grid{{grid-template-columns:1fr 1fr}}.actions{{justify-content:flex-start}}}}
-    @media(max-width:620px){{.shell{{padding:14px}}.appbar{{position:relative;top:auto;height:auto;align-items:flex-start;flex-direction:column;border-radius:20px}}.hero{{padding:24px;border-radius:26px}}h1{{font-size:42px}}.stats,.plan-grid{{grid-template-columns:1fr}}.scope{{max-width:100%;white-space:normal;text-align:left}}.row{{flex-direction:column}}.ops-item{{grid-template-columns:46px 1fr}}.ops-item>button,.ops-item>.pill{{grid-column:1/-1;width:100%}}}}
+    @media(max-width:980px){{.hero,.grid{{grid-template-columns:1fr}}.stats,.plan-grid,.result-grid{{grid-template-columns:1fr 1fr}}.actions{{justify-content:flex-start}}}}
+    @media(max-width:620px){{.shell{{padding:14px}}.appbar,.command{{position:relative;top:auto;height:auto;align-items:flex-start;flex-direction:column;border-radius:20px}}.command-copy{{white-space:normal}}.hero{{padding:24px;border-radius:26px}}h1{{font-size:42px}}.stats,.plan-grid,.result-grid{{grid-template-columns:1fr}}.scope{{max-width:100%;white-space:normal;text-align:left}}.row{{flex-direction:column}}.ops-item{{grid-template-columns:46px 1fr}}.ops-item>button,.ops-item>.pill{{grid-column:1/-1;width:100%}}}}
   </style>
 </head>
 <body>
@@ -1482,6 +1501,14 @@ async def shopify_app_home(request: Request):
       <div class="actions">
         <button class="secondary" onclick="reinstallPermissions()">Reinstall permissions</button>
         <button onclick="openOpsDashboard()">Go to OPS Intelligence →</button>
+      </div>
+    </div>
+
+    <div class="command">
+      <div class="command-copy"><span class="pulse"></span>OPS is connected to {shop}<span> · {safe_scope or "Shopify scopes active"} · {used}/{max_analyses} analyses used</span></div>
+      <div class="command-actions">
+        <button class="secondary" onclick="runAnalysis()">Run check</button>
+        <button onclick="openOpsDashboard()">Open OPS</button>
       </div>
     </div>
 
@@ -1529,7 +1556,11 @@ async def shopify_app_home(request: Request):
           <button onclick="runAnalysis()">Analyze Shopify data</button>
           <button class="secondary" onclick="openOpsDashboard()">Open full OPS dashboard</button>
         </div>
-        <div id="result">Ready. Click “Analyze Shopify data” to fetch orders/products and produce a live summary. For the full report and all product rows, use “Go to OPS Intelligence”.</div>
+        <div id="result">
+          <div class="result-k">Ready for live sync</div>
+          <div class="result-title">Run a quick Shopify check from inside admin.</div>
+          <div class="result-copy">OPS will fetch live orders and products, then return a compact health summary here. Open the full workspace for product rows, forecasts, churn, pricing, ledger and team tools.</div>
+        </div>
       </section>
       <section class="card">
         <div class="card-head"><div><h2>Plans & Shopify Billing</h2><div class="small muted">Upgrade path stays inside the Shopify-owned billing flow.</div></div><span class="pill">Billing</span></div>
@@ -1610,7 +1641,7 @@ async def shopify_app_home(request: Request):
 
     async function runAnalysis(){{
       const box=document.getElementById('result');
-      box.textContent='Fetching Shopify data and analyzing... This can take up to 2 minutes.';
+      box.innerHTML='<div class="result-k">OPS is syncing</div><div class="result-title">Fetching Shopify data...</div><div class="result-copy">This can take up to 2 minutes while OPS checks orders, products, inventory and fulfillment signals.</div><div class="result-loading" style="margin-top:16px"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
       try{{
         const res=await fetch('/shopify/app/analyze',{{
           method:'POST',
@@ -1622,21 +1653,29 @@ async def shopify_app_home(request: Request):
         const rev=data.metrics.revenue||{{}};
         const inv=data.metrics.inventory||{{}};
         const counts=data.record_counts||{{}};
-        const warning=data.warning ? `Note: ${{data.warning}}\\n\\n` : '';
-        box.textContent =
+        const warning=data.warning ? '<div class="result-note" style="margin-bottom:12px">Note: '+escapeHtml(data.warning)+'</div>' : '';
+        box.innerHTML =
           warning+
-          `Health score: ${{data.analysis.overall_health_score || 0}}/100\\n`+
-          `Revenue: €${{Number(rev.total || 0).toLocaleString()}}\\n`+
-          `Orders: ${{rev.orders || 0}}\\n`+
-          `Products analyzed: ${{counts.products || 0}}\\n`+
-          `AOV: €${{Number(rev.aov || 0).toFixed(2)}}\\n`+
-          `Critical inventory items: ${{inv.critical_count || 0}}\\n\\n`+
-          `${{data.analysis.executive_summary || 'Analysis completed.'}}`;
+          '<div class="result-k">Live Shopify summary</div>'+
+          '<div class="result-title">Health score: '+escapeHtml(data.analysis.overall_health_score || 0)+'/100</div>'+
+          '<div class="result-copy">'+escapeHtml(data.analysis.executive_summary || 'Analysis completed.')+'</div>'+
+          '<div class="result-grid">'+
+            '<div class="result-stat"><span>Revenue</span><b>€'+Number(rev.total || 0).toLocaleString()+'</b></div>'+
+            '<div class="result-stat"><span>Orders</span><b>'+escapeHtml(rev.orders || 0)+'</b></div>'+
+            '<div class="result-stat"><span>Products</span><b>'+escapeHtml(counts.products || 0)+'</b></div>'+
+            '<div class="result-stat"><span>AOV</span><b>€'+Number(rev.aov || 0).toFixed(2)+'</b></div>'+
+          '</div>'+
+          '<div class="result-note">Critical inventory items: '+escapeHtml(inv.critical_count || 0)+'. Open the full OPS workspace for product-level actions and the founder brief.</div>';
         if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis complete');
       }}catch(e){{
-        box.textContent='Analysis error: '+e.message+'\\n\\nUse Reinstall permissions if Shopify access was recently changed, then run the check again.';
+        box.innerHTML='<div class="result-k">Analysis error</div><div class="result-title">'+escapeHtml(e.message)+'</div><div class="result-copy">Use Reinstall permissions if Shopify access was recently changed, then run the check again.</div>';
         if (window.shopify && shopify.toast) shopify.toast.show('OPS analysis failed', {{isError:true}});
       }}
+    }}
+    function escapeHtml(value){{
+      return String(value ?? '').replace(/[&<>"']/g, function(ch){{
+        return ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}})[ch];
+      }});
     }}
     async function startBilling(plan){{
       const box=document.getElementById('result');
