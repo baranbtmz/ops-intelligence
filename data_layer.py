@@ -12,6 +12,7 @@ import requests
 import json
 import random
 import re
+import time
 from datetime import datetime, timedelta
 from dateutil import parser as date_parser
 from dataclasses import dataclass, field
@@ -82,6 +83,17 @@ def _money(value, default: float = 0.0) -> float:
         return float(value or default)
     except (TypeError, ValueError):
         return default
+
+
+def _optional_cost(value):
+    """Missing costs are unknown, never evidence of a 100% margin."""
+    if value is None or value == "":
+        return np.nan
+    try:
+        cost = float(value)
+        return cost if np.isfinite(cost) and cost >= 0 else np.nan
+    except (TypeError, ValueError):
+        return np.nan
 
 
 def _shopify_status(value: str | None, financial_status: str | None = None) -> str:
@@ -264,7 +276,15 @@ class ShopifyClient:
     def _get(self, endpoint: str, params: dict = None) -> requests.Response:
         """Shopify API GET isteği"""
         url = f"{self.base_url}/{endpoint}.json"
-        response = requests.get(url, headers=self.headers, params=params, timeout=30)
+        for attempt in range(3):
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            if response.status_code not in (429, 502, 503, 504) or attempt == 2:
+                break
+            try:
+                delay = min(5, max(0, float(response.headers.get("Retry-After", 1 + attempt))))
+            except ValueError:
+                delay = 1 + attempt
+            time.sleep(delay)
         response.raise_for_status()
         return response
 
@@ -318,6 +338,18 @@ class ShopifyClient:
             if not match:
                 break
             params = {"limit": 250, "page_info": match.group(1)}
+        variants = [v for p in all_products for v in p.get("variants", [])]
+        ids = list(dict.fromkeys(str(v["inventory_item_id"]) for v in variants if v.get("inventory_item_id")))
+        costs = {}
+        for offset in range(0, len(ids), 100):
+            try:
+                inventory = self._get("inventory_items", {"ids": ",".join(ids[offset:offset + 100]), "limit": 100})
+                costs.update({str(i["id"]): i.get("cost") for i in inventory.json().get("inventory_items", [])})
+            except requests.RequestException:
+                # Missing inventory permission must not fabricate costs or hide orders.
+                break
+        for variant in variants:
+            variant["cost"] = costs.get(str(variant.get("inventory_item_id")))
         return all_products
 
 
@@ -403,7 +435,7 @@ class WooCommerceClient:
                 "category": ", ".join(c.get("name", "") for c in (p.get("categories") or [])) or "Uncategorized",
                 "sku": p.get("sku", ""),
                 "price": p.get("price") or p.get("regular_price"),
-                "cost_per_item": 0,
+                "cost_per_item": None,
                 "inventory_quantity": p.get("stock_quantity") or 0,
                 "created_at": p.get("date_created_gmt") or p.get("date_created"),
             }
@@ -505,7 +537,7 @@ class DataTransformer:
                         "category":      p.get("category", p.get("product_type", "Uncategorized")),
                         "sku":           variant.get("sku") or p.get("sku", ""),
                         "price":         _money(variant.get("price") or p.get("price")),
-                        "cost":          _money(variant.get("cost") or p.get("cost_per_item")),
+                        "cost":          _optional_cost(variant.get("cost", p.get("cost_per_item"))),
                         "inventory":     int(variant.get("inventory_quantity", p.get("inventory_quantity", 0)) or 0),
                         "image_url":     _product_image_url(p, variant),
                         "created_at":    p.get("created_at"),
@@ -518,7 +550,7 @@ class DataTransformer:
                     "category":      p.get("category", p.get("product_type", "Uncategorized")),
                     "sku":           p.get("sku", ""),
                     "price":         _money(p.get("price")),
-                    "cost":          _money(p.get("cost_per_item")),
+                    "cost":          _optional_cost(p.get("cost_per_item")),
                     "inventory":     int(p.get("inventory_quantity", 0) or 0),
                     "image_url":     _product_image_url(p),
                     "created_at":    p.get("created_at"),

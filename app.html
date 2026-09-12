@@ -41,7 +41,7 @@
   --sh-lg:0 12px 38px rgba(24,22,15,.12);
 }
 html{scroll-behavior:smooth}
-body{background:var(--cream);color:var(--ink2);font-family:var(--sans-font);font-weight:500;line-height:1.6;min-height:100vh;overflow-x:hidden}
+body{background:var(--cream);color:var(--ink2);font-family:var(--sans-font);font-weight:500;line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
 body{
   background:
     radial-gradient(circle at top right, rgba(214,155,45,.07), transparent 28%),
@@ -57,6 +57,11 @@ body::before{
   mask-image:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.08) 42%,transparent 78%);
 }
 body.analysis-is-loading{overflow:hidden!important}
+::selection{background:rgba(214,155,45,.22);color:var(--ink)}
+button,input,textarea,select{font:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid rgba(214,155,45,.62);outline-offset:3px;
+}
 
 /* ── PAGE SYSTEM ── */
 .page{display:none;min-height:100vh}
@@ -291,6 +296,7 @@ body.analysis-is-loading{overflow:hidden!important}
   cursor:pointer;transition:all .18s;
   border-radius:10px;position:relative;border:1px solid transparent;
 }
+.nav-label{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.55;transition:opacity .18s}
 .nav-item:hover{color:rgba(255,255,255,.78);background:rgba(255,255,255,.06)}
 .nav-item:hover svg{opacity:.8}
@@ -672,6 +678,521 @@ body.analysis-is-loading{overflow:hidden!important}
 .ask-input{flex:1;border:1px solid var(--border);border-radius:16px;padding:13px 14px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
 .ask-input:focus{outline:none;border-color:rgba(214,155,45,.55);box-shadow:0 0 0 4px rgba(214,155,45,.1)}
 
+/* Advanced OPS operating system layer */
+#page-app .main-content{font-size:16px}
+#page-app .main-content>section{max-width:1320px}
+#page-app .pg-title{font-size:clamp(38px,4vw,54px);line-height:1.02;font-weight:780}
+#page-app .pg-sub{font-size:17px;line-height:1.65;max-width:820px}
+#page-app .card,#page-app .sec-card,#page-app .ops-panel,#page-app .metric-card,#page-app .result-proof-card,#page-app .critical-card,#page-app .critical-lead{
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease,background .28s ease,opacity .28s ease;
+}
+#page-app .card:hover,#page-app .sec-card:hover,#page-app .ops-panel:hover,#page-app .metric-card:hover,#page-app .result-proof-card:hover,#page-app .critical-card:hover{
+  transform:translateY(-4px) scale(1.004);border-color:rgba(214,155,45,.34);box-shadow:0 24px 70px rgba(24,22,15,.085);
+}
+#page-app .score-box{padding:52px 48px;border-radius:34px}
+#page-app .score-num{font-size:clamp(78px,9vw,118px)}
+#page-app .score-label{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:850}
+#page-app .score-desc{font-size:18px;line-height:1.7;max-width:820px;margin:18px auto 0}
+#page-app .metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-bottom:30px}
+#page-app .metric-card{padding:32px 34px;border-radius:28px;min-height:168px}
+#page-app .metric-label{font-size:12px}
+#page-app .metric-value{font-size:clamp(44px,5vw,68px)}
+#page-app .critical-today{grid-template-columns:1.2fr repeat(3,minmax(0,1fr));gap:18px;margin-bottom:28px}
+#page-app .critical-lead{padding:34px;border-radius:30px}
+#page-app .critical-title{font-size:clamp(30px,3vw,42px);max-width:14ch;letter-spacing:-.035em}
+#page-app .critical-copy{font-size:15px}
+#page-app .critical-card{padding:28px;border-radius:28px}
+#page-app .critical-value{font-size:clamp(26px,2.2vw,36px)}
+.critical-card.danger::after,.alert-item.critical::after{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(192,57,43,.16);pointer-events:none;animation:opsSoftPulse 2.8s ease-in-out infinite;
+}
+@keyframes opsSoftPulse{0%,100%{opacity:.25;box-shadow:0 0 0 0 rgba(192,57,43,.08)}50%{opacity:1;box-shadow:0 0 0 8px rgba(192,57,43,.035)}}
+.timeline-item{opacity:0;animation:opsTimelineIn .48s ease forwards}
+.timeline-item:nth-child(2){animation-delay:.08s}.timeline-item:nth-child(3){animation-delay:.16s}.timeline-item:nth-child(4){animation-delay:.24s}
+@keyframes opsTimelineIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.timeline-dot{animation:opsDotBreathe 2.4s ease-in-out infinite}
+@keyframes opsDotBreathe{0%,100%{box-shadow:0 0 0 5px rgba(214,155,45,.12)}50%{box-shadow:0 0 0 9px rgba(214,155,45,.07)}}
+.ops-command-bar{
+  position:sticky;top:18px;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;
+  margin:-8px 0 28px;padding:14px 16px 14px 18px;border:1px solid rgba(224,216,204,.82);
+  border-radius:22px;background:rgba(255,255,255,.78);backdrop-filter:blur(22px);
+  box-shadow:0 18px 50px rgba(24,22,15,.08);
+}
+.ops-command-left{display:flex;align-items:center;gap:12px;min-width:0}
+.ops-live-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 7px rgba(214,155,45,.12);animation:opsDotBreathe 2.4s ease-in-out infinite;flex:0 0 10px}
+.ops-command-copy{font-size:14px;font-weight:850;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ops-command-copy span{color:var(--muted);font-weight:750}
+.ops-command-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.ops-command-actions .btn{border-radius:14px;padding:10px 14px}
+.ops-scenes{display:grid;gap:16px;margin:8px 0 30px}
+.ops-scenes.selective{gap:12px}
+.ops-scene-selector{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:8px;
+  border:1px solid rgba(224,216,204,.9);border-radius:22px;background:rgba(244,236,221,.72);margin-bottom:4px;
+}
+.ops-scene-select{
+  border:1px solid transparent;background:transparent;border-radius:16px;padding:13px 14px;text-align:left;
+  cursor:pointer;color:var(--muted);font:inherit;transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.ops-scene-select:hover{transform:translateY(-1px);color:var(--ink);background:rgba(255,255,255,.68);border-color:rgba(224,216,204,.78)}
+.ops-scene-select.active{background:#11120d;color:#fff;border-color:#11120d;box-shadow:0 16px 42px rgba(24,22,15,.12)}
+.ops-scene-select-k{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:inherit;opacity:.58}
+.ops-scene-select-t{font-size:14px;font-weight:850;line-height:1.2;margin-top:5px;color:inherit}
+.ops-scene-select-v{font-size:12px;font-weight:800;color:var(--gold);margin-top:7px}
+.ops-scene{
+  border:1px solid rgba(224,216,204,.92);border-radius:30px;background:rgba(255,255,255,.9);
+  overflow:hidden;box-shadow:0 18px 48px rgba(24,22,15,.045);transition:opacity .28s ease,filter .28s ease,transform .28s ease;
+}
+.ops-scenes:has(.ops-scene.open) .ops-scene:not(.open){opacity:.52;filter:saturate(.78)}
+.ops-scenes.selective .ops-scene:not(.open){display:none}
+.ops-scene-head{width:100%;display:grid;grid-template-columns:1fr auto;gap:16px;text-align:left;padding:28px 30px;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
+.ops-scene-kicker{font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+.ops-scene-title{font-size:clamp(26px,2.6vw,38px);line-height:1.1;font-weight:820;letter-spacing:-.04em;color:var(--ink)}
+.ops-scene-copy{font-size:16px;line-height:1.65;color:var(--muted);max-width:780px;margin-top:10px}
+.ops-scene-metric{text-align:right;min-width:150px}
+.ops-scene-value{font-size:clamp(34px,4vw,58px);line-height:.95;font-weight:820;letter-spacing:-.055em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.ops-scene-label{font-size:11px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.ops-scene-body{display:none;padding:0 30px 30px;animation:opsSceneIn .28s ease}
+.ops-scene.open .ops-scene-body{display:block}
+@keyframes opsSceneIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ops-scene-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:4px}
+.ops-mini-card{border:1px solid var(--border);background:#fffaf6;border-radius:20px;padding:18px}
+.ops-mini-k{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ops-mini-v{font-size:18px;font-weight:850;line-height:1.25;color:var(--ink)}
+.ops-mini-p{font-size:13px;line-height:1.55;color:var(--muted);margin-top:7px}
+.ops-floating-ask{position:fixed!important;right:32px!important;bottom:32px!important;z-index:9999;transform:none!important}
+.ops-floating-ask.is-hidden{display:none!important}
+.ops-ask-launch{
+  border:1px solid rgba(214,155,45,.32);background:#11120d;color:#fff;border-radius:999px;
+  padding:14px 18px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:850;
+  box-shadow:0 24px 64px rgba(24,22,15,.22);cursor:pointer;transition:transform .24s ease,box-shadow .24s ease;
+}
+.ops-ask-launch:hover{transform:translateY(-3px);box-shadow:0 30px 76px rgba(24,22,15,.28)}
+.ops-ask-launch::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(214,155,45,.14)}
+.ops-floating-panel{
+  display:none;position:absolute;right:0;bottom:58px;width:min(420px,calc(100vw - 36px));padding:18px;
+  border:1px solid rgba(224,216,204,.86);border-radius:28px;background:rgba(255,255,255,.9);
+  backdrop-filter:blur(24px);box-shadow:0 28px 86px rgba(24,22,15,.18)
+}
+.ops-floating-ask.open .ops-floating-panel{display:block;animation:opsSceneIn .24s ease}
+.ops-floating-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ops-floating-title{font-size:18px;font-weight:850;color:var(--ink)}
+.ops-floating-sub{font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
+.ops-floating-close{border:0;background:#f5efe3;border-radius:10px;width:30px;height:30px;cursor:pointer;color:var(--ink);font-weight:900}
+.ops-floating-panel .chat-window{height:260px;border-radius:20px}
+.ops-floating-panel .ask-input-row{display:grid;grid-template-columns:1fr auto}
+.ops-narrative-hero{
+  border:1px solid rgba(224,216,204,.92);border-radius:30px;padding:30px;
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(250,246,237,.92));
+  box-shadow:0 20px 60px rgba(24,22,15,.06);margin-bottom:18px;position:relative;overflow:hidden;
+}
+.ops-narrative-hero::after{
+  content:"";position:absolute;right:-80px;top:-90px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,155,45,.14),transparent 68%);pointer-events:none;
+}
+.ops-narrative-kicker{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.ops-narrative-title{font-size:clamp(30px,3.6vw,52px);font-weight:840;letter-spacing:-.055em;line-height:1.02;color:var(--ink);max-width:760px}
+.ops-narrative-copy{font-size:16px;line-height:1.7;color:var(--muted);max-width:780px;margin-top:14px}
+.ops-narrative-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:24px}
+.ops-narrative-card{border:1px solid var(--border);border-radius:22px;background:#fff;padding:18px;min-height:132px}
+.ops-narrative-card.primary{background:#11120d;color:#fff;border-color:#11120d}
+.ops-narrative-card.primary .ops-narrative-card-k,.ops-narrative-card.primary .ops-narrative-card-p{color:rgba(255,255,255,.62)}
+.ops-narrative-card-k{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.ops-narrative-card-v{font-size:24px;font-weight:850;line-height:1.08;letter-spacing:-.035em;color:var(--ink)}
+.ops-narrative-card.primary .ops-narrative-card-v{color:#fff}
+.ops-narrative-card-p{font-size:12px;line-height:1.55;color:var(--muted);margin-top:8px}
+.ops-card-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.ops-human-card{border:1px solid var(--border);border-radius:22px;background:#fff;padding:18px;transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease}
+.ops-human-card:hover{transform:translateY(-3px);border-color:rgba(214,155,45,.34);box-shadow:0 18px 48px rgba(24,22,15,.07)}
+.ops-human-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ops-human-title{font-size:15px;font-weight:850;color:var(--ink);line-height:1.25}
+.ops-human-badge{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;padding:6px 8px;border-radius:999px;background:var(--danger-pale);color:var(--danger);white-space:nowrap}
+.ops-human-meta{font-size:13px;color:var(--muted);line-height:1.55}
+.ops-human-action{margin-top:14px;padding:12px 13px;border-radius:16px;background:#fffaf0;border:1px solid #efe1b4;font-size:13px;color:var(--ink);line-height:1.5}
+.ops-detail-toggle{margin-top:16px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:#fff}
+.ops-detail-toggle summary{cursor:pointer;padding:14px 16px;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);list-style:none}
+.ops-detail-toggle summary::-webkit-details-marker{display:none}
+.ops-detail-toggle summary::after{content:"+";float:right;color:var(--ink);font-size:16px;line-height:1}
+.ops-detail-toggle[open] summary::after{content:"-"}
+.ops-detail-toggle-body{padding:0 16px 16px}
+.ops-chart-stage{position:relative;border:1px solid rgba(224,216,204,.78);border-radius:24px;background:#fff;padding:18px;min-height:330px;overflow:hidden}
+.ops-chart-stage::before{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:34%;
+  background:linear-gradient(180deg,transparent,rgba(192,57,43,.055));pointer-events:none;
+}
+.ops-chart-callout{
+  position:absolute;left:22px;top:22px;z-index:3;max-width:270px;padding:12px 14px;border-radius:16px;
+  background:rgba(17,18,13,.9);color:#fff;border:1px solid rgba(214,155,45,.26);box-shadow:0 18px 44px rgba(17,18,13,.18)
+}
+.ops-chart-callout strong{display:block;font-size:12px;color:#f0c462;margin-bottom:4px}
+.ops-chart-callout span{display:block;font-size:12px;line-height:1.45;color:rgba(255,255,255,.72)}
+.ops-empty-state{border:1px dashed rgba(145,134,111,.34);border-radius:24px;padding:28px;background:#fffaf6;color:var(--muted);font-size:15px;line-height:1.65}
+.ops-empty-state strong{display:block;color:var(--ink);font-size:20px;margin-bottom:8px}
+.ops-skeleton-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.ops-skeleton{height:118px;border-radius:22px;background:linear-gradient(90deg,#f4ecde 0%,#fffaf2 42%,#f4ecde 78%);background-size:220% 100%;animation:opsShimmer 1.4s ease-in-out infinite}
+@keyframes opsShimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+#page-app .ops-intel-grid{align-items:start}
+#page-app .ops-panel{align-self:start}
+#page-app .ops-panel.collapsible{padding:0}
+.ops-panel-head{
+  width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+  padding:24px 24px 20px;border:0;background:transparent;color:inherit;text-align:left;
+  font:inherit;cursor:pointer
+}
+.ops-panel-heading{min-width:0}
+.ops-panel.collapsible .ops-panel-sub{margin-bottom:0}
+.ops-panel-chevron{
+  width:38px;height:38px;border-radius:14px;display:grid;place-items:center;flex:0 0 auto;
+  background:rgba(17,18,13,.06);border:1px solid rgba(24,22,15,.08);color:var(--ink);
+  font-size:20px;font-weight:900;line-height:1;transition:transform .22s ease,background .22s ease,border-color .22s ease
+}
+.ops-panel.dark .ops-panel-chevron{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.1);color:#fff}
+.ops-panel-body{display:none;padding:0 24px 24px}
+.ops-panel.open .ops-panel-body{display:block;animation:opsSceneIn .24s ease both}
+.ops-panel.open .ops-panel-chevron{transform:rotate(45deg);background:rgba(214,155,45,.14);border-color:rgba(214,155,45,.26)}
+.ops-panel-preview{padding:0 24px 24px;font-size:13px;color:var(--muted);line-height:1.6}
+.ops-panel.dark .ops-panel-preview{color:rgba(255,255,255,.58)}
+.ops-panel.open .ops-panel-preview{display:none}
+.ops-panel-preview-line{display:flex;align-items:center;gap:9px}
+.ops-panel-preview-line::before{
+  content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 0 7px rgba(214,155,45,.1)
+}
+.ops-intel-switcher{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.ops-intel-switcher button{
+  border:1px solid var(--border);background:#fffaf6;border-radius:999px;padding:10px 13px;
+  font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  cursor:pointer;transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease
+}
+.ops-intel-switcher button:hover{transform:translateY(-1px);border-color:rgba(214,155,45,.35);color:var(--ink)}
+.ops-intel-switcher button.active{background:#11120d!important;color:#fff!important;border-color:#11120d!important;box-shadow:0 14px 34px rgba(24,22,15,.12)}
+.ops-intel-switcher.compact{justify-content:center;margin:0 auto 16px;max-width:900px}
+#sec-results{max-width:1180px!important;margin:0 auto}
+#sec-results .pg-header{margin-bottom:18px}
+#sec-results .result-signal{padding:16px 18px!important;margin-bottom:14px!important;border-radius:20px!important}
+#sec-results .critical-today{grid-template-columns:1.15fr 1fr 1fr 1fr!important;gap:12px!important;margin-bottom:18px!important}
+#sec-results .critical-lead{padding:24px!important;border-radius:24px!important}
+#sec-results .critical-card{padding:20px!important;border-radius:22px!important}
+#sec-results .critical-title{font-size:clamp(24px,2.2vw,34px)!important;max-width:none!important}
+#sec-results .critical-value{font-size:clamp(22px,2vw,30px)!important}
+#sec-results .ops-intel-grid{grid-template-columns:1fr!important;gap:12px!important;margin-bottom:18px!important}
+#sec-results .ops-panel-head{padding:20px 22px 16px}
+#sec-results .ops-panel-body{padding:0 22px 22px}
+#sec-results .ops-panel-preview{padding:0 22px 20px}
+#sec-results .result-proof{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px!important;margin:14px 0 18px!important}
+#sec-results .result-proof-card{padding:18px 20px!important;border-radius:22px!important}
+#sec-results .result-proof-value{font-size:19px!important}
+#sec-results .product-strip{margin-bottom:18px}
+#sec-results .score-box{padding:34px 36px!important;border-radius:28px!important;margin-bottom:18px!important}
+#sec-results .score-num{font-size:clamp(64px,7vw,92px)!important}
+#sec-results .score-desc{font-size:15px!important;line-height:1.6!important}
+#sec-results .metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin-bottom:18px!important}
+#sec-results .metric-card{padding:22px!important;border-radius:22px!important;min-height:132px!important}
+#sec-results .metric-value{font-size:clamp(28px,3vw,42px)!important}
+#sec-results .ops-scenes{gap:12px!important;margin-bottom:18px!important}
+#sec-results .ops-scene-head{padding:22px 24px!important}
+#sec-results .tabs{margin-bottom:18px!important}
+#sec-results .tabs{
+  position:sticky;top:82px;z-index:35;display:flex;align-items:center;gap:6px;
+  border:1px solid rgba(224,216,204,.92)!important;background:rgba(255,252,244,.82)!important;
+  backdrop-filter:blur(18px);border-radius:24px!important;padding:8px!important;box-shadow:0 18px 54px rgba(24,22,15,.07);
+}
+#sec-results .tab{
+  flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:17px!important;padding:14px 16px!important;color:#8a8375!important;font-size:11px!important;
+  letter-spacing:.08em!important;font-weight:900!important;border:1px solid transparent!important;position:relative;
+}
+#sec-results .tab::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.28;box-shadow:none;
+}
+#sec-results .tab.active{
+  background:#11120d!important;color:#fff!important;border-color:#11120d!important;
+  box-shadow:0 16px 42px rgba(24,22,15,.13)!important;
+}
+#sec-results .tab.active::before{background:var(--gold);opacity:1;box-shadow:0 0 0 6px rgba(214,155,45,.14)}
+#sec-results .tab .pro-badge,.tab .pro-badge{font-size:9px}
+.findings-shell{display:grid;gap:10px}
+.findings-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;
+  border:1px solid rgba(224,216,204,.9);border-radius:24px;background:#fffaf6;margin-bottom:6px;
+}
+.findings-summary-title{font-size:19px;font-weight:850;letter-spacing:-.025em;color:var(--ink)}
+.findings-summary-copy{font-size:13px;color:var(--muted);line-height:1.55;margin-top:4px}
+.findings-summary-count{font-size:32px;font-weight:850;letter-spacing:-.05em;color:var(--gold);font-variant-numeric:tabular-nums lining-nums}
+#sec-results .finding-card{
+  padding:0!important;border-left:0!important;border-radius:24px!important;overflow:hidden;background:#fff!important;
+}
+.finding-toggle{
+  width:100%;border:0;background:transparent;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;
+  align-items:center;text-align:left;padding:20px 22px;cursor:pointer;color:inherit;font:inherit;
+}
+.finding-status-dot{width:34px;height:34px;border-radius:14px;display:grid;place-items:center;font-size:11px;font-weight:900;background:#fff6e6;color:var(--gold);border:1px solid #efdcb1}
+.finding-card.critical .finding-status-dot{background:var(--danger-pale);color:var(--danger);border-color:rgba(192,57,43,.22)}
+.finding-card.warning .finding-status-dot{background:var(--warn-pale);color:var(--warn);border-color:rgba(184,109,10,.22)}
+.finding-card.good .finding-status-dot{background:var(--success-pale);color:var(--success);border-color:rgba(26,122,74,.18)}
+.finding-head-copy{min-width:0}
+.finding-head-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.finding-chevron{width:34px;height:34px;border-radius:13px;display:grid;place-items:center;background:#f7efe2;color:var(--ink);font-weight:900;transition:transform .2s ease}
+.finding-card.open .finding-chevron{transform:rotate(45deg);background:#11120d;color:#fff}
+.finding-body{display:none;padding:0 22px 22px;animation:opsSceneIn .22s ease}
+.finding-card.open .finding-body{display:block}
+.finding-card:not(.open) .finding-desc-preview{display:block}
+.finding-desc-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.finding-impact,.finding-rec{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.finding-impact::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--danger);margin-top:5px;box-shadow:0 0 0 6px rgba(192,57,43,.08)}
+.finding-rec::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--gold);margin-top:6px;box-shadow:0 0 0 6px rgba(214,155,45,.1)}
+.product-thumb{
+  position:relative;isolation:isolate;background:
+    radial-gradient(circle at 78% 18%,rgba(255,255,255,.9),transparent 22%),
+    linear-gradient(145deg,#fffdf8,#eee5d5)!important;
+}
+.product-thumb::before{
+  content:"";position:absolute;inset:7px;border-radius:12px;border:1px solid rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);z-index:1;pointer-events:none;
+}
+.product-thumb img{position:relative;z-index:0;transform:scale(.94);border-radius:13px;filter:saturate(1.05) contrast(1.02)}
+.product-strip-card{position:relative;overflow:hidden}
+.product-strip-card::after{
+  content:"";position:absolute;right:-36px;bottom:-52px;width:126px;height:126px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,155,45,.11),transparent 68%);pointer-events:none;
+}
+@media(max-width:1100px){
+  #sec-results .critical-today,#sec-results .metrics-grid,#sec-results .result-proof{grid-template-columns:1fr 1fr!important}
+  .ops-scene-selector{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  #sec-results .critical-today,#sec-results .metrics-grid,#sec-results .result-proof{grid-template-columns:1fr!important}
+  #sec-results .tabs{top:10px;justify-content:flex-start}
+  #sec-results .tab{flex:0 0 auto}
+  .ops-scene-selector{grid-template-columns:1fr}
+  .findings-summary{align-items:flex-start;flex-direction:column}
+}
+.ops-motion-in{animation:opsMotionIn .56s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--ops-delay,0ms)}
+@keyframes opsMotionIn{from{opacity:0;transform:translateY(14px) scale(.985);filter:blur(2px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.ops-premium-hero::before,.ops-command-bar::after,.ops-tool-hero::after{
+  content:"";position:absolute;inset:-1px;pointer-events:none;
+  background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.13) 42%,rgba(240,196,98,.18) 50%,transparent 60%);
+  transform:translateX(-120%);animation:opsSheenSweep 7.8s ease-in-out infinite;z-index:0;
+}
+.ops-tool-hero{position:relative;overflow:hidden}
+.ops-tool-hero>*{position:relative;z-index:1}
+.ops-command-bar{overflow:hidden}
+.ops-command-bar>*{position:relative;z-index:1}
+.ops-premium-hero>*{position:relative;z-index:1}
+.ops-command-bar::after{animation-duration:8.8s}
+@keyframes opsSheenSweep{0%,58%{transform:translateX(-120%)}78%,100%{transform:translateX(120%)}}
+.ops-premium-card,.ops-choice,.team-member-premium,.ledger-frame,.swot-card,.ops-human-card{will-change:transform}
+.ops-premium-card:hover,.ops-choice:hover,.team-member-premium:hover,.ledger-frame:hover{
+  transform:translateY(-3px);border-color:rgba(214,155,45,.32);box-shadow:0 24px 70px rgba(24,22,15,.075)
+}
+#sec-results .metric-card,#sec-results .critical-card,#sec-results .result-proof-card{position:relative;overflow:hidden}
+#sec-results .metric-card::after,#sec-results .critical-card::before,#sec-results .result-proof-card::after{
+  content:"";position:absolute;inset:auto -20% -45% -20%;height:70%;
+  background:radial-gradient(circle at 50% 0,rgba(214,155,45,.12),transparent 62%);
+  opacity:0;transform:translateY(12px);transition:opacity .28s ease,transform .28s ease;pointer-events:none
+}
+#sec-results .metric-card:hover::after,#sec-results .critical-card:hover::before,#sec-results .result-proof-card:hover::after{opacity:1;transform:translateY(0)}
+#sec-results .score-box{position:relative;overflow:hidden}
+#sec-results .score-box::after{
+  content:"";position:absolute;left:12%;right:12%;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(214,155,45,.62),transparent);
+  animation:opsScoreLine 3.6s ease-in-out infinite;pointer-events:none
+}
+@keyframes opsScoreLine{0%,100%{opacity:.2;transform:scaleX(.45)}50%{opacity:1;transform:scaleX(1)}}
+.btn,.src-tab,.tab,.ldg-tab,.ops-intel-switcher button,.mode-btn,.prompt-chip,.plan-btn{
+  position:relative;overflow:hidden
+}
+.btn::after,.src-tab::after,.tab::after,.ldg-tab::after,.ops-intel-switcher button::after,.mode-btn::after,.prompt-chip::after,.plan-btn::after{
+  content:"";position:absolute;left:var(--press-x,50%);top:var(--press-y,50%);width:12px;height:12px;
+  border-radius:999px;background:rgba(214,155,45,.28);transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none
+}
+.btn.is-pressing::after,.src-tab.is-pressing::after,.tab.is-pressing::after,.ldg-tab.is-pressing::after,.ops-intel-switcher button.is-pressing::after,.mode-btn.is-pressing::after,.prompt-chip.is-pressing::after,.plan-btn.is-pressing::after{
+  animation:opsPressRipple .48s ease-out
+}
+@keyframes opsPressRipple{0%{opacity:.5;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(18)}}
+.ops-ask-launch::after{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(214,155,45,.2);
+  animation:opsAskHalo 2.6s ease-in-out infinite;pointer-events:none
+}
+.ops-ask-launch{position:relative;overflow:visible}
+@keyframes opsAskHalo{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.8;transform:scale(1.045)}}
+.chat-msg.ops{animation:opsChatIn .32s cubic-bezier(.16,1,.3,1) both}
+.chat-msg.user{animation:opsChatInRight .28s cubic-bezier(.16,1,.3,1) both}
+@keyframes opsChatIn{from{opacity:0;transform:translateX(-8px) translateY(4px)}to{opacity:1;transform:translateX(0) translateY(0)}}
+@keyframes opsChatInRight{from{opacity:0;transform:translateX(8px) translateY(4px)}to{opacity:1;transform:translateX(0) translateY(0)}}
+.ops-premium-shell{display:grid;gap:18px}
+.ops-premium-hero{
+  position:relative;overflow:hidden;border:1px solid rgba(224,216,204,.9);border-radius:34px;
+  background:linear-gradient(135deg,#11120d,#292315);color:#fff;padding:38px 40px;
+  box-shadow:0 28px 76px rgba(24,22,15,.12)
+}
+.ops-premium-hero::after{
+  content:"";position:absolute;right:-120px;top:-130px;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,155,45,.32),transparent 68%);pointer-events:none
+}
+.ops-premium-kicker{font-size:11px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#f0c462;margin-bottom:12px}
+.ops-premium-title{position:relative;z-index:1;font-size:clamp(34px,4vw,58px);line-height:1.02;font-weight:860;letter-spacing:-.06em;max-width:780px}
+.ops-premium-copy{position:relative;z-index:1;font-size:16px;line-height:1.7;color:rgba(255,255,255,.66);max-width:760px;margin-top:14px}
+.ops-premium-actions{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.ops-premium-badges{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}
+.ops-premium-badge{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);border-radius:999px;padding:9px 12px;font-size:12px;font-weight:850;color:rgba(255,255,255,.72)}
+.ops-premium-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);gap:18px;align-items:start}
+.ops-premium-card{
+  border:1px solid rgba(224,216,204,.9);border-radius:30px;background:rgba(255,255,255,.94);
+  box-shadow:0 20px 58px rgba(24,22,15,.055);padding:30px;overflow:hidden
+}
+.ops-premium-card.soft{background:#fffaf6}
+.ops-premium-card-title{font-size:24px;font-weight:850;letter-spacing:-.035em;color:var(--ink);line-height:1.12}
+.ops-premium-card-copy{font-size:14px;line-height:1.65;color:var(--muted);margin-top:8px}
+.ops-premium-stack{display:grid;gap:14px;margin-top:20px}
+.ops-premium-row{
+  display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:start;padding:16px;border:1px solid rgba(224,216,204,.82);
+  border-radius:20px;background:#fff
+}
+.ops-premium-num{width:30px;height:30px;border-radius:12px;display:grid;place-items:center;background:#11120d;color:#f0c462;font-size:12px;font-weight:900}
+.ops-premium-row strong{display:block;font-size:14px;color:var(--ink);margin-bottom:4px}
+.ops-premium-row span{display:block;font-size:13px;color:var(--muted);line-height:1.55}
+.ops-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ops-choice{
+  border:1px solid rgba(224,216,204,.9);border-radius:28px;background:#fff;padding:24px;
+  box-shadow:0 18px 46px rgba(24,22,15,.045);display:grid;align-content:space-between;min-height:245px
+}
+.ops-choice.primary{background:#11120d;color:#fff;border-color:#11120d}
+.ops-choice-k{font-size:10px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.ops-choice-title{font-size:22px;font-weight:850;letter-spacing:-.035em;line-height:1.12;color:var(--ink)}
+.ops-choice.primary .ops-choice-title{color:#fff}
+.ops-choice-copy{font-size:14px;line-height:1.65;color:var(--muted);margin-top:10px}
+.ops-choice.primary .ops-choice-copy{color:rgba(255,255,255,.62)}
+.ops-choice .btn{margin-top:20px;justify-content:center}
+.ops-quiet-details{border:1px solid rgba(224,216,204,.86);border-radius:20px;background:#fffaf6;padding:14px 16px}
+.ops-quiet-details summary{cursor:pointer;list-style:none;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ops-quiet-details summary::-webkit-details-marker{display:none}
+.ops-tool-hero{
+  border:1px solid rgba(224,216,204,.9);border-radius:34px;background:linear-gradient(135deg,#fff,#fff8eb);
+  padding:34px 38px;margin-bottom:18px;box-shadow:0 22px 64px rgba(24,22,15,.06)
+}
+.ops-tool-title{font-size:clamp(34px,4vw,54px);font-weight:860;letter-spacing:-.055em;line-height:1.02;color:var(--ink)}
+.ops-tool-copy{font-size:16px;color:var(--muted);line-height:1.7;max-width:780px;margin-top:12px}
+.ops-tool-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.ops-tool-pill{border:1px solid var(--border);border-radius:999px;background:#fff;padding:10px 12px;font-size:12px;font-weight:850;color:var(--muted)}
+.team-board{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.team-side-note{border:1px solid rgba(224,216,204,.9);border-radius:28px;background:#11120d;color:#fff;padding:26px;box-shadow:0 20px 58px rgba(24,22,15,.1)}
+.team-member-premium{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid rgba(224,216,204,.86);border-radius:20px;background:#fff;margin-bottom:10px}
+.team-member-avatar{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0}
+.team-member-name{font-size:15px;font-weight:850;color:var(--ink)}
+.team-member-email{font-size:12px;color:var(--muted);margin-top:3px}
+.team-member-role{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:7px 9px;border-radius:999px;background:#fff7e8;border:1px solid #ead8ad;color:#9f7414}
+.team-remove{border:0;background:#f7efe2;color:var(--muted);width:32px;height:32px;border-radius:12px;cursor:pointer;font-size:18px;line-height:1}
+.ledger-frame{border:1px solid rgba(224,216,204,.9);border-radius:30px;background:rgba(255,255,255,.94);box-shadow:0 20px 60px rgba(24,22,15,.055);padding:22px}
+.ledger-tabs-premium{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:18px}
+.ledger-tabs-premium .ldg-tab{border:1px solid var(--border);border-radius:999px;background:#fffaf6;padding:11px 14px;color:var(--muted)}
+.ledger-tabs-premium .ldg-tab.active{background:#11120d;color:#fff;border-color:#11120d}
+@media(max-width:1100px){
+  .ops-premium-grid,.ops-choice-grid,.team-board{grid-template-columns:1fr}
+  #ldg-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  #ldg-kpis{grid-template-columns:1fr!important}
+}
+.auth-ops-preview{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px;
+}
+.auth-ops-preview-card{
+  border:1px solid rgba(24,22,15,.1);border-radius:18px;padding:18px;background:rgba(255,255,255,.72);
+  box-shadow:0 18px 46px rgba(24,22,15,.08);backdrop-filter:blur(14px)
+}
+.auth-ops-preview-card.dark{background:rgba(17,18,13,.92);border-color:rgba(17,18,13,.92);color:#fff}
+.auth-ops-k{font-size:10px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#9f7a15;margin-bottom:10px}
+.auth-ops-preview-card.dark .auth-ops-k{color:#f0c462}
+.auth-ops-v{font-size:30px;font-weight:850;line-height:1;letter-spacing:-.055em;color:var(--ink)}
+.auth-ops-preview-card.dark .auth-ops-v{color:#fff}
+.auth-ops-p{font-size:12px;line-height:1.55;color:rgba(24,22,15,.62);margin-top:10px}
+.auth-ops-preview-card.dark .auth-ops-p{color:rgba(255,255,255,.62)}
+.ops-home-brief{
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:18px;margin:0 0 28px;
+}
+.ops-home-hero,.ops-home-side{
+  border:1px solid rgba(224,216,204,.88);border-radius:34px;background:rgba(255,255,255,.92);
+  box-shadow:0 24px 70px rgba(24,22,15,.07);overflow:hidden;position:relative;
+}
+.ops-home-hero{
+  padding:42px;background:
+    radial-gradient(circle at 90% 5%,rgba(214,155,45,.18),transparent 30%),
+    linear-gradient(135deg,#11120d,#2f281b);color:#fff;
+}
+.ops-home-hero::after{content:"";position:absolute;right:-80px;bottom:-120px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.28),transparent 68%)}
+.ops-home-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#f0c462;margin-bottom:14px}
+.ops-home-title{font-size:clamp(42px,5vw,72px);font-weight:860;line-height:.98;letter-spacing:-.065em;max-width:740px;position:relative;z-index:1}
+.ops-home-copy{font-size:17px;line-height:1.7;color:rgba(255,255,255,.66);max-width:660px;margin-top:18px;position:relative;z-index:1}
+.ops-home-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;position:relative;z-index:1}
+.ops-home-side{padding:24px;display:grid;align-content:start;gap:14px}
+.ops-home-side-head{font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.ops-home-signal{border:1px solid var(--border);border-radius:22px;padding:18px;background:#fffaf6}
+.ops-home-signal-v{font-size:34px;font-weight:850;line-height:1;letter-spacing:-.05em;color:var(--ink)}
+.ops-home-signal-p{font-size:13px;color:var(--muted);line-height:1.55;margin-top:8px}
+.ops-home-dots{display:flex;gap:7px}
+.ops-home-dots span{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(214,155,45,.11)}
+.ops-home-dots span:nth-child(2){background:var(--warn)}.ops-home-dots span:nth-child(3){background:var(--success)}
+.ops-home-command-list{display:grid;gap:9px}
+.ops-home-command-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:12px 13px;border:1px solid rgba(224,216,204,.86);border-radius:18px;background:rgba(255,255,255,.72);
+}
+.ops-home-command-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(214,155,45,.1)}
+.ops-home-command-row:nth-child(2) .ops-home-command-dot{background:var(--warn)}
+.ops-home-command-row:nth-child(3) .ops-home-command-dot{background:var(--success)}
+.ops-home-command-t{font-size:13px;font-weight:850;color:var(--ink);letter-spacing:-.01em}
+.ops-home-command-k{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.swot-stage{display:grid;gap:18px}
+.swot-hero{
+  position:relative;overflow:hidden;border:1px solid rgba(224,216,204,.92);border-radius:30px;
+  padding:30px;background:linear-gradient(135deg,#11120d,#302818);color:#fff;
+  box-shadow:0 24px 70px rgba(24,22,15,.12)
+}
+.swot-hero::after{content:"";position:absolute;right:-70px;top:-100px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(214,155,45,.3),transparent 70%)}
+.swot-kicker{font-size:11px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#f0c462;margin-bottom:10px}
+.swot-title{font-size:clamp(32px,3.8vw,54px);font-weight:860;line-height:1.02;letter-spacing:-.06em;max-width:780px;position:relative;z-index:1}
+.swot-copy{font-size:16px;line-height:1.7;color:rgba(255,255,255,.64);max-width:760px;margin-top:14px;position:relative;z-index:1}
+.swot-summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:24px;position:relative;z-index:1}
+.swot-summary-pill{border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px;background:rgba(255,255,255,.07)}
+.swot-summary-k{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.swot-summary-v{font-size:26px;font-weight:850;margin-top:7px;line-height:1}
+.swot-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.swot-card{
+  position:relative;overflow:hidden;border:1px solid var(--border);border-radius:28px;padding:24px;
+  background:#fff;min-height:244px;transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease
+}
+.swot-card:hover{transform:translateY(-4px);border-color:rgba(214,155,45,.34);box-shadow:0 22px 62px rgba(24,22,15,.08)}
+.swot-card::after{content:"";position:absolute;right:-54px;bottom:-72px;width:170px;height:170px;border-radius:50%;background:var(--swot-glow,rgba(214,155,45,.12))}
+.swot-card.strengths{--swot-color:var(--success);--swot-soft:rgba(26,122,74,.08);--swot-glow:rgba(26,122,74,.12)}
+.swot-card.weaknesses{--swot-color:var(--danger);--swot-soft:rgba(192,57,43,.08);--swot-glow:rgba(192,57,43,.11)}
+.swot-card.opportunities{--swot-color:var(--gold);--swot-soft:rgba(214,155,45,.11);--swot-glow:rgba(214,155,45,.14)}
+.swot-card.threats{--swot-color:#6b6560;--swot-soft:rgba(107,101,96,.08);--swot-glow:rgba(107,101,96,.1)}
+.swot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;position:relative;z-index:1}
+.swot-icon{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;background:var(--swot-soft);color:var(--swot-color);font-size:22px;border:1px solid color-mix(in srgb,var(--swot-color) 22%,transparent)}
+.swot-name{font-size:22px;font-weight:860;letter-spacing:-.035em;color:var(--ink);line-height:1.1}
+.swot-count{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--swot-color);background:var(--swot-soft);border-radius:999px;padding:7px 9px;white-space:nowrap}
+.swot-items{display:grid;gap:10px;position:relative;z-index:1}
+.swot-item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:12px;border:1px solid rgba(224,216,204,.72);border-radius:16px;background:rgba(255,255,255,.72)}
+.swot-item-num{width:24px;height:24px;border-radius:9px;display:grid;place-items:center;background:var(--swot-soft);color:var(--swot-color);font-size:11px;font-weight:900}
+.swot-item-text{font-size:14px;line-height:1.5;color:var(--ink2)}
+.swot-empty{font-size:14px;color:var(--muted);padding:16px;border:1px dashed var(--border);border-radius:16px;background:#fffaf6}
+.swot-action-strip{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid rgba(224,216,204,.88);border-radius:24px;padding:20px 22px;background:#fffaf6}
+.swot-action-title{font-size:17px;font-weight:850;color:var(--ink)}
+.swot-action-copy{font-size:13px;color:var(--muted);line-height:1.55;margin-top:4px}
+@media(max-width:1100px){
+  #page-app .metrics-grid,#page-app .critical-today,.ops-scene-grid,.ops-narrative-grid,.ops-card-list,.ops-home-brief,.swot-map,.swot-summary-row{grid-template-columns:1fr}
+  .ops-command-bar{align-items:flex-start;flex-direction:column}
+  .ops-scene-head{grid-template-columns:1fr}.ops-scene-metric{text-align:left}
+}
+@media(max-width:760px){
+  #page-app .main-content{padding:28px 18px 72px}
+  .ops-command-bar{top:10px;border-radius:18px}
+  .ops-command-actions{width:100%;overflow-x:auto}
+  .ops-floating-ask{right:18px!important;bottom:18px!important}
+  .ops-ask-launch span{display:none}
+}
+
 /* Tabs */
 .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -922,6 +1443,29 @@ body.analysis-is-loading{overflow:hidden!important}
   background:#fff;border:1px solid rgba(224,216,204,.68);border-radius:20px;
   padding:18px 20px 12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.92);
 }
+
+/* Final advanced scale overrides: keep this after the base app theme. */
+#page-app .main-content{font-size:16px}
+#page-app .main-content>section{max-width:1320px}
+#page-app .pg-title{font-size:clamp(38px,4vw,54px);line-height:1.02;font-weight:780}
+#page-app .pg-sub{font-size:17px;line-height:1.65;max-width:820px}
+#page-app .score-box{padding:52px 48px;border-radius:34px;margin-bottom:30px}
+#page-app .score-num{font-size:clamp(78px,9vw,118px);letter-spacing:0}
+#page-app .score-desc{font-size:18px;line-height:1.7;max-width:820px}
+#page-app .metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-bottom:30px}
+#page-app .metric-card{padding:32px 34px;border-radius:28px;min-height:168px}
+#page-app .metric-label{font-size:12px}
+#page-app .metric-value{font-size:clamp(44px,5vw,68px)}
+#page-app .critical-today{grid-template-columns:1.2fr repeat(3,minmax(0,1fr));gap:18px;margin-bottom:28px}
+#page-app .critical-lead{padding:34px;border-radius:30px}
+#page-app .critical-title{font-size:clamp(30px,3vw,42px)}
+#page-app .critical-copy{font-size:15px}
+#page-app .critical-card{padding:28px;border-radius:28px}
+#page-app .critical-value{font-size:clamp(26px,2.2vw,36px)}
+#page-app .card{padding:38px 40px;border-radius:30px;margin-bottom:28px}
+#page-app .card-title{font-size:28px}
+#page-app .card-sub{font-size:15px;line-height:1.65}
+#sec-results{padding-bottom:140px}
 
 #sec-ledger,#sec-compare,#sec-team{background:#fffdf9}
 #sec-ledger>div,#sec-compare>div,#sec-team>div{padding:54px 64px!important}
@@ -1247,6 +1791,160 @@ body.analysis-is-loading{overflow:hidden!important}
 .ldg-modal{background:var(--white);border-radius:18px;padding:28px 28px 22px;width:100%;max-width:620px;box-shadow:0 24px 64px rgba(24,22,15,.2)}
 .ldg-modal-title{font-family:var(--serif-font);font-size:24px;font-weight:650;color:var(--ink);margin-bottom:18px;letter-spacing:-.02em}
 .ldg-modal-footer{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* Professional polish pass */
+#page-app .main-content{max-width:1540px}
+#page-app .pg-header{
+  align-items:flex-start;border-bottom:1px solid rgba(224,216,204,.72);
+  padding-bottom:22px;margin-bottom:24px;
+}
+#page-app .pg-header .chip{box-shadow:0 10px 30px rgba(24,22,15,.045)}
+#page-app .card,
+#page-app .sec-card,
+#page-app .ops-premium-card,
+#page-app .ledger-frame,
+#page-app .team-side-note,
+#page-app .ops-tool-hero{
+  border-color:rgba(224,216,204,.86);
+}
+#page-app .card,
+#page-app .ops-premium-card,
+#page-app .ledger-frame{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,252,246,.92));
+}
+#page-app .card-title,
+#page-app .ops-premium-card-title{
+  font-family:var(--sans-font);font-weight:850;letter-spacing:-.04em;
+}
+#page-app .card-sub,
+#page-app .ops-premium-card-copy{
+  color:#777166;
+}
+.btn{
+  min-height:42px;user-select:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.btn:active{transform:translateY(0) scale(.985)}
+.btn-outline{background:rgba(255,255,255,.62)}
+.btn-outline:hover{background:#fff;border-color:rgba(24,22,15,.28);box-shadow:0 10px 28px rgba(24,22,15,.055)}
+.field{margin-bottom:16px}
+.field label{font-weight:850;color:#8b8374;letter-spacing:.1em}
+.field input,
+.field textarea,
+.field select,
+.ldg-search,
+.ask-input{
+  min-height:46px;border:1px solid rgba(224,216,204,.96)!important;border-radius:15px!important;
+  background:rgba(255,252,246,.86)!important;color:var(--ink)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+  transition:border-color .2s ease,box-shadow .2s ease,background .2s ease,transform .2s ease;
+}
+.field textarea{min-height:92px;line-height:1.55}
+.field input:hover,
+.field textarea:hover,
+.field select:hover,
+.ldg-search:hover,
+.ask-input:hover{border-color:rgba(214,155,45,.34)!important;background:#fff!important}
+.field input:focus,
+.field textarea:focus,
+.field select:focus,
+.ldg-search:focus,
+.ask-input:focus{
+  outline:none;border-color:rgba(214,155,45,.62)!important;background:#fff!important;
+  box-shadow:0 0 0 4px rgba(214,155,45,.1),inset 0 1px 0 rgba(255,255,255,.7)!important;
+}
+.ops-tool-hero{
+  background:
+    radial-gradient(circle at 88% 0%,rgba(214,155,45,.12),transparent 30%),
+    linear-gradient(180deg,#fff,#fffaf4);
+  border-radius:34px;padding:36px;box-shadow:0 24px 70px rgba(24,22,15,.06);
+}
+.ops-tool-strip{align-items:center}
+.ops-tool-pill{
+  display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.78);
+}
+.ops-tool-pill::before{
+  content:"";width:7px;height:7px;border-radius:999px;background:var(--gold);
+  box-shadow:0 0 0 5px rgba(214,155,45,.1);
+}
+#sec-ledger>div,#sec-compare>div,#sec-team>div{max-width:1500px}
+#ldg-kpis>div{
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+#ldg-kpis>div:hover{
+  transform:translateY(-2px);border-color:rgba(214,155,45,.28)!important;
+  box-shadow:0 24px 64px rgba(24,22,15,.075)!important;
+}
+.ledger-frame{padding:10px 22px 22px}
+.ledger-tabs-premium{
+  position:sticky;top:18px;z-index:5;margin:0 -10px 20px;padding:10px;
+  background:rgba(247,242,233,.76);border:1px solid rgba(224,216,204,.82);
+  border-radius:22px;backdrop-filter:blur(16px);
+}
+.ledger-tabs-premium .ldg-tab{
+  border-radius:15px!important;padding:12px 15px!important;border-bottom:0!important;font-weight:900!important;
+}
+.ledger-tabs-premium .ldg-tab.active{box-shadow:0 14px 36px rgba(24,22,15,.12)}
+.ldg-toolbar{
+  padding:14px;border:1px solid rgba(224,216,204,.8);border-radius:22px;background:#fffaf6;margin-bottom:16px;
+}
+.ldg-search{max-width:420px!important;padding:0 16px!important}
+.ldg-table{
+  border-collapse:separate!important;border-spacing:0 8px!important;font-size:13px!important;
+}
+.ldg-table th{border-bottom:0!important;padding:6px 14px!important;font-weight:900!important;color:#8a8376!important}
+.ldg-table td{
+  background:#fff;border-top:1px solid rgba(224,216,204,.78);border-bottom:1px solid rgba(224,216,204,.78);
+  padding:15px 14px!important;
+}
+.ldg-table td:first-child{border-left:1px solid rgba(224,216,204,.78);border-radius:16px 0 0 16px}
+.ldg-table td:last-child{border-right:1px solid rgba(224,216,204,.78);border-radius:0 16px 16px 0}
+.ldg-table tr:hover td{background:#fffaf2!important;border-color:rgba(214,155,45,.28)}
+.ldg-act button{
+  background:#f7f0e6!important;border:1px solid rgba(224,216,204,.84)!important;border-radius:999px!important;
+  padding:6px 10px!important;font-weight:850!important;
+}
+.ldg-empty{
+  border:1px dashed rgba(145,134,111,.34);border-radius:24px;background:#fffaf6;
+}
+.ldg-modal-overlay{background:rgba(17,18,13,.62);backdrop-filter:blur(10px)}
+.ldg-modal,
+#modal-adduser>div{
+  border:1px solid rgba(224,216,204,.9)!important;border-radius:28px!important;
+  background:linear-gradient(180deg,#fff,#fffaf4)!important;box-shadow:0 34px 90px rgba(24,22,15,.24)!important;
+}
+.ldg-modal-title,
+#modal-adduser>div>div:first-child{
+  font-family:var(--sans-font)!important;font-size:26px!important;font-weight:850!important;letter-spacing:-.04em!important;
+}
+.ldg-modal-footer{justify-content:flex-end}
+.pro-lock{
+  background:rgba(255,252,246,.94)!important;backdrop-filter:blur(14px)!important;
+}
+.pro-lock-inner{
+  width:min(440px,90%);border:1px solid rgba(224,216,204,.86);border-radius:28px;background:#fff;
+  box-shadow:0 24px 70px rgba(24,22,15,.1);
+}
+.pro-lock-mark{
+  width:48px;height:48px;border-radius:18px;margin:0 auto 14px;
+  display:grid;place-items:center;background:#11120d;color:#f3cf58;font-size:18px;font-weight:900;
+  box-shadow:0 14px 34px rgba(24,22,15,.14);
+}
+.data-table{border-collapse:separate;border-spacing:0}
+.data-table th{font-weight:900;color:#8a8376}
+.data-table td{background:#fff}
+.data-table tr:hover td{background:#fffaf2!important}
+.ops-detail-toggle summary{
+  cursor:pointer;border:1px solid rgba(224,216,204,.86);border-radius:16px;padding:14px 16px;background:#fffaf6;
+  font-size:13px;font-weight:850;color:var(--ink);list-style:none;
+}
+.ops-detail-toggle summary::-webkit-details-marker{display:none}
+.ops-detail-toggle summary::after{content:"+";float:right;font-weight:900}
+.ops-detail-toggle[open] summary::after{content:"-"}
+@media(max-width:900px){
+  .ldg-toolbar{align-items:stretch;flex-direction:column}
+  .ldg-search{max-width:none!important;width:100%}
+}
 /* P&L */
 .pl-section{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:12px}
 .pl-section-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px}
@@ -1263,6 +1961,35 @@ body.analysis-is-loading{overflow:hidden!important}
 /* Stock alert */
 .stock-low{color:var(--danger);font-weight:600}
 .stock-ok{color:var(--success)}
+</style>
+<style>
+/* Focused operating workspace: clear entry points, readable cards, keyboard access. */
+.workspace-start{display:grid;grid-template-columns:1.25fr 1fr;gap:28px;margin:0 0 28px;padding:32px;border:1px solid #dbe2d9;border-radius:22px;background:linear-gradient(120deg,#f0f4ec,#fffdf7);box-shadow:0 8px 28px #20342506}
+.workspace-eyebrow{font-size:10px;letter-spacing:.17em;font-weight:800;color:#537153;margin-bottom:18px}
+.workspace-intro h2{font-family:var(--sans-font);font-size:clamp(26px,3vw,38px);font-weight:650;letter-spacing:-.045em;line-height:1.15;margin:0 0 14px;max-width:480px;color:#203425}
+.workspace-intro p{font-size:14px;color:#58675b;line-height:1.7;max-width:480px;margin:0 0 18px}
+.workspace-actions{display:flex;flex-wrap:wrap;gap:10px}
+.workspace-intro .workspace-source{font-size:11px;margin:18px 0 0;color:#647262}
+.workspace-steps{display:flex;flex-direction:column;justify-content:center;gap:10px}
+.workspace-steps button{display:flex;align-items:center;gap:16px;width:100%;padding:18px;text-align:left;background:#ffffffd9;border:1px solid #dfe6dc;border-radius:12px;color:#203425;cursor:pointer;transition:transform .15s,border-color .15s}
+.workspace-steps button:hover{transform:translateX(3px);border-color:#809b76}
+.workspace-steps button>span{font-size:11px;color:#788e70;font-variant-numeric:tabular-nums}
+.workspace-steps strong{display:block;font-size:13px;font-weight:650}
+.workspace-steps small{display:block;font-size:11px;color:#7a8478;margin-top:5px}
+.workspace-steps b{margin-left:auto;color:#72876c;font-size:18px;font-weight:400}
+#page-app .sec-card,#page-app .kpi{border-radius:16px;box-shadow:0 3px 14px #182b1504}
+#page-app .pg-header{flex-wrap:wrap;gap:16px}
+button:focus-visible,a:focus-visible,.nav-item:focus-visible{outline:3px solid #6e975c;outline-offset:4px}
+@media(max-width:1000px){.workspace-start{grid-template-columns:1fr;padding:24px;gap:24px}.workspace-intro h2{max-width:none}}
+@media(max-width:600px){.workspace-start{padding:20px;border-radius:16px}.workspace-actions .btn{width:100%;justify-content:center}.workspace-steps button{padding:15px}#page-app .main-content{padding:76px 16px 28px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Short, finite entrances keep actions readable without continuous movement. */
+.guide-shortcut{display:inline-flex;font-size:12px;color:#f2d880;margin-bottom:20px;text-decoration:underline;text-underline-offset:4px}
+.workspace-intro{animation:workspaceEnter .6s ease-out both}.workspace-steps button{animation:workspaceEnter .6s ease-out both}.workspace-steps button:nth-child(1){animation-delay:.08s}.workspace-steps button:nth-child(2){animation-delay:.16s}.workspace-steps button:nth-child(3){animation-delay:.24s}
+@keyframes workspaceEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.workspace-intro,.workspace-steps button{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -1292,6 +2019,18 @@ body.analysis-is-loading{overflow:hidden!important}
             <div class="auth-trust-badge">Shopify OAuth ready</div>
             <div class="auth-trust-badge">WooCommerce REST</div>
             <div class="auth-trust-badge">Live data labeling</div>
+          </div>
+          <div class="auth-ops-preview">
+            <div class="auth-ops-preview-card dark">
+              <div class="auth-ops-k">OPS command</div>
+              <div class="auth-ops-v">€7.6k</div>
+              <div class="auth-ops-p">Potential monthly leakage detected across cancellation, fulfillment, inventory, and churn signals.</div>
+            </div>
+            <div class="auth-ops-preview-card">
+              <div class="auth-ops-k">Highest action</div>
+              <div class="auth-ops-v">24h</div>
+              <div class="auth-ops-p">Reduce processing time before scaling spend or promising faster delivery.</div>
+            </div>
           </div>
         </div>
         <div>
@@ -1437,7 +2176,7 @@ body.analysis-is-loading{overflow:hidden!important}
         </div>
         <div class="nav-item" data-nav="team" onclick="nav('team')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-          Team
+          <span class="nav-label">Team</span>
           <span id="team-badge" style="margin-left:auto;background:rgba(201,150,58,.25);color:var(--gold-l);font-size:9px;font-weight:600;padding:1px 7px;border-radius:100px">1</span>
         </div>
         <div class="nav-item" data-nav="ledger" onclick="nav('ledger')">
@@ -1480,17 +2219,32 @@ body.analysis-is-loading{overflow:hidden!important}
         <div class="pg-header">
           <div>
             <div class="pg-title" id="home-title">Good morning<em>.</em></div>
-            <div class="pg-sub">Your AI operating signal across the last 90 days of store activity.</div>
+            <div class="pg-sub">Store performance, operating costs, and your next action in one place.</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Last 30 days
+              Latest analysis
             </div>
             <button class="btn btn-ink btn-sm" onclick="startSmartAnalysis()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Build Brief
             </button>
+          </div>
+        </div>
+
+        <div class="workspace-start">
+          <div class="workspace-intro">
+            <div class="workspace-eyebrow">OPS / OPERATIONS WORKSPACE</div>
+            <h2 data-workspace-en="A clearer view. A better next move." data-workspace-tr="Net bir görünüm. Doğru bir sonraki adım.">A clearer view. A better next move.</h2>
+            <p data-workspace-en="Connect your store, understand operating costs, and turn your data into a focused action plan." data-workspace-tr="Mağazanı bağla, operasyon maliyetlerini gör ve verilerini öncelikli bir aksiyon planına dönüştür.">Connect your store, understand operating costs, and turn your data into a focused action plan.</p>
+            <div class="workspace-actions"><a class="btn btn-outline" href="/guide.html" data-workspace-en="Connection guide ↗" data-workspace-tr="Bağlantı rehberi ↗">Connection guide ↗</a><button class="btn btn-gold" onclick="nav('connect')" data-workspace-en="Connect Shopify →" data-workspace-tr="Shopify’ı bağla →">Connect Shopify →</button><button class="btn btn-outline" onclick="startSmartAnalysis()" data-workspace-en="Analyze my store" data-workspace-tr="Mağazamı analiz et">Analyze my store</button></div>
+            <p class="workspace-source" id="workspace-source" role="status">Connect a store to see live results. No analysis has run yet.</p>
+          </div>
+          <div class="workspace-steps">
+            <button onclick="nav('connect')"><span>01</span><div><strong data-workspace-en="Connect your data" data-workspace-tr="Verilerini bağla">Connect your data</strong><small>Shopify · WooCommerce · CSV</small></div><b>↗</b></button>
+            <button onclick="nav('ledger')"><span>02</span><div><strong data-workspace-en="Review income & expenses" data-workspace-tr="Gelir ve giderleri incele">Review income & expenses</strong><small data-workspace-en="Keep your operating records together" data-workspace-tr="Operasyon kayıtların bir arada">Keep your operating records together</small></div><b>↗</b></button>
+            <button onclick="nav('ask')"><span>03</span><div><strong data-workspace-en="Decide what to fix first" data-workspace-tr="Önce neyi düzelteceğini belirle">Decide what to fix first</strong><small data-workspace-en="Ask your AI operations analyst" data-workspace-tr="AI operasyon analistine sor">Ask your AI operations analyst</small></div><b>↗</b></button>
           </div>
         </div>
 
@@ -1632,45 +2386,36 @@ body.analysis-is-loading{overflow:hidden!important}
 
       <!-- CONNECT -->
       <section id="sec-connect">
-        <div class="pg-header">
-          <div><div class="pg-title">Connect Store</div><div class="pg-sub">Choose a data source, connect it, then run one operating brief. Keep this screen focused on the next action.</div></div>
-        </div>
-
-        <div class="connect-hero">
-          <div class="connect-hero-main">
-            <div class="connect-kicker">Start here</div>
-            <div class="connect-hero-title">Connect the store, then run the brief.</div>
-            <div class="connect-hero-copy">Use Shopify OAuth for the cleanest setup. If you only want to test the product flow, run the demo instead. Uploaded files stay available for marketplace exports.</div>
-            <div class="connect-benefits">
-              <div class="connect-benefit">1. Pick source</div>
-              <div class="connect-benefit">2. Connect access</div>
-              <div class="connect-benefit">3. Run brief</div>
+        <div class="ops-premium-shell">
+          <div class="ops-premium-hero">
+            <a class="guide-shortcut" href="/guide.html" data-workspace-en="First time here? Follow the connection guide ↗" data-workspace-tr="İlk kez mi bağlıyorsun? Bağlantı rehberini aç ↗">First time here? Follow the connection guide ↗</a><div class="ops-premium-kicker">Secure source setup</div>
+            <div class="ops-premium-title">Connect once. Let OPS brief the business.</div>
+            <div class="ops-premium-copy">Start with Shopify OAuth for the cleanest live setup, or use a labeled demo/upload path when you only want to preview the operating brief.</div>
+            <div class="ops-premium-actions">
+              <button class="btn btn-gold" onclick="document.getElementById('connect-domain')?.focus()">Connect Shopify</button>
+              <button class="btn btn-outline" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.18)" onclick="startDemo()">Preview Demo Brief</button>
+            </div>
+            <div class="ops-premium-badges">
+              <div class="ops-premium-badge">Read-only commerce access</div>
+              <div class="ops-premium-badge">Live/demo source labels</div>
+              <div class="ops-premium-badge">Orders · products · inventory</div>
             </div>
           </div>
-        </div>
 
-        <div class="source-tabs" aria-label="Data source tabs">
-          <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
-          <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
-          <div class="src-tab" id="tab-etsy" onclick="switchSource('etsy')">Etsy</div>
-          <div class="src-tab" id="tab-amazon" onclick="switchSource('amazon')">Amazon</div>
-          <div class="src-tab" id="tab-upload" onclick="switchSource('upload')">CSV / Excel</div>
-        </div>
+          <div class="source-tabs" aria-label="Data source tabs">
+            <div class="src-tab active" id="tab-shopify" onclick="switchSource('shopify')">Shopify</div>
+            <div class="src-tab" id="tab-woo" onclick="switchSource('woo')">WooCommerce</div>
+            <div class="src-tab" id="tab-etsy" onclick="switchSource('etsy')">Etsy</div>
+            <div class="src-tab" id="tab-amazon" onclick="switchSource('amazon')">Amazon</div>
+            <div class="src-tab" id="tab-upload" onclick="switchSource('upload')">CSV / Excel</div>
+          </div>
 
         <!-- Shopify -->
         <div id="src-shopify" class="src-panel">
-          <div class="connect-grid">
-            <div class="connect-card">
-              <div class="connect-card-head">
-                <div>
-                  <div class="connect-card-eyebrow">Shopify setup</div>
-                  <div class="connect-card-title big">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                    Shopify Store
-                  </div>
-                  <div class="connect-card-sub">Enter the permanent Shopify domain, approve the install, then run the live brief.</div>
-                </div>
-              </div>
+          <div class="ops-premium-grid">
+            <div class="ops-premium-card">
+              <div class="ops-premium-card-title">Shopify Store</div>
+              <div class="ops-premium-card-copy">Enter the permanent Shopify domain. OPS opens the install flow, verifies access, then keeps the resulting brief source-labeled.</div>
               <div id="shopify-connection-status" class="connect-state warn">
                 <span class="connect-dot"></span>
                 <div><strong style="color:var(--ink)">Not connected</strong><div>Connect with Shopify OAuth to read live orders, products, inventory, and customers.</div></div>
@@ -1685,8 +2430,8 @@ body.analysis-is-loading{overflow:hidden!important}
                   <button class="btn btn-outline" style="justify-content:center" onclick="analyzeConnectedShopify()">Run Brief</button>
                 </div>
               </div>
-              <details style="margin-top:14px">
-                <summary style="font-size:11px;color:var(--muted);cursor:pointer">Manual token fallback</summary>
+              <details class="ops-quiet-details" style="margin-top:14px">
+                <summary>Manual token fallback</summary>
                 <div style="margin-top:12px">
                   <div class="field"><label>Admin API Token</label><input type="password" id="connect-token" placeholder="shpat_..." autocomplete="off"></div>
                   <button class="btn btn-outline" onclick="saveAndAnalyze()">Analyze with manual token</button>
@@ -1697,22 +2442,18 @@ body.analysis-is-loading{overflow:hidden!important}
               </div>
               <div class="connect-note"><strong>Tip:</strong> use the exact <code>.myshopify.com</code> domain. Custom storefront domains usually redirect during install.</div>
             </div>
-            <div class="flow-card">
-              <div class="flow-head">
-                <div>
-                  <div class="flow-title">What to do next</div>
-                  <div class="flow-sub">Follow these in order. No extra setup is needed before the first live brief.</div>
-                </div>
+            <div class="ops-premium-card soft">
+              <div class="ops-premium-card-title">Connection flow</div>
+              <div class="ops-premium-card-copy">Three steps, one operating brief. Everything else stays quiet until it is needed.</div>
+              <div class="ops-premium-stack">
+                <div class="ops-premium-row"><div class="ops-premium-num">1</div><div><strong>Enter store domain</strong><span>Use the permanent <code>.myshopify.com</code> domain.</span></div></div>
+                <div class="ops-premium-row"><div class="ops-premium-num">2</div><div><strong>Approve install</strong><span>Shopify handles the permission screen for the merchant.</span></div></div>
+                <div class="ops-premium-row"><div class="ops-premium-num">3</div><div><strong>Run the brief</strong><span>OPS reads commerce signals and turns them into founder-ready actions.</span></div></div>
               </div>
-              <div class="flow-steps">
-                <div class="flow-step"><div class="flow-num">1</div><div><strong>Enter store domain</strong><span>Example: <code>brand-name.myshopify.com</code>.</span></div></div>
-                <div class="flow-step"><div class="flow-num">2</div><div><strong>Approve install</strong><span>Shopify opens its permission screen for the merchant.</span></div></div>
-                <div class="flow-step"><div class="flow-num">3</div><div><strong>Run brief</strong><span>OPS reads the latest commerce signals and builds the results page.</span></div></div>
-              </div>
-              <div class="connect-checklist">
-                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Access is read-only</strong><span>OPS uses the connection to analyze orders, products, inventory, and customer signals.</span></div></div>
-                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Live data is labeled</strong><span>The report shows source and coverage so demo data does not mix with live findings.</span></div></div>
-                <div class="connect-check"><div class="connect-check-mark">✓</div><div><strong>Manual token is optional</strong><span>Only use it if Shopify install is blocked.</span></div></div>
+              <div class="ops-premium-badges" style="margin-top:18px">
+                <div class="ops-premium-badge" style="background:#fff;color:var(--muted);border-color:var(--border)">Read-only</div>
+                <div class="ops-premium-badge" style="background:#fff;color:var(--muted);border-color:var(--border)">Source labeled</div>
+                <div class="ops-premium-badge" style="background:#fff;color:var(--muted);border-color:var(--border)">Demo safe</div>
               </div>
             </div>
           </div>
@@ -1788,43 +2529,64 @@ body.analysis-is-loading{overflow:hidden!important}
             </div>
           </div>
         </div>
-
+        </div>
       </section>
 
       <!-- ANALYSIS -->
       <section id="sec-analysis" style="display:none">
-        <div class="pg-header">
-          <div><div class="pg-title">Build Operator Brief</div><div class="pg-sub" id="analysis-shop-name">Connect your store or try a demo.</div></div>
-        </div>
-
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-title">Demo Analysis</div>
-          <div class="card-sub">Use realistic sample data to preview the OPS experience. Demo outputs stay visibly separated from production runs and never overwrite live labels.</div>
-          <button class="btn btn-ink" onclick="startDemo()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Run Demo Analysis
-          </button>
-        </div>
-
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-title">Production Analysis Rules</div>
-          <div class="card-sub">OPS keeps live analysis strict so result pages stay credible in operator, founder, board, and investor conversations.</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            <div class="trust-point"><strong>Live connectors</strong><span>Use Shopify OAuth or WooCommerce REST for production runs.</span></div>
-            <div class="trust-point"><strong>Demo isolation</strong><span>Sample overlays only appear in demo mode and stay labeled as demo.</span></div>
-            <div class="trust-point"><strong>Result context</strong><span>Every run shows source, timestamp, and model label on the results page.</span></div>
+        <div class="ops-premium-shell">
+          <div class="ops-premium-hero">
+            <div class="ops-premium-kicker">Brief builder</div>
+            <div class="ops-premium-title">Generate the weekly operating brief.</div>
+            <div class="ops-premium-copy" id="analysis-shop-name">Connect your store or try a demo. OPS will keep live, upload, and demo runs clearly labeled.</div>
+            <div class="ops-premium-badges">
+              <div class="ops-premium-badge">Source-labeled output</div>
+              <div class="ops-premium-badge">Founder-ready actions</div>
+              <div class="ops-premium-badge">PDF brief compatible</div>
+            </div>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-title">Shopify Live Data</div>
-          <div class="card-sub">Use this only when OAuth is unavailable. Result pages will label this path separately from the preferred Shopify OAuth connection.</div>
-          <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="storename.myshopify.com"></div>
-          <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
-          <button class="btn btn-gold" onclick="saveAndAnalyze()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Connect &amp; Analyze
-          </button>
+          <div class="ops-choice-grid">
+            <div class="ops-choice primary">
+              <div>
+                <div class="ops-choice-k">Fast preview</div>
+                <div class="ops-choice-title">Demo Analysis</div>
+                <div class="ops-choice-copy">Use realistic sample data to preview the full OPS flow without touching live store access.</div>
+              </div>
+              <button class="btn btn-gold" onclick="startDemo()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Run Demo Analysis
+              </button>
+            </div>
+
+            <div class="ops-choice">
+              <div>
+                <div class="ops-choice-k">Live rules</div>
+                <div class="ops-choice-title">Production Analysis Rules</div>
+                <div class="ops-choice-copy">Live connectors, demo isolation, and result context stay visible so the brief remains credible in founder, board, and investor conversations.</div>
+              </div>
+              <div class="ops-premium-stack" style="margin-top:18px">
+                <div class="ops-premium-row"><div class="ops-premium-num">✓</div><div><strong>Live connectors</strong><span>Shopify OAuth or WooCommerce REST for production runs.</span></div></div>
+                <div class="ops-premium-row"><div class="ops-premium-num">✓</div><div><strong>Result context</strong><span>Every run shows source, timestamp, and model label.</span></div></div>
+              </div>
+            </div>
+
+            <div class="ops-choice">
+              <div>
+                <div class="ops-choice-k">Fallback path</div>
+                <div class="ops-choice-title">Shopify Live Data</div>
+                <div class="ops-choice-copy">Use manual token analysis only when OAuth is unavailable. OPS labels this path separately.</div>
+              </div>
+              <div style="margin-top:18px">
+                <div class="field"><label>Store Domain</label><input type="text" id="shopify-domain" placeholder="storename.myshopify.com"></div>
+                <div class="field"><label>Admin API Token</label><input type="password" id="shopify-token" placeholder="shpat_..."></div>
+                <button class="btn btn-ink" onclick="saveAndAnalyze()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Connect &amp; Analyze
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="loading-overlay" id="analysis-loading">
@@ -1846,6 +2608,11 @@ body.analysis-is-loading{overflow:hidden!important}
               <div class="loading-step" id="step-4">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Preparing results
               </div>
+            </div>
+            <div class="ops-skeleton-grid" aria-hidden="true">
+              <div class="ops-skeleton"></div>
+              <div class="ops-skeleton"></div>
+              <div class="ops-skeleton"></div>
             </div>
           </div>
         </div>
@@ -1872,8 +2639,21 @@ body.analysis-is-loading{overflow:hidden!important}
           <div class="result-signal-meta" id="result-signal-meta">Source details appear here after a run.</div>
         </div>
 
+        <div class="ops-command-bar" id="ops-command-bar">
+          <div class="ops-command-left">
+            <div class="ops-live-dot"></div>
+            <div class="ops-command-copy" id="ops-command-copy">OPS is waiting for operating signals.</div>
+          </div>
+          <div class="ops-command-actions">
+            <button class="btn btn-outline btn-sm" onclick="rerunLastAnalysis()">Refresh</button>
+            <button class="btn btn-outline btn-sm" onclick="downloadPDF()">Founder Brief</button>
+            <button class="btn btn-ink btn-sm" onclick="toggleFloatingAsk(true)">Ask OPS</button>
+          </div>
+        </div>
+
         <div class="critical-today" id="critical-today"></div>
 
+        <div class="ops-intel-switcher" id="ops-intel-switcher" style="display:none"></div>
         <div class="ops-intel-grid" id="ops-intel-grid" style="display:none">
           <div class="ops-panel dark" id="revenue-leaks-panel"></div>
           <div class="ops-panel" id="priority-queue-panel"></div>
@@ -1908,6 +2688,8 @@ body.analysis-is-loading{overflow:hidden!important}
         </div>
 
         <div class="metrics-grid" id="r-metrics"></div>
+
+        <div class="ops-scenes" id="ops-scenes"></div>
 
         <div class="tabs">
           <div class="tab active" onclick="switchResultTab('findings')">Findings</div>
@@ -1944,22 +2726,22 @@ body.analysis-is-loading{overflow:hidden!important}
         </div>
 
         <div class="tab-content" id="tab-swot" style="display:none">
-          <div class="card"><div class="card-title">SWOT Analysis</div><div class="card-sub" style="margin-bottom:20px">AI-generated strategic analysis from your data.</div><div id="r-swot" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div></div>
+          <div class="card"><div class="card-title">SWOT Analysis</div><div class="card-sub" style="margin-bottom:20px">AI-generated strategic analysis from your data.</div><div id="r-swot" class="swot-stage"></div></div>
         </div>
 
         <div class="tab-content" id="tab-churn" style="display:none">
-          <div id="churn-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div style="font-size:36px;margin-bottom:12px">🔮</div><div style="font-size:18px;font-weight:600;margin-bottom:8px">Churn Prediction</div><div style="font-size:14px;color:var(--muted);margin-bottom:20px;max-width:320px">Identify at-risk customers. Pro plan only.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
+          <div id="churn-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div class="pro-lock-mark">AI</div><div style="font-size:18px;font-weight:850;margin-bottom:8px">Churn Prediction</div><div style="font-size:14px;color:var(--muted);margin:0 auto 20px;max-width:320px">Identify at-risk customers. Pro plan only.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
           <div class="card"><div class="card-title">Customer Churn Prediction</div><div class="card-sub" style="margin-bottom:16px">AI analysis of at-risk customers.</div><div id="r-churn-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"></div><div id="r-churn-segments" style="margin-bottom:20px"></div><div id="r-churn-table"></div></div>
         </div>
 
         <div class="tab-content" id="tab-pricing" style="display:none">
-          <div id="pricing-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div style="font-size:36px;margin-bottom:12px">💰</div><div style="font-size:18px;font-weight:600;margin-bottom:8px">Price Elasticity</div><div style="font-size:14px;color:var(--muted);margin-bottom:20px;max-width:320px">Find which products can handle a price increase. Pro plan.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
+          <div id="pricing-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div class="pro-lock-mark">€</div><div style="font-size:18px;font-weight:850;margin-bottom:8px">Price Elasticity</div><div style="font-size:14px;color:var(--muted);margin:0 auto 20px;max-width:320px">Find which products can handle a price increase. Pro plan.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
           <div class="card"><div class="card-title">Price Elasticity Analysis</div><div class="card-sub" style="margin-bottom:16px">Where are you leaving money on the table?</div><div id="r-pricing-insight" style="margin-bottom:16px"></div><div id="r-pricing-table"></div></div>
         </div>
 
         <div class="tab-content" id="tab-forecast" style="display:none">
-          <div id="forecast-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div style="font-size:36px;margin-bottom:12px">📅</div><div style="font-size:18px;font-weight:600;margin-bottom:8px">30-Day Forecast</div><div style="font-size:14px;color:var(--muted);margin-bottom:20px;max-width:320px">Predict your next 30 days. Pro plan only.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
-          <div class="card"><div class="card-title">30-Day Revenue Forecast</div><div class="card-sub" style="margin-bottom:16px">Based on historical trends and seasonal patterns.</div><div id="r-forecast-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"></div><div id="r-forecast-insight" style="margin-bottom:16px"></div><div class="chart-wrap"><canvas id="chart-forecast"></canvas></div></div>
+          <div id="forecast-lock" class="pro-lock" style="display:none"><div class="pro-lock-inner"><div class="pro-lock-mark">30</div><div style="font-size:18px;font-weight:850;margin-bottom:8px">30-Day Forecast</div><div style="font-size:14px;color:var(--muted);margin:0 auto 20px;max-width:320px">Predict your next 30 days. Pro plan only.</div><button class="btn btn-gold" onclick="nav('plans')">Upgrade to Pro →</button></div></div>
+          <div class="card"><div class="card-title">30-Day Revenue Forecast</div><div class="card-sub" style="margin-bottom:16px">Based on historical trends and seasonal patterns.</div><div id="r-forecast-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"></div><div id="r-forecast-insight" style="margin-bottom:16px"></div></div>
         </div>
 
         <div class="tab-content" id="tab-benchmark" style="display:none">
@@ -1968,13 +2750,33 @@ body.analysis-is-loading{overflow:hidden!important}
 
         <div class="pdf-strip">
           <div style="position:relative;z-index:1">
-            <div class="pdf-title">Download PDF Report</div>
-            <div class="pdf-sub">All findings and recommendations in one professional document.</div>
+            <div class="pdf-title">Generate Founder Brief</div>
+            <div class="pdf-sub">OPS compiles the operating narrative, risks, actions, and evidence into a premium report.</div>
           </div>
           <button class="btn btn-gold" onclick="downloadPDF()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PDF
+            Generate Brief
           </button>
+        </div>
+
+        <div class="ops-floating-ask" id="ops-floating-ask">
+          <div class="ops-floating-panel">
+            <div class="ops-floating-head">
+              <div>
+                <div class="ops-floating-title">Ask OPS</div>
+                <div class="ops-floating-sub">Use the latest operating brief as context.</div>
+              </div>
+              <button class="ops-floating-close" onclick="toggleFloatingAsk(false)">×</button>
+            </div>
+            <div class="chat-window" id="fask-chat">
+              <div class="chat-msg ops">Ask why a risk is high, what to fix first, or which SKU is hurting margin.<div class="chat-meta">OPS ready</div></div>
+            </div>
+            <div class="ask-input-row">
+              <input class="ask-input" id="fask-input" placeholder="Ask OPS..." onkeydown="if(event.key==='Enter') askOps('fask-input','fask-chat')">
+              <button class="btn btn-ink" onclick="askOps('fask-input','fask-chat')">Ask</button>
+            </div>
+          </div>
+          <button class="ops-ask-launch" onclick="toggleFloatingAsk()"><span>Ask OPS</span></button>
         </div>
       </section>
 
@@ -2009,7 +2811,7 @@ body.analysis-is-loading{overflow:hidden!important}
             <ul class="plan-features">
               <li><span class="chk">✓</span> 1 store connection</li>
               <li><span class="chk">✓</span> 1,000 orders / month</li>
-              <li><span class="chk">✓</span> AI Analysis (GPT-4o)</li>
+              <li><span class="chk">✓</span> AI Analysis (GPT-6 Astra)</li>
               <li><span class="chk">✓</span> PDF Export</li>
               <li><span class="chk">✓</span> Meta Ads + ROAS</li>
               <li><span class="chk">✓</span> SWOT Analysis</li>
@@ -2058,13 +2860,15 @@ body.analysis-is-loading{overflow:hidden!important}
 <div id="sec-ledger" style="display:none">
   <div style="margin-left:var(--sidebar-w);flex:1;padding:28px 36px;min-height:100vh;overflow-y:auto">
 
-    <!-- Header -->
-    <div class="pg-header" style="margin-bottom:18px">
-      <div>
-        <div class="pg-title">Ledger</div>
-        <div class="pg-sub">Customers · Products · Sales · Expenses · Invoices</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
+    <div class="ops-tool-hero">
+      <div class="ops-premium-kicker">Operating records</div>
+      <div class="ops-tool-title">Team Ledger</div>
+      <div class="ops-tool-copy">Keep customers, products, sales, expenses, invoices, and P&amp;L in one quiet workspace. Add only what you need, then export the active view.</div>
+      <div class="ops-tool-strip">
+        <div class="ops-tool-pill">Customers</div>
+        <div class="ops-tool-pill">Products</div>
+        <div class="ops-tool-pill">Sales</div>
+        <div class="ops-tool-pill">P&amp;L</div>
         <button class="btn btn-outline btn-sm" onclick="ledgerExportCSV()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
@@ -2075,18 +2879,18 @@ body.analysis-is-loading{overflow:hidden!important}
     <!-- Summary KPIs -->
     <div id="ldg-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px"></div>
 
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;scrollbar-width:none">
-      <div class="ldg-tab active" id="ltab-customers" onclick="ldgTab('customers')">Customers</div>
-      <div class="ldg-tab" id="ltab-products"  onclick="ldgTab('products')">Products</div>
-      <div class="ldg-tab" id="ltab-sales"     onclick="ldgTab('sales')">Sales</div>
-      <div class="ldg-tab" id="ltab-expenses"  onclick="ldgTab('expenses')">Expenses</div>
-      <div class="ldg-tab" id="ltab-invoices"  onclick="ldgTab('invoices')">Invoices</div>
-      <div class="ldg-tab" id="ltab-report"    onclick="ldgTab('report')">P&amp;L Report</div>
-    </div>
+    <div class="ledger-frame">
+      <div class="ledger-tabs-premium">
+        <div class="ldg-tab active" id="ltab-customers" onclick="ldgTab('customers')">Customers</div>
+        <div class="ldg-tab" id="ltab-products"  onclick="ldgTab('products')">Products</div>
+        <div class="ldg-tab" id="ltab-sales"     onclick="ldgTab('sales')">Sales</div>
+        <div class="ldg-tab" id="ltab-expenses"  onclick="ldgTab('expenses')">Expenses</div>
+        <div class="ldg-tab" id="ltab-invoices"  onclick="ldgTab('invoices')">Invoices</div>
+        <div class="ldg-tab" id="ltab-report"    onclick="ldgTab('report')">P&amp;L Report</div>
+      </div>
 
-    <!-- ── CUSTOMERS ── -->
-    <div id="lpanel-customers" class="ldg-panel">
+      <!-- ── CUSTOMERS ── -->
+      <div id="lpanel-customers" class="ldg-panel">
       <div class="ldg-toolbar">
         <input type="text" class="ldg-search" id="search-customers" placeholder="Search customers..." oninput="ldgRenderTable('customers')">
         <button class="btn btn-ink btn-sm" onclick="ldgOpenModal('customer')">+ Add Customer</button>
@@ -2133,6 +2937,8 @@ body.analysis-is-loading{overflow:hidden!important}
     <!-- ── P&L REPORT ── -->
     <div id="lpanel-report" class="ldg-panel" style="display:none">
       <div id="ldg-pl-report"></div>
+    </div>
+
     </div>
 
   </div>
@@ -2302,15 +3108,30 @@ body.analysis-is-loading{overflow:hidden!important}
 <!-- ═══ TEAM SECTION ═══ -->
 <div id="sec-team" style="display:none">
   <div style="margin-left:var(--sidebar-w);flex:1;padding:34px 38px">
-    <div class="pg-header">
-      <div><div class="pg-title">Team</div><div class="pg-sub">Manage who has access to your dashboard.</div></div>
-      <button class="btn btn-ink btn-sm" onclick="openAddUserModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/><line x1="18" y1="13" x2="18" y2="19"/><line x1="15" y1="16" x2="21" y2="16"/></svg>
-        Add Member
-      </button>
+    <div class="ops-tool-hero">
+      <div class="ops-premium-kicker">Access control</div>
+      <div class="ops-tool-title">Team</div>
+      <div class="ops-tool-copy">Invite the people who need the operating brief. Roles stay simple: viewer, analyst, or admin.</div>
+      <div class="ops-tool-strip">
+        <button class="btn btn-ink btn-sm" onclick="openAddUserModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/><line x1="18" y1="13" x2="18" y2="19"/><line x1="15" y1="16" x2="21" y2="16"/></svg>
+          Add Member
+        </button>
+        <div class="ops-tool-pill">Admin · Analyst · Viewer</div>
+        <div class="ops-tool-pill">Local workspace switching</div>
+      </div>
     </div>
-    <div class="card">
-      <div id="team-member-list"></div>
+    <div class="team-board">
+      <div class="ops-premium-card">
+        <div class="ops-premium-card-title">Members</div>
+        <div class="ops-premium-card-copy">Your active workspace users and their current access level.</div>
+        <div id="team-member-list" style="margin-top:18px"></div>
+      </div>
+      <div class="team-side-note">
+        <div class="ops-premium-kicker">Operating rhythm</div>
+        <div style="font-size:24px;font-weight:850;letter-spacing:-.035em;line-height:1.12">Keep access small and intentional.</div>
+        <div style="font-size:14px;line-height:1.65;color:rgba(255,255,255,.62);margin-top:12px">Give analysts the ability to run briefs, keep viewers read-only, and reserve admin for billing or connector changes.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2342,7 +3163,7 @@ body.analysis-is-loading{overflow:hidden!important}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://ops-intelligence-production.up.railway.app';
+const API = window.OPS_API_BASE || 'https://ops-intelligence-production.up.railway.app';
 let token = null;
 let user = null;
 let lastResult = null;
@@ -2361,7 +3182,7 @@ const I18N = {
     login:'Log In', signup:'Sign Up', password:'Password', fullName:'Full Name', yourName:'Your name', createAccount:'Create Account →',
     authProof:['Connectors','Source-labeled reports','Founder-ready briefs'],
     navOverview:'Overview', navDashboard:'Dashboard', navAnalysis:'Analysis', navConnect:'Connect Store', navBuild:'Build Brief', navResults:'Results', navAsk:'Ask OPS', navTools:'Tools', navCompare:'Compare Periods', navTeam:'Team', navLedger:'Ledger', navAccount:'Account', navPlans:'Plans & Billing', logout:'Log out',
-    homeSub:'Your AI operating signal across the last 90 days of store activity.', last30:'Last 30 days', buildBrief:'Build Brief',
+    homeSub:'Store performance, operating costs, and your next action in one place.', last30:'Latest analysis', buildBrief:'Build Brief',
     askSub:'Natural-language operating intelligence for refund risk, product issues, revenue leaks, and next actions.', askDemo:'Try demo context', askTitle:'Your AI operations analyst.', askCopy:'Ask why a metric moved, which SKU is risky, what to fix first, or where profit is leaking. OPS answers with cause, consequence, confidence, and next action.', askMemoryLabel:'AI memory', askConfidenceLabel:'Confidence', askModeLabel:'Mode', founderMode:'Founder Mode', investorMode:'Investor Mode', askReady:'Ask me about refunds, stockouts, fulfillment drag, revenue leaks, product risk, or what to fix first. I will use the latest OPS brief as context.', opsReady:'OPS ready', askPlaceholder:'Ask OPS a question...', askButton:'Ask OPS →',
     presets:{fix_first:'What should I fix first?', revenue_leak:'Where is revenue leaking?', risky_products:'Which products are risky?', refunds:'Why did refunds increase?'},
     connectTitle:'Connect Store', connectSub:'Choose a data source, connect it, then run one operating brief. Keep this screen focused on the next action.', startHere:'Start here', connectHeroTitle:'Connect the store, then run the brief.', connectHeroCopy:'Use Shopify OAuth for the cleanest setup. If you only want to test the product flow, run the demo instead. Uploaded files stay available for marketplace exports.', connectSteps:['1. Pick source','2. Connect access','3. Run brief'], shopifySetup:'Shopify setup', shopifyStore:'Shopify Store', shopifyCopy:'Enter the permanent Shopify domain, approve the install, then run the live brief.', notConnected:'Not connected', notConnectedCopy:'Connect with Shopify OAuth to read live orders, products, inventory, and customers.', storeDomain:'Store Domain', openInstall:'Open Shopify Install', runBrief:'Run Brief', manualFallback:'Manual token fallback', adminToken:'Admin API Token', analyzeManual:'Analyze with manual token', tryDemo:'Try Demo', connectTip:'Tip:', connectTipCopy:'use the exact .myshopify.com domain. Custom storefront domains usually redirect during install.', whatNext:'What to do next', whatNextCopy:'Follow these in order. No extra setup is needed before the first live brief.', flow1:'Enter store domain', flow1Copy:'Example: brand-name.myshopify.com.', flow2:'Approve install', flow2Copy:'Shopify opens its permission screen for the merchant.', flow3:'Run brief', flow3Copy:'OPS reads the latest commerce signals and builds the results page.', readOnly:'Access is read-only', readOnlyCopy:'OPS uses the connection to analyze orders, products, inventory, and customer signals.', liveLabeled:'Live data is labeled', liveLabeledCopy:'The report shows source and coverage so demo data does not mix with live findings.', manualOptional:'Manual token is optional', manualOptionalCopy:'Only use it if Shopify install is blocked.',
@@ -2386,7 +3207,7 @@ const I18N = {
     login:'Giriş Yap', signup:'Kayıt Ol', password:'Şifre', fullName:'Ad Soyad', yourName:'Adınız', createAccount:'Hesap Oluştur →',
     authProof:['Bağlantılar','Kaynak etiketli raporlar','Kurucuya hazır özetler'],
     navOverview:'Genel Bakış', navDashboard:'Panel', navAnalysis:'Analiz', navConnect:'Mağaza Bağla', navBuild:'Özet Oluştur', navResults:'Sonuçlar', navAsk:'OPS’e Sor', navTools:'Araçlar', navCompare:'Dönem Karşılaştır', navTeam:'Ekip', navLedger:'Defter', navAccount:'Hesap', navPlans:'Planlar & Ödeme', logout:'Çıkış yap',
-    homeSub:'Son 90 günlük mağaza aktivitesinden yapay zeka operasyon sinyalin.', last30:'Son 30 gün', buildBrief:'Özet Oluştur',
+    homeSub:'Mağaza performansı, operasyon maliyetleri ve sonraki adımın tek yerde.', last30:'Son analiz', buildBrief:'Özet Oluştur',
     askSub:'İade riski, ürün sorunları, gelir kaçakları ve sonraki aksiyonlar için doğal dilde operasyon zekası.', askDemo:'Demo bağlamını dene', askTitle:'Yapay zeka operasyon analistin.', askCopy:'Bir metrik neden değişti, hangi SKU riskli, önce ne düzeltilmeli veya kâr nerede kaçıyor diye sor. OPS neden, sonuç, güven ve sonraki aksiyonla cevaplar.', askMemoryLabel:'AI hafızası', askConfidenceLabel:'Güven', askModeLabel:'Mod', founderMode:'Kurucu Modu', investorMode:'Yatırımcı Modu', askReady:'İadeler, stok tükenmesi, teslimat gecikmesi, gelir kaçağı, ürün riski veya önce neyi düzeltmen gerektiğini sor. En son OPS özetini bağlam olarak kullanacağım.', opsReady:'OPS hazır', askPlaceholder:'OPS’e bir soru sor...', askButton:'OPS’e Sor →',
     presets:{fix_first:'Önce neyi düzeltmeliyim?', revenue_leak:'Gelir nerede kaçıyor?', risky_products:'Hangi ürünler riskli?', refunds:'İadeler neden arttı?'},
     connectTitle:'Mağaza Bağla', connectSub:'Veri kaynağını seç, bağla ve tek bir operasyon özeti çalıştır. Bu ekran sadece sıradaki aksiyona odaklanır.', startHere:'Buradan başla', connectHeroTitle:'Mağazayı bağla, sonra özeti çalıştır.', connectHeroCopy:'En temiz kurulum için Shopify OAuth kullan. Sadece ürün akışını denemek istersen demo çalıştır. Marketplace dışa aktarımları için dosya yükleme seçeneği durur.', connectSteps:['1. Kaynak seç','2. Erişimi bağla','3. Özeti çalıştır'], shopifySetup:'Shopify kurulumu', shopifyStore:'Shopify Mağazası', shopifyCopy:'Kalıcı Shopify domainini gir, kurulumu onayla, sonra canlı özeti çalıştır.', notConnected:'Bağlı değil', notConnectedCopy:'Canlı sipariş, ürün, stok ve müşteri sinyallerini okumak için Shopify OAuth ile bağlan.', storeDomain:'Mağaza Domaini', openInstall:'Shopify Kurulumunu Aç', runBrief:'Özeti Çalıştır', manualFallback:'Manuel token yedeği', adminToken:'Admin API Token', analyzeManual:'Manuel token ile analiz et', tryDemo:'Demo Dene', connectTip:'İpucu:', connectTipCopy:'tam .myshopify.com domainini kullan. Özel vitrin domainleri kurulumda yönlendirme yapabilir.', whatNext:'Sırada ne var?', whatNextCopy:'Bu adımları sırayla izle. İlk canlı özetten önce ekstra kurulum gerekmez.', flow1:'Mağaza domainini gir', flow1Copy:'Örnek: brand-name.myshopify.com.', flow2:'Kurulumu onayla', flow2Copy:'Shopify satıcı için izin ekranını açar.', flow3:'Özeti çalıştır', flow3Copy:'OPS en güncel ticaret sinyallerini okur ve sonuç sayfasını oluşturur.', readOnly:'Erişim salt okunur', readOnlyCopy:'OPS bağlantıyı sipariş, ürün, stok ve müşteri sinyallerini analiz etmek için kullanır.', liveLabeled:'Canlı veri etiketlenir', liveLabeledCopy:'Rapor kaynak ve kapsamı gösterir; demo veri canlı bulgulara karışmaz.', manualOptional:'Manuel token opsiyonel', manualOptionalCopy:'Sadece Shopify kurulumu engellenirse kullan.',
@@ -2420,6 +3241,8 @@ function setAllText(selector, values) {
 
 function setTrailingText(el, value) {
   if(!el) return;
+  const label=el.querySelector(':scope > .nav-label');
+  if(label){ label.textContent=value; return; }
   const textNodes=[...el.childNodes].filter(n=>n.nodeType===3);
   textNodes.forEach((n,i)=>{ n.textContent=i===textNodes.length-1 ? ' '+value : ' '; });
 }
@@ -2431,6 +3254,7 @@ function setLanguage(lang) {
 }
 
 function applyLanguage() {
+  updateWorkspaceLabels();
   const L=I18N[currentLang] || I18N.en;
   document.documentElement.lang=currentLang;
   document.querySelectorAll('[data-lang-button]').forEach(btn=>btn.classList.toggle('active', btn.dataset.langButton===currentLang));
@@ -2522,7 +3346,7 @@ function applyLanguage() {
   setText('#proof-source', L.waiting);
   setText('.score-label', L.scoreLabel);
   setAllText('.tabs .tab', [L.findings,L.revenue,L.inventory,L.actions,'SWOT','Meta Ads','Churn',L.pricing,L.forecast,L.benchmark,L.products]);
-  const pdfBtn=document.querySelector('.pdf-strip .btn'); if(pdfBtn) pdfBtn.textContent=L.downloadPdf;
+  const pdfBtn=document.querySelector('.pdf-strip .btn'); if(pdfBtn) pdfBtn.textContent=currentLang==='tr'?'Kurucu Özeti Oluştur':'Generate Brief';
   renderPlanFeatures(user?.plan || 'free');
   updatePlanBtns(user?.plan || 'free');
   if(lastResult) {
@@ -2556,7 +3380,8 @@ window.onload = () => {
     resumeAfterShopifyCallback(params);
     return;
   }
-  showPage('auth');
+  token=localStorage.getItem('ops_token');
+  if(token)fetchMe();else showPage('auth');
 };
 
 function getLaunchParams() {
@@ -2645,70 +3470,67 @@ async function enterAppWithLoader() {
   },180);
 }
 
+async function requestJSON(path, options={}) {
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),30000);
+  try {
+    const r=await fetch(`${API}${path}`,{...options,signal:controller.signal});
+    const body=await r.text();
+    let d={};try{d=body?JSON.parse(body):{};}catch(_){}
+    if(!r.ok){
+      const fallback=currentLang==='tr'?'Hesap hizmeti şu anda kullanılamıyor. Lütfen kısa süre sonra tekrar deneyin.':'Account service is temporarily unavailable. Please try again shortly.';
+      const detail=typeof d.detail==='string'?d.detail:fallback;
+      const error=new Error(r.status>=500?fallback:detail);error.status=r.status;throw error;
+    }
+    if(!body || !Object.keys(d).length) throw new Error(currentLang==='tr'?'Sunucudan geçerli bir yanıt alınamadı.':'The server returned an invalid response.');
+    return d;
+  }catch(e){
+    if(e.name==='AbortError')throw new Error(currentLang==='tr'?'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.':'The request timed out. Please try again.');
+    if(e instanceof TypeError)throw new Error(currentLang==='tr'?'Bağlantı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.':'Connection failed. Check your connection and try again.');
+    throw e;
+  }finally{clearTimeout(timeout);}
+}
+
 async function login() {
   const email=document.getElementById('login-email').value.trim();
   const password=document.getElementById('login-password').value;
-  const err=document.getElementById('login-error');
-  err.textContent='';
-  if(!email||!password){err.textContent='Email and password required.';return;}
-
-  // Show loading state
-  const btn=document.querySelector('#form-login .auth-btn');
-  const origText=btn.textContent;
-  btn.textContent='Signing in...';btn.disabled=true;
-
+  const err=document.getElementById('login-error');err.textContent='';
+  if(!email||!password){err.textContent=currentLang==='tr'?'E-posta ve parola gerekli.':'Email and password required.';return;}
+  const btn=document.querySelector('#form-login .auth-btn');const origText=btn.textContent;
+  btn.textContent=currentLang==='tr'?'Giriş yapılıyor…':'Signing in…';btn.disabled=true;
   try {
-    const r=await fetch(`${API}/auth/login`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password})
-    });
-    const d=await r.json();
-    if(!r.ok){err.textContent=d.detail||'Login failed.';return;}
-    token=d.token;
+    const d=await requestJSON('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    if(!d.token||!d.user)throw new Error('Invalid account response.');
+    token=d.token;user=d.user;if(d.billing)user.billing=d.billing;
     localStorage.setItem('ops_token',token);
-    user=d.user;
-    if(d.billing) user.billing=d.billing;
-    await enterAppWithLoader();
-  } catch(e){
-    err.textContent='Could not connect to server. Please try again.';
-  } finally {
-    btn.textContent=origText; btn.disabled=false;
-  }
+  }catch(e){err.textContent=e.message;return;}
+  finally{btn.textContent=origText;btn.disabled=false;}
+  try{await enterAppWithLoader();}catch(e){document.getElementById('login-loader')?.classList.remove('show');err.textContent=currentLang==='tr'?'Giriş başarılı; çalışma alanını açmak için sayfayı yenileyin.':'Signed in. Refresh the page to reopen your workspace.';}
 }
 
 async function register() {
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const password=document.getElementById('reg-password').value;
-  const err=document.getElementById('reg-error');
-  err.textContent='';
-  if(!name||!email||!password){err.textContent='Please fill in all fields.';return;}
-  if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}
-  const btn=document.querySelector('#form-register .auth-btn');
-  const origText=btn.textContent;
-  btn.textContent='Creating account...';btn.disabled=true;
-  try {
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),8000);
-    const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password}),signal:controller.signal});
-    clearTimeout(timeout);
-    const d=await r.json();
-    if(!r.ok){err.textContent=d.detail||'Registration failed.';return;}
-    token=d.token; localStorage.setItem('ops_token',token); user=d.user; await enterAppWithLoader();
-  } catch(e){
-    err.textContent='Could not connect to server. Please try again.';
-  } finally {
-    btn.textContent=origText; btn.disabled=false;
-  }
+  const err=document.getElementById('reg-error');err.textContent='';
+  if(!name||!email||!password){err.textContent=currentLang==='tr'?'Lütfen tüm alanları doldurun.':'Please fill in all fields.';return;}
+  if(password.length<6){err.textContent=currentLang==='tr'?'Parola en az 6 karakter olmalı.':'Password must be at least 6 characters.';return;}
+  const btn=document.querySelector('#form-register .auth-btn');const origText=btn.textContent;
+  btn.disabled=true;btn.textContent=currentLang==='tr'?'Hesap oluşturuluyor…':'Creating account…';
+  try{
+    const d=await requestJSON('/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+    token=d.token;user=d.user;localStorage.setItem('ops_token',token);await enterAppWithLoader();
+  }catch(e){err.textContent=e.message;}finally{btn.textContent=origText;btn.disabled=false;}
 }
 
 async function fetchMe() {
-  try {
-    const r=await fetch(`${API}/auth/me`,{headers:{'Authorization':`Bearer ${token}`}});
-    if(!r.ok){logout();return;}
-    const d=await r.json(); user=d.user; if(d.billing) user.billing=d.billing; showApp();
-  } catch(e){logout();}
+  try{
+    const d=await requestJSON('/auth/me',{headers:{'Authorization':`Bearer ${token}`}});
+    user=d.user;if(d.billing)user.billing=d.billing;showApp();
+  }catch(e){
+    if([401,403,404].includes(e.status)){logout();return;}
+    showPage('auth');document.getElementById('login-error').textContent=e.message;
+  }
 }
 
 function logout() {
@@ -2804,7 +3626,61 @@ function showPage(name) {
   document.getElementById(`page-${name}`).classList.add('active');
 }
 
+function applyOpsMotion(root=document) {
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const targetRoot = root instanceof Element ? root : document;
+  const items = targetRoot.querySelectorAll([
+    '.ops-premium-hero',
+    '.ops-premium-card',
+    '.ops-choice',
+    '.ops-tool-hero',
+    '.ledger-frame',
+    '.team-member-premium',
+    '#sec-results .critical-lead',
+    '#sec-results .critical-card',
+    '#sec-results .ops-panel',
+    '#sec-results .result-proof-card',
+    '#sec-results .score-box',
+    '#sec-results .metric-card',
+    '#sec-results .ops-scene',
+    '#sec-results .card',
+    '.swot-card',
+    '.ops-human-card'
+  ].join(','));
+  items.forEach((el,index)=>{
+    el.classList.remove('ops-motion-in');
+    el.style.setProperty('--ops-delay', `${Math.min(index * 42, 420)}ms`);
+    void el.offsetWidth;
+    el.classList.add('ops-motion-in');
+  });
+}
+
+function setupOpsPressFeedback() {
+  if(window.__opsPressFeedbackReady) return;
+  window.__opsPressFeedbackReady = true;
+  document.addEventListener('click', event => {
+    const el = event.target.closest('.btn,.src-tab,.tab,.ldg-tab,.ops-intel-switcher button,.mode-btn,.prompt-chip,.plan-btn');
+    if(!el) return;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty('--press-x', `${event.clientX - rect.left}px`);
+    el.style.setProperty('--press-y', `${event.clientY - rect.top}px`);
+    el.classList.remove('is-pressing');
+    void el.offsetWidth;
+    el.classList.add('is-pressing');
+    setTimeout(()=>el.classList.remove('is-pressing'), 520);
+  }, {passive:true});
+}
+
+function updateWorkspaceLabels(){
+  if(user){const h=new Date().getHours();const greeting=currentLang==='tr'?(h<12?'Günaydın':h<17?'İyi günler':'İyi akşamlar'):(h<12?'Good morning':h<17?'Good afternoon':'Good evening');document.getElementById('home-title').textContent=greeting+', '+(user.name||'').split(' ')[0]+'.';}
+  document.querySelectorAll('[data-workspace-en]').forEach(el=>{el.textContent=el.getAttribute('data-workspace-'+currentLang)||el.getAttribute('data-workspace-en');});
+  const source=document.getElementById('workspace-source');if(!source)return;
+  const active=connectedShops.some(s=>s.status==='connected');
+  source.textContent=lastResult ? (currentLang==='tr'?'Son analiz kaynağı: ':'Latest analysis source: ')+(lastResult.data_source||'unknown') : active ? (currentLang==='tr'?'Mağaza bağlı. Güncel sonuçlar için analiz başlat.':'Store connected. Run an analysis for current results.') : (currentLang==='tr'?'Canlı sonuçlar için mağazanı bağla. Henüz analiz yapılmadı.':'Connect a store to see live results. No analysis has run yet.');
+}
+
 function showApp() {
+  setupOpsPressFeedback();
   showPage('app');
   if(user) {
     // Avatar initials
@@ -2820,9 +3696,9 @@ function showApp() {
 
     // Greeting
     const h=new Date().getHours();
-    const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+    const greet=currentLang==='tr'?(h<12?'Günaydın':h<17?'İyi günler':'İyi akşamlar'):(h<12?'Good morning':h<17?'Good afternoon':'Good evening');
     const first=(user.name||'').split(' ')[0];
-    document.getElementById('home-title').innerHTML=`${greet}, ${first}<em>.</em>`;
+    document.getElementById('home-title').textContent=`${greet}, ${first}.`;
 
     updateUsageMeter();
     renderPlanFeatures(user.plan);
@@ -2837,6 +3713,8 @@ function showApp() {
     if(lastResult){renderOverview(lastResult);nav('home');}
     else nav('home');
     applyLanguage();
+    const launch=getLaunchParams();
+    if(launch.get('section')==='connect'){nav('connect');const shop=launch.get('shop');if(shop && /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(shop))document.getElementById('connect-domain').value=shop;}
   }
 }
 
@@ -2863,8 +3741,11 @@ function nav(section) {
   document.getElementById('sidebar').classList.remove('open');
   window.scrollTo(0,0);
   [cmpEl,teamEl,ledgerEl].forEach(el=>{if(el) el.scrollTop=0;});
+  updateFloatingAskVisibility(section);
   if(section==='team') renderTeamList();
   if(section==='ledger') ledgerRender();
+  const activeSection = document.getElementById('sec-'+section) || (section==='team'?teamEl:section==='ledger'?ledgerEl:section==='compare'?cmpEl:null);
+  requestAnimationFrame(()=>applyOpsMotion(activeSection || document));
 }
 
 // ── PLAN FEATURES
@@ -2873,7 +3754,7 @@ function renderPlanFeatures(plan) {
   const feats=[
     [currentLang==='tr'?'Mağaza bağlantıları':'Store Connections',`${currentLang==='tr'?'Maks':'Max'} ${{free:1,starter:1,pro:3}[plan]||1}`,true],
     [currentLang==='tr'?'Aylık sipariş':'Monthly Orders',`${{free:100,starter:1000,pro:10000}[plan]||100}`,true],
-    [currentLang==='tr'?'AI analiz raporu':'AI Analysis Report','GPT-4o powered',plan!=='free'],
+    [currentLang==='tr'?'AI analiz raporu':'AI Analysis Report','GPT-6 Astra powered',plan!=='free'],
     [currentLang==='tr'?'PDF dışa aktarım':'PDF Export',currentLang==='tr'?'Profesyonel rapor':'Professional report',plan!=='free'],
     ['Meta Ads + ROAS',currentLang==='tr'?'Kampanya analizi':'Campaign analysis',plan!=='free'],
     [currentLang==='tr'?'SWOT analizi':'SWOT Analysis',currentLang==='tr'?'AI tarafından oluşturulur':'AI-generated',plan!=='free'],
@@ -2912,6 +3793,7 @@ function updatePlanBtns(plan) {
 
 // ── OVERVIEW render
 function renderOverview(data) {
+  updateWorkspaceLabels();
   const L=I18N[currentLang]||I18N.en;
   const rev=data.metrics?.revenue||{};
   const ft=data.metrics?.fulfillment||{};
@@ -3046,37 +3928,40 @@ async function startSmartAnalysis() {
   if(connectedShops.some(s=>s.status==='connected')) {
     analyzeConnectedShopify();
   } else {
-    startDemo();
+    nav('connect');
   }
 }
 
 function normalizeShopInput(v) {
-  v=(v||'').trim().toLowerCase().replace(/^https?:\/\//,'').split('/')[0];
+  v=(v||'').trim().toLowerCase().replace(/^https?:\/\//,'');
+  const admin=v.match(/^admin\.shopify\.com\/store\/([a-z0-9-]+)/);
+  if(admin)return admin[1]+'.myshopify.com';
+  v=v.split('/')[0];
   if(v && !v.includes('.')) v += '.myshopify.com';
   return v;
 }
 
 function setAnalysisLoadingLabels(mode) {
   const labelSets = currentLang === 'tr' ? {
-    demo: ['Örnek operasyon verisi yükleniyor', 'Operasyon metrikleri hesaplanıyor', 'Demo analizi oluşturuluyor', 'Etiketli demo sonuçları hazırlanıyor'],
-    shopify: ['Shopify siparişleri ve stokları çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Canlı sonuçlar hazırlanıyor'],
-    woocommerce: ['WooCommerce siparişleri ve ürünleri çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Canlı sonuçlar hazırlanıyor'],
-    etsy: ['Etsy dışa aktarımı okunuyor', 'Marketplace metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
-    amazon: ['Amazon seller dışa aktarımı okunuyor', 'Marketplace metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
-    upload: ['Yüklenen ticaret dosyası okunuyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
-    generic: ['Yüklenen ticaret dosyası okunuyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Yüklenen sonuçlar hazırlanıyor'],
+    demo: ['OPS örnek operasyon verisini yüklüyor', 'OPS fulfillment baskısını değerlendiriyor', 'OPS kategori kıyaslamalarını kontrol ediyor', 'OPS kurucu özetini hazırlıyor'],
+    shopify: ['OPS Shopify sipariş ve stoklarını okuyor', 'OPS stok dönüş hızını kontrol ediyor', 'OPS kategori kıyaslamalarını karşılaştırıyor', 'OPS canlı kurucu özetini hazırlıyor'],
+    woocommerce: ['OPS WooCommerce sipariş ve ürünlerini okuyor', 'OPS fulfillment baskısını değerlendiriyor', 'OPS retention sinyallerini kontrol ediyor', 'OPS canlı kurucu özetini hazırlıyor'],
+    etsy: ['OPS Etsy export dosyasını okuyor', 'OPS marketplace metriklerini eşliyor', 'OPS ürün riskini kontrol ediyor', 'OPS yüklenen özeti hazırlıyor'],
+    amazon: ['OPS Amazon seller export dosyasını okuyor', 'OPS marketplace metriklerini eşliyor', 'OPS ürün riskini kontrol ediyor', 'OPS yüklenen özeti hazırlıyor'],
+    upload: ['OPS yüklenen commerce dosyasını okuyor', 'OPS operasyon metriklerini eşliyor', 'OPS gelir kaçağını kontrol ediyor', 'OPS yüklenen özeti hazırlıyor'],
+    generic: ['OPS yüklenen commerce dosyasını okuyor', 'OPS operasyon metriklerini eşliyor', 'OPS gelir kaçağını kontrol ediyor', 'OPS yüklenen özeti hazırlıyor'],
   } : {
-    demo: ['Loading sample operating data', 'Calculating operating metrics', 'Building sample analysis', 'Preparing labeled demo results'],
-    shopify: ['Fetching Shopify orders and inventory', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
-    woocommerce: ['Fetching WooCommerce orders and products', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing live results'],
-    etsy: ['Reading Etsy export file', 'Calculating marketplace metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
-    amazon: ['Reading Amazon seller export', 'Calculating marketplace metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
-    upload: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
-    generic: ['Reading uploaded commerce file', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing uploaded results'],
+    demo: ['OPS is loading sample operating data', 'OPS is evaluating fulfillment pressure', 'OPS is comparing category benchmarks', 'OPS is preparing the founder brief'],
+    shopify: ['OPS is reading Shopify orders and inventory', 'OPS is checking inventory turnover', 'OPS is comparing category benchmarks', 'OPS is preparing the live founder brief'],
+    woocommerce: ['OPS is reading WooCommerce orders and products', 'OPS is evaluating fulfillment pressure', 'OPS is checking retention signals', 'OPS is preparing the live founder brief'],
+    etsy: ['OPS is reading the Etsy export file', 'OPS is mapping marketplace metrics', 'OPS is checking product risk', 'OPS is preparing the uploaded brief'],
+    amazon: ['OPS is reading the Amazon seller export', 'OPS is mapping marketplace metrics', 'OPS is checking product risk', 'OPS is preparing the uploaded brief'],
+    upload: ['OPS is reading the uploaded commerce file', 'OPS is mapping operating metrics', 'OPS is checking revenue leakage', 'OPS is preparing the uploaded brief'],
+    generic: ['OPS is reading the uploaded commerce file', 'OPS is mapping operating metrics', 'OPS is checking revenue leakage', 'OPS is preparing the uploaded brief'],
   };
   const fallback = currentLang === 'tr'
-    ? ['Mağaza verisi çekiliyor', 'Operasyon metrikleri hesaplanıyor', 'OPS analiz motoru çalışıyor', 'Sonuçlar hazırlanıyor']
-    : ['Fetching store data', 'Calculating operating metrics', 'Running OPS analysis engine', 'Preparing results'];
+    ? ['OPS mağaza verisini okuyor', 'OPS fulfillment baskısını değerlendiriyor', 'OPS gelir kaçağını kontrol ediyor', 'OPS kurucu özetini hazırlıyor']
+    : ['OPS is reading store data', 'OPS is evaluating fulfillment pressure', 'OPS is checking revenue leakage', 'OPS is preparing the founder brief'];
   const labels = labelSets[mode] || fallback;
   labels.forEach((label, index) => {
     const step = document.getElementById(`step-${index + 1}`);
@@ -3084,9 +3969,18 @@ function setAnalysisLoadingLabels(mode) {
   });
 }
 
+let analysisLoadingStartedAt = 0;
+let analysisLoadingHideTimer = null;
+const MIN_ANALYSIS_LOADING_MS = 2600;
+
 function showAnalysisLoading(mode) {
   const loadEl=document.getElementById('analysis-loading');
   if(!loadEl) return null;
+  if(analysisLoadingHideTimer) {
+    clearTimeout(analysisLoadingHideTimer);
+    analysisLoadingHideTimer = null;
+  }
+  analysisLoadingStartedAt = Date.now();
   if(loadEl.parentElement !== document.body) document.body.appendChild(loadEl);
   setAnalysisLoadingLabels(mode);
   ['step-1','step-2','step-3','step-4'].forEach((s,i)=>{
@@ -3100,8 +3994,18 @@ function showAnalysisLoading(mode) {
 
 function hideAnalysisLoading() {
   const loadEl=document.getElementById('analysis-loading');
-  if(loadEl) loadEl.classList.remove('show');
-  document.body.classList.remove('analysis-is-loading');
+  const elapsed = Date.now() - analysisLoadingStartedAt;
+  const remaining = Math.max(0, MIN_ANALYSIS_LOADING_MS - elapsed);
+  const finish = () => {
+    if(loadEl) loadEl.classList.remove('show');
+    document.body.classList.remove('analysis-is-loading');
+    analysisLoadingHideTimer = null;
+  };
+  if(remaining > 0) {
+    analysisLoadingHideTimer = setTimeout(finish, remaining);
+  } else {
+    finish();
+  }
 }
 
 function markAnalysisLoadingComplete() {
@@ -3112,13 +4016,14 @@ function markAnalysisLoadingComplete() {
 }
 
 function renderShopifyStatus() {
+  updateWorkspaceLabels();
   const el=document.getElementById('shopify-connection-status');
   if(!el) return;
   const active=connectedShops.find(s=>s.status==='connected');
   if(active) {
     el.className='connect-state ok';
     el.innerHTML='<span class="connect-dot"></span><div><strong style="color:var(--ink)">Connected: '+active.domain+'</strong>'+
-      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Canlı Shopify izinleri aktif: ':'Live Shopify permissions active: ')+(active.scope||'orders, products, inventory')+'</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Kayıtlı izinler (erişim analiz sırasında doğrulanır): ':'Saved scopes (access is checked during analysis): ')+(active.scope||'orders, products, inventory')+'</div>'+
       '<div style="margin-top:5px;font-size:11px;color:var(--muted)">'+(currentLang==='tr'?'Kullanılan mağaza hakkı: ':'Store slots used: ')+storeLimit.used+' / '+storeLimit.max+'. '+(currentLang==='tr'?'Başka mağaza eklemek için yükselt veya ayrı hesap kullan.':'Add another store by upgrading or using a separate account.')+'</div></div>';
     if(document.getElementById('connect-domain') && !document.getElementById('connect-domain').value) {
       document.getElementById('connect-domain').value=active.domain;
@@ -3370,6 +4275,12 @@ function productPalette(name) {
 function productArtworkDataUri(title) {
   const palette=productPalette(title);
   const initials=productInitials(title);
+  const kind=String(title||'').toLowerCase();
+  const silhouette=kind.includes('perfume') || kind.includes('oud')
+    ? `<rect x="38" y="19" width="20" height="10" rx="4" fill="#11120d" opacity=".68"/><rect x="31" y="30" width="34" height="45" rx="13" fill="url(#glass)" stroke="#fff" stroke-opacity=".78"/><rect x="37" y="47" width="22" height="16" rx="8" fill="#11120d" opacity=".76"/>`
+    : kind.includes('cream') || kind.includes('mask') || kind.includes('lotion')
+      ? `<ellipse cx="48" cy="36" rx="25" ry="10" fill="#fff" opacity=".84"/><rect x="23" y="35" width="50" height="35" rx="14" fill="url(#glass)" stroke="#fff" stroke-opacity=".78"/><ellipse cx="48" cy="70" rx="24" ry="8" fill="#11120d" opacity=".14"/><rect x="35" y="48" width="26" height="13" rx="7" fill="#11120d" opacity=".74"/>`
+      : `<rect x="38" y="17" width="20" height="11" rx="4" fill="#11120d" opacity=".68"/><rect x="32" y="27" width="32" height="51" rx="12" fill="url(#glass)" stroke="#fff" stroke-opacity=".78"/><rect x="37" y="47" width="22" height="17" rx="8" fill="#11120d" opacity=".74"/>`;
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -3383,13 +4294,11 @@ function productArtworkDataUri(title) {
       </linearGradient>
     </defs>
     <rect width="96" height="96" rx="22" fill="url(#bg)"/>
-    <circle cx="74" cy="20" r="18" fill="#fff" opacity=".23"/>
-    <path d="M36 28h24v8H36z" fill="#11120d" opacity=".72"/>
-    <path d="M40 21h16v9H40z" rx="3" fill="#fff" opacity=".82"/>
-    <rect x="29" y="34" width="38" height="43" rx="12" fill="url(#glass)" stroke="#fff" stroke-opacity=".68"/>
-    <rect x="36" y="48" width="24" height="17" rx="7" fill="#11120d" opacity=".75"/>
+    <circle cx="76" cy="20" r="18" fill="#fff" opacity=".23"/>
+    <circle cx="22" cy="76" r="24" fill="#11120d" opacity=".08"/>
+    ${silhouette}
     <text x="48" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#fff">${initials}</text>
-    <path d="M33 39c9 5 22 5 30 0" fill="none" stroke="#fff" stroke-opacity=".66" stroke-width="2"/>
+    <path d="M30 39c10 5 26 5 36 0" fill="none" stroke="#fff" stroke-opacity=".58" stroke-width="2"/>
   </svg>`;
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
@@ -3527,26 +4436,71 @@ function buildOpsIntelligence(data) {
   ],healthFocus:{weakest,strongest,focusCopy,orders:data?.record_counts?.orders||0,products:data?.record_counts?.products||products.length||0},alerts,timeline,brief};
 }
 
+function toggleOpsIntelPanel(panelId, forceOpen=false) {
+  const panel=document.getElementById(panelId);
+  if(!panel) return;
+  const grid=panel.closest('.ops-intel-grid');
+  const willOpen=forceOpen || !panel.classList.contains('open');
+  if(grid) {
+    grid.querySelectorAll('.ops-panel.collapsible').forEach(item=>{
+      item.classList.toggle('open', item===panel && willOpen);
+      const head=item.querySelector('.ops-panel-head');
+      if(head) head.setAttribute('aria-expanded', String(item===panel && willOpen));
+    });
+    document.querySelectorAll('#ops-intel-switcher button').forEach(btn=>{
+      btn.classList.toggle('active', btn.getAttribute('data-panel')===panelId && willOpen);
+    });
+  } else {
+    panel.classList.toggle('open', willOpen);
+  }
+}
+
 function renderOpsIntelligence(data) {
   const grid=document.getElementById('ops-intel-grid');
   if(!grid || !data) return;
   const L=I18N[currentLang]||I18N.en;
   const intel=buildOpsIntelligence(data);
+  const panelTitle={
+    leaks: currentLang==='tr'?'Gelir Kaçağı':'Revenue Leakage',
+    actions: currentLang==='tr'?'Aksiyonlar':'Actions',
+    health: currentLang==='tr'?'Mağaza Sağlığı':'Store Health',
+    timeline: currentLang==='tr'?'Operasyon Akışı':'Timeline',
+  };
+  const setPanel=(id,{dark=false,open=false,title,sub,preview,body})=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.className=`ops-panel collapsible ${dark?'dark':''} ${open?'open':''}`.trim();
+    el.innerHTML=`
+      <button class="ops-panel-head" type="button" onclick="toggleOpsIntelPanel('${id}')" aria-expanded="${open?'true':'false'}">
+        <span class="ops-panel-heading">
+          <span class="ops-panel-title">${title}</span>
+          <span class="ops-panel-sub">${sub}</span>
+        </span>
+        <span class="ops-panel-chevron">+</span>
+      </button>
+      <div class="ops-panel-preview"><div class="ops-panel-preview-line">${preview}</div></div>
+      <div class="ops-panel-body">${body}</div>`;
+  };
   grid.style.display='grid';
-  document.getElementById('revenue-leaks-panel').innerHTML=`
-    <div class="ops-panel-title">${L.revenueLeaks}</div>
-    <div class="ops-panel-sub">${L.revenueLeaksSub}</div>
+  const switcher=document.getElementById('ops-intel-switcher');
+  if(switcher) {
+    switcher.style.display='flex';
+    switcher.classList.add('compact');
+    switcher.innerHTML=[
+      ['revenue-leaks-panel',panelTitle.leaks],
+      ['priority-queue-panel',panelTitle.actions],
+      ['health-breakdown-panel',panelTitle.health],
+      ['timeline-alerts-panel',panelTitle.timeline],
+    ].map(([id,label],i)=>`<button type="button" class="${i===0?'active':''}" data-panel="${id}" onclick="toggleOpsIntelPanel('${id}', true)">${escHtml(label)}</button>`).join('');
+  }
+  setPanel('revenue-leaks-panel',{dark:true,open:true,title:L.revenueLeaks,sub:L.revenueLeaksSub,preview:`€${money0(intel.totalLeak)} ${currentLang==='tr'?'tahmini aylık risk görünür durumda.':'estimated monthly risk is visible.'}`,body:`
     <div class="leak-total">€${money0(intel.totalLeak)}</div>
     <div class="leak-list">${(intel.leaks.length?intel.leaks:intel.leaks.concat([{name:L.noMajorLeak,impact:0,why:currentLang==='tr'?'OPS iptal, iade, teslimat, stok ve marj sinyallerini izliyor.':'OPS is monitoring cancellation, refund, fulfillment, stock, and margin signals.'}])).slice(0,4).map(l=>`
-      <div class="leak-item"><div class="leak-top"><div class="leak-name">${escHtml(l.name)}</div><div class="leak-impact">${l.impact?`€${money0(l.impact)}`:L.monitor}</div></div><div class="leak-why">${escHtml(l.why)}</div></div>`).join('')}</div>`;
-  document.getElementById('priority-queue-panel').innerHTML=`
-    <div class="ops-panel-title">${L.highestImpactActions}</div>
-    <div class="ops-panel-sub">${L.highestImpactSub}</div>
+      <div class="leak-item"><div class="leak-top"><div class="leak-name">${escHtml(l.name)}</div><div class="leak-impact">${l.impact?`€${money0(l.impact)}`:L.monitor}</div></div><div class="leak-why">${escHtml(l.why)}</div></div>`).join('')}</div>`});
+  setPanel('priority-queue-panel',{title:L.highestImpactActions,sub:L.highestImpactSub,preview:`${intel.priorities.length} ${currentLang==='tr'?'öncelikli iş bekliyor.':'high-impact actions are queued.'}`,body:`
     <div class="priority-queue">${intel.priorities.slice(0,4).map((p,i)=>`
-      <div class="priority-item"><div class="priority-rank">#${i+1}</div><div><div class="priority-top"><div class="priority-name">${escHtml(p.name)}</div><div class="priority-impact">+€${money0(p.impact)}</div></div><div class="priority-why">${escHtml(p.why)}</div><div class="priority-meta"><span class="mini-pill">${L.confidence}: ${p.confidence}</span><span class="mini-pill">${L.whyItMatters}</span></div></div></div>`).join('')}</div>`;
-  document.getElementById('health-breakdown-panel').innerHTML=`
-    <div class="ops-panel-title">${L.storeHealthBreakdown}</div>
-    <div class="ops-panel-sub">${L.storeHealthSub}</div>
+      <div class="priority-item"><div class="priority-rank">#${i+1}</div><div><div class="priority-top"><div class="priority-name">${escHtml(p.name)}</div><div class="priority-impact">+€${money0(p.impact)}</div></div><div class="priority-why">${escHtml(p.why)}</div><div class="priority-meta"><span class="mini-pill">${L.confidence}: ${p.confidence}</span><span class="mini-pill">${L.whyItMatters}</span></div></div></div>`).join('')}</div>`});
+  setPanel('health-breakdown-panel',{title:L.storeHealthBreakdown,sub:L.storeHealthSub,preview:`${escHtml(intel.healthFocus.weakest[0])} · ${intel.healthFocus.weakest[1]} ${currentLang==='tr'?'sıradaki odak alanı.':'is the next focus area.'}`,body:`
     <div class="health-breakdown">${intel.health.map(([label,score])=>`
       <div class="health-row"><div class="health-label">${escHtml(label)}</div><div class="health-track"><div class="health-fill" style="width:${score}%;background:${score>=80?'var(--success)':score>=65?'var(--gold)':'var(--danger)'}"></div></div><div class="health-score">${score} ↗</div></div>`).join('')}</div>
     <div class="health-focus-grid">
@@ -3565,16 +4519,14 @@ function renderOpsIntelligence(data) {
       <div class="health-evidence-item"><div class="health-evidence-value">${money0(intel.healthFocus.orders)}</div><div class="health-evidence-label">${L.ordersRead}</div></div>
       <div class="health-evidence-item"><div class="health-evidence-value">${money0(intel.healthFocus.products)}</div><div class="health-evidence-label">${L.productsRead}</div></div>
       <div class="health-evidence-item"><div class="health-evidence-value">€${money0(intel.totalLeak)}</div><div class="health-evidence-label">${L.leakSignal}</div></div>
-    </div>`;
-  document.getElementById('timeline-alerts-panel').innerHTML=`
-    <div class="ops-panel-title">${L.operationalTimeline}</div>
-    <div class="ops-panel-sub">${L.operationalTimelineSub}</div>
+    </div>`});
+  setPanel('timeline-alerts-panel',{title:L.operationalTimeline,sub:L.operationalTimelineSub,preview:`${intel.alerts.filter(a=>a.severity==='critical').length} ${currentLang==='tr'?'kritik sinyal ve haftalık özet hazır.':'critical signals plus the weekly brief.'}`,body:`
     <div class="timeline-list">${intel.timeline.map(t=>`
       <div class="timeline-item"><div><div class="timeline-dot"></div></div><div><div class="timeline-title">${escHtml(t.title)}</div><div class="timeline-copy">${escHtml(t.copy)}</div><div class="timeline-time">${escHtml(t.time)}</div></div></div>`).join('')}</div>
     <div class="alert-list" style="margin-top:14px">${intel.alerts.slice(0,3).map(a=>`
       <div class="alert-item ${a.severity==='critical'?'critical':a.severity==='high'?'high':''}"><div class="alert-top"><div class="alert-name">${escHtml(a.name)}</div><div class="alert-sev">${escHtml(a.severity)}</div></div><div class="alert-why">${escHtml(a.why)}</div></div>`).join('')}</div>
     <div class="ops-panel-sub" style="margin-top:16px;margin-bottom:8px">${L.weeklyFounderBrief}</div>
-    <div class="brief-list">${intel.brief.map(b=>`<div class="brief-item"><div class="brief-copy">${escHtml(b)}</div></div>`).join('')}</div>`;
+    <div class="brief-list">${intel.brief.map(b=>`<div class="brief-item"><div class="brief-copy">${escHtml(b)}</div></div>`).join('')}</div>`});
   updateAskContext(data);
 }
 
@@ -3599,8 +4551,8 @@ function setOpsMode(mode) {
   showToast(opsMode === 'investor' ? t('investorMode')+' enabled' : t('founderMode')+' enabled');
 }
 
-function appendChat(role, text, meta) {
-  const chat=document.getElementById('ask-chat');
+function appendChat(role, text, meta, chatId='ask-chat') {
+  const chat=document.getElementById(chatId);
   if(!chat) return;
   const div=document.createElement('div');
   div.className='chat-msg '+(role==='user'?'user':'ops');
@@ -3646,8 +4598,183 @@ function askPreset(question) {
   askOps();
 }
 
-async function askOps() {
-  const input=document.getElementById('ask-input');
+function ensureFloatingAskPortal() {
+  const wrap=document.getElementById('ops-floating-ask');
+  if(wrap && wrap.parentElement !== document.body) document.body.appendChild(wrap);
+  return wrap;
+}
+
+function updateFloatingAskVisibility(section) {
+  const wrap=ensureFloatingAskPortal();
+  if(!wrap) return;
+  const shouldShow=section==='results';
+  wrap.classList.toggle('is-hidden', !shouldShow);
+  if(!shouldShow) wrap.classList.remove('open');
+}
+
+function toggleFloatingAsk(force) {
+  const wrap=ensureFloatingAskPortal();
+  if(!wrap) return;
+  wrap.classList.remove('is-hidden');
+  const open=typeof force==='boolean' ? force : !wrap.classList.contains('open');
+  wrap.classList.toggle('open', open);
+  if(open) setTimeout(()=>document.getElementById('fask-input')?.focus(), 80);
+}
+
+function animateNumber(el, to, opts={}) {
+  if(!el) return;
+  const duration=opts.duration||850;
+  const prefix=opts.prefix||'';
+  const suffix=opts.suffix||'';
+  const decimals=opts.decimals||0;
+  const start=Number(String(el.textContent||'0').replace(/[^0-9.-]/g,''))||0;
+  const target=Number(to)||0;
+  const started=performance.now();
+  const fmt=new Intl.NumberFormat('en-GB',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+  function tick(now){
+    const p=Math.min(1,(now-started)/duration);
+    const eased=1-Math.pow(1-p,3);
+    el.textContent=prefix+fmt.format(start+(target-start)*eased)+suffix;
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function renderOpsCommandBar(ctx) {
+  const copy=document.getElementById('ops-command-copy');
+  if(!copy || !ctx) return;
+  const tr=currentLang==='tr';
+  copy.innerHTML=tr
+    ? `OPS ${ctx.urgentCount||1} kritik sinyal algıladı <span>· €${money0(ctx.revenueAtRisk||0)} riskte · ${escHtml(ctx.actionValue||'1 aksiyon bekliyor')}</span>`
+    : `OPS detected ${ctx.urgentCount||1} critical signals <span>· €${money0(ctx.revenueAtRisk||0)} at risk · ${escHtml(ctx.actionValue||'1 action pending')}</span>`;
+}
+
+function setOpenScene(key) {
+  document.querySelectorAll('.ops-scene').forEach(el=>el.classList.toggle('open', el.dataset.scene===key));
+  document.querySelectorAll('.ops-scene-select').forEach(el=>el.classList.toggle('active', el.dataset.sceneSelect===key));
+  setTimeout(()=>Object.values(charts||{}).forEach(c=>{try{c.resize();c.update('none')}catch(e){}}), 60);
+}
+
+function toggleFinding(index, forceOpen=false) {
+  const card=document.querySelector(`.finding-card[data-finding="${index}"]`);
+  if(!card) return;
+  const shouldOpen=forceOpen || !card.classList.contains('open');
+  document.querySelectorAll('.finding-card[data-finding]').forEach(item=>{
+    const isTarget=item===card && shouldOpen;
+    item.classList.toggle('open', isTarget);
+    const btn=item.querySelector('.finding-toggle');
+    if(btn) btn.setAttribute('aria-expanded', String(isTarget));
+  });
+}
+
+function renderAdvancedScenes(data, ctx) {
+  const root=document.getElementById('ops-scenes');
+  if(!root || !data) return;
+  const tr=currentLang==='tr';
+  const ext=data.extended||{};
+  const rev=data.metrics?.revenue||{};
+  const ft=data.metrics?.fulfillment||{};
+  const inv=data.metrics?.inventory||{};
+  const products=inv.products||[];
+  const stockOf=p=>Number(p.current_stock??p.inventory??0);
+  const lowStock=products.filter(p=>stockOf(p)<=10).slice(0,3);
+  const forecast=ext.forecast||{};
+  const bench=ext.benchmark||{};
+  const churn=ext.churn||{};
+  const strongest=bench.top_strength || (Number(rev.aov||0)>=200?'AOV':'Revenue quality');
+  const weakest=bench.top_weakness || (Number(ft.mean||0)>24?'Fulfillment speed':'Inventory pressure');
+  const forecastTotal=Number(forecast.total_predicted_revenue||0);
+  const churnRisk=Number(churn.potential_revenue_at_risk||0);
+  const sceneData=[
+    {
+      key:'revenue',
+      kicker:tr?'Gelir zekası':'Revenue Intelligence',
+      title:tr?`€${money0(ctx.revenueAtRisk||0)} korunabilir değer görünüyor.`:`€${money0(ctx.revenueAtRisk||0)} in protectable value is visible.`,
+      copy:tr?'OPS gelir hareketini iptal, iade, fulfillment ve stok baskısıyla birlikte okuyor. Grafik kanıt; karar ise burada.':'OPS reads revenue movement with cancellation, refund, fulfillment, and stock pressure. The chart is evidence; this is the decision layer.',
+      value:`€${money0(ctx.revenueAtRisk||0)}`,
+      label:tr?'riskte':'at risk',
+      cards:[
+        [tr?'Sonuç':'Consequence', tr?`${Number(rev.cancellation_rate??rev.cancel_rate??0).toFixed(1)}% iptal riski marjı sessizce aşındırabilir.`:`${Number(rev.cancellation_rate??rev.cancel_rate??0).toFixed(1)}% cancellation risk can quietly erode margin.`, tr?'Önce operasyonel sürtünmeyi azalt.':'Reduce operating friction first.'],
+        [tr?'Öneri':'Recommendation', ctx.firstQuickWin, tr?'Sahip, tarih ve tekrar kontrol noktası ata.':'Assign owner, date, and re-check point.'],
+        [tr?'Kanıt':'Evidence', `${Number(ft.mean||0).toFixed(1)}h fulfillment · €${Math.round(rev.aov||0)} AOV`, tr?'Metrikleri tek tek değil, birlikte oku.':'Read the metrics together, not separately.']
+      ]
+    },
+    {
+      key:'forecast',
+      kicker:tr?'30 günlük tahmin':'30-Day Forecast',
+      title:forecastTotal ? (tr?`Beklenen gelir €${money0(forecastTotal)}.`:`Expected revenue is €${money0(forecastTotal)}.`) : (tr?'Tahmin için daha fazla sipariş geçmişi gerekiyor.':'More order history is needed for a confident forecast.'),
+      copy:forecast.insight || (tr?'OPS tahmini talep, stok ve fulfillment kapasitesiyle beraber değerlendirecek.':'OPS will evaluate forecast demand alongside stock and fulfillment capacity.'),
+      value:forecastTotal?`€${money0(forecastTotal)}`:'—',
+      label:tr?'beklenen':'expected',
+      cards:[
+        [tr?'Güven':'Confidence', forecastTotal ? (tr?'Yüksek':'High') : (tr?'Bekliyor':'Pending'), tr?'Kapsam ve tarih yoğunluğuna göre.':'Based on coverage and date density.'],
+        [tr?'Ana sürücü':'Primary driver', forecast.peak_day?.date || (tr?'Hafta sonu talep sıçraması':'Weekend demand spike'), tr?'Talep artışını stokla eşleştir.':'Match demand lift with stock.'],
+        [tr?'Risk':'Risk', lowStock.length ? `${lowStock.length} SKU stock pressure` : (tr?'Kritik stok baskısı görünmüyor':'No critical stock pressure visible'), forecast.recommendation || (tr?'Cuma öncesi stok basıncını kontrol et.':'Check stock pressure before Friday.')]
+      ]
+    },
+    {
+      key:'benchmark',
+      kicker:tr?'Kıyaslama':'Benchmark Analysis',
+      title:bench.overall_percentile ? (tr?`AB beauty mağazalarının %${bench.overall_percentile} dilimindesin.`:`You outperform ${bench.overall_percentile}% of EU beauty stores.`) : (tr?'Kıyaslama verisi bu çalışmada sınırlı.':'Benchmark data is limited for this run.'),
+      copy:bench.insight || (tr?'OPS güçlü ve zayıf alanları tablo yerine karar anlatısına çevirir.':'OPS turns strengths and weaknesses into a decision narrative instead of starting with a table.'),
+      value:bench.overall_percentile?`${bench.overall_percentile}%`:'—',
+      label:tr?'yüzdelik':'percentile',
+      cards:[
+        [tr?'En güçlü':'Strongest', strongest, tr?'Bunu marj avantajı olarak kullan.':'Use this as margin advantage.'],
+        [tr?'En zayıf':'Weakest', weakest, tr?'Bir sonraki operasyon odağı bu.':'This is the next operating focus.'],
+        [tr?'Potansiyel':'Potential gain', `+€${money0(Math.max(6400, Math.round((ctx.revenueAtRisk||0)*.84)))}`, tr?'Kategori medyanına yaklaşınca korunabilir.':'Protectable when moving toward category median.']
+      ]
+    },
+    {
+      key:'churn',
+      kicker:tr?'Müşteri riski':'Churn Prediction',
+      title:churn.total_customers ? (tr?`${Math.round((churn.churn_rate||0)/100*churn.total_customers)} müşteri kayıp riski taşıyor.`:`${Math.round((churn.churn_rate||0)/100*churn.total_customers)} customers are likely to churn.`) : (tr?'Churn için yeterli müşteri sinyali bekleniyor.':'Customer signals are still building for churn.'),
+      copy:churn.recommendation || (tr?'OPS müşteri riskini satır tablosu yerine müdahale kartlarına çevirir.':'OPS turns customer risk into intervention cards instead of leading with a table.'),
+      value:churnRisk?`€${money0(churnRisk)}`:'—',
+      label:tr?'gelir riski':'revenue exposure',
+      cards:(churn.top_at_risk||[]).slice(0,3).map(c=>[
+        c.customer_email || 'Customer',
+        `${c.recency_days||0}d inactive · €${money0(c.monetary||0)} LTV`,
+        tr?`Risk ${c.churn_risk||0}%. Reaktivasyon teklifi gönder.`:`Risk ${c.churn_risk||0}%. Send a reactivation offer.`
+      ]).concat(churn.top_at_risk?.length?[]:[[tr?'Boş durum':'Empty state',tr?'Kritik churn riski tespit edilmedi.':'No critical churn risk detected.',tr?'OPS retention sinyallerini izlemeye devam eder.':'OPS will keep monitoring retention signals.']])
+    }
+  ];
+  root.classList.add('selective');
+  root.innerHTML=`
+    <div class="ops-scene-selector" aria-label="Operating scene selector">
+      ${sceneData.map((s,i)=>`
+        <button class="ops-scene-select ${i===0?'active':''}" type="button" data-scene-select="${s.key}" onclick="setOpenScene('${s.key}')">
+          <div class="ops-scene-select-k">${escHtml(s.kicker)}</div>
+          <div class="ops-scene-select-t">${escHtml(s.title)}</div>
+          <div class="ops-scene-select-v">${escHtml(s.value)} · ${escHtml(s.label)}</div>
+        </button>`).join('')}
+    </div>
+    ${sceneData.map((s,i)=>`
+    <div class="ops-scene ${i===0?'open':''}" data-scene="${s.key}">
+      <button class="ops-scene-head" onclick="setOpenScene('${s.key}')">
+        <div>
+          <div class="ops-scene-kicker">${escHtml(s.kicker)}</div>
+          <div class="ops-scene-title">${escHtml(s.title)}</div>
+          <div class="ops-scene-copy">${escHtml(s.copy)}</div>
+        </div>
+        <div class="ops-scene-metric">
+          <div class="ops-scene-value">${escHtml(s.value)}</div>
+          <div class="ops-scene-label">${escHtml(s.label)}</div>
+        </div>
+      </button>
+      <div class="ops-scene-body">
+        <div class="ops-scene-grid">${s.cards.slice(0,3).map(card=>`
+          <div class="ops-mini-card">
+            <div class="ops-mini-k">${escHtml(card[0])}</div>
+            <div class="ops-mini-v">${escHtml(card[1])}</div>
+            <div class="ops-mini-p">${escHtml(card[2])}</div>
+          </div>`).join('')}</div>
+      </div>
+    </div>`).join('')}`;
+}
+
+async function askOps(inputId='ask-input', chatId='ask-chat') {
+  const input=document.getElementById(inputId);
   const question=(input?.value||'').trim();
   if(!question){showToast(t('askFirst'));return;}
   const context=lastResult || buildLocalMock();
@@ -3656,10 +4783,10 @@ async function askOps() {
     renderOverview(context);
     renderResults(context);
   }
-  appendChat('user', question);
+  appendChat('user', question, '', chatId);
   if(input) input.value='';
-  appendChat('ops', t('thinking'), t('analyzing'));
-  const chat=document.getElementById('ask-chat');
+  appendChat('ops', t('thinking'), t('analyzing'), chatId);
+  const chat=document.getElementById(chatId);
   const pending=chat?.lastElementChild;
   try {
     const r=await fetch(`${API}/ai/ask`,{
@@ -3671,17 +4798,18 @@ async function askOps() {
     if(!r.ok || !d.answer) throw new Error(d.detail||'AI endpoint unavailable');
     if(pending) pending.remove();
     const based=typeof d.based_on==='string' ? d.based_on : `${d.based_on?.orders||context.record_counts?.orders||0} orders · ${d.based_on?.products||context.record_counts?.products||0} products`;
-    appendChat('ops', d.answer, `${t('confidence')}: ${d.confidence||'Medium'} · ${based}`);
+    appendChat('ops', d.answer, `${t('confidence')}: ${d.confidence||'Medium'} · ${based}`, chatId);
     if(Array.isArray(d.suggested_actions) && d.suggested_actions.length) {
-      appendChat('ops', (currentLang==='tr'?'Önerilen aksiyonlar: ':'Suggested actions: ')+d.suggested_actions.slice(0,3).join(' · '), t('nextActions'));
+      appendChat('ops', (currentLang==='tr'?'Önerilen aksiyonlar: ':'Suggested actions: ')+d.suggested_actions.slice(0,3).join(' · '), t('nextActions'), chatId);
     }
   } catch(e) {
     if(pending) pending.remove();
-    appendChat('ops', localAskAnswer(question, context), t('localIntel'));
+    appendChat('ops', localAskAnswer(question, context), t('localIntel'), chatId);
   }
 }
 
 function renderResults(data) {
+  updateFloatingAskVisibility('results');
   const L=I18N[currentLang]||I18N.en;
   const isDemoResult=(data.data_source==='demo')||(data.shop_name==='Demo Store');
   const usedManualShopifyToken=!!(
@@ -3809,6 +4937,8 @@ function renderResults(data) {
         <div class="critical-action">${L.assignWeek}</div>
       </div>`;
   }
+  const operatingCtx={urgentCount,revenueAtRisk,actionValue,firstQuickWin,sourceLabel,score};
+  renderOpsCommandBar(operatingCtx);
   const revenueNote=parseFloat(cancelRate)>2.5 || Number(ft.mean||0)>24
     ? (currentLang==='tr'
       ? `OPS gelir hareketini tek başına grafik olarak değil, ${parseFloat(cancelRate)>2.5?'iptal baskısı':'teslimat gecikmesi'} ve stok riskiyle birlikte okuyor.`
@@ -3825,17 +4955,39 @@ function renderResults(data) {
     <div class="metric-card"><div class="metric-label">${L.aovLeverage}</div><div class="metric-value">€${Math.round(rev.aov||0)}</div><div style="margin-top:8px" class="metric-delta ${(rev.aov||0)>=200?'delta-good':'delta-warn'}">${L.target}: €250</div></div>
     <div class="metric-card"><div class="metric-label">${L.fulfillmentDrag}</div><div class="metric-value">${(ft.mean||0).toFixed(1)}h</div><div style="margin-top:8px" class="metric-delta ${(ft.mean||0)<=24?'delta-good':'delta-bad'}">${L.median}: ${(ft.median||0).toFixed(1)}h</div></div>
     <div class="metric-card"><div class="metric-label">${L.cancellationRisk}</div><div class="metric-value">${cancelRate}%</div><div style="margin-top:8px" class="metric-delta ${parseFloat(cancelRate)<=3?'delta-good':'delta-bad'}">${L.target}: 2.5%</div></div>`;
+  animateNumber(document.getElementById('r-score'), score);
+  renderAdvancedScenes(data, operatingCtx);
 
   const severityMap={critical:'CRITICAL',warning:'WARNING',ok:'GOOD',info:'INFO'};
   const tagMap={critical:'tag-critical',warning:'tag-warning',ok:'tag-ok',info:'tag-info'};
   const cardMap={critical:'critical',warning:'warning',ok:'good',info:''};
-  document.getElementById('r-findings').innerHTML=findings.length?findings.map(f=>`
-      <div class="finding-card ${cardMap[f.severity]||''}">
-        <div class="finding-header"><span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span><span class="finding-title">${f.title||''}</span></div>
-      <div class="finding-desc">${f.description||f.root_cause||''}</div>
-      ${f.impact?`<div class="finding-impact">💸 ${f.impact}</div>`:''}
-      ${f.recommendation?`<div class="finding-rec">💡 ${f.recommendation}</div>`:''}
-    </div>`).join(''):'<div style="color:var(--muted);font-size:14px;padding:20px 0">No findings found.</div>';
+  const criticalFindingCount=findings.filter(f=>['critical','warning'].includes(f.severity)).length;
+  document.getElementById('r-findings').innerHTML=findings.length?`
+    <div class="findings-shell">
+      <div class="findings-summary">
+        <div>
+          <div class="findings-summary-title">${currentLang==='tr'?'Öncelikli operasyon sinyalleri':'Priority operating signals'}</div>
+          <div class="findings-summary-copy">${currentLang==='tr'?'İlk sinyal açık gelir; diğerlerini gerektiğinde seçerek incele.':'The first signal opens by default; select the rest only when you need them.'}</div>
+        </div>
+        <div class="findings-summary-count">${criticalFindingCount||findings.length}</div>
+      </div>
+      ${findings.map((f,i)=>`
+        <div class="finding-card ${cardMap[f.severity]||''} ${i===0?'open':''}" data-finding="${i}">
+          <button class="finding-toggle" type="button" onclick="toggleFinding(${i}, true)" aria-expanded="${i===0?'true':'false'}">
+            <span class="finding-status-dot">${String(i+1).padStart(2,'0')}</span>
+            <span class="finding-head-copy">
+              <span class="finding-head-meta"><span class="finding-tag ${tagMap[f.severity]||'tag-info'}">${severityMap[f.severity]||f.severity}</span><span class="finding-title">${escHtml(f.title||'')}</span></span>
+              <span class="finding-desc-preview">${escHtml(f.description||f.root_cause||'')}</span>
+            </span>
+            <span class="finding-chevron">+</span>
+          </button>
+          <div class="finding-body">
+            <div class="finding-desc">${escHtml(f.description||f.root_cause||'')}</div>
+            ${f.impact?`<div class="finding-impact"><span>${escHtml(f.impact)}</span></div>`:''}
+            ${f.recommendation?`<div class="finding-rec"><span>${escHtml(f.recommendation)}</span></div>`:''}
+          </div>
+        </div>`).join('')}
+    </div>`:'<div style="color:var(--muted);font-size:14px;padding:20px 0">No findings found.</div>';
 
   document.getElementById('r-revenue-detail').innerHTML=`
     <div class="table-scroll" style="max-height:360px">
@@ -3933,12 +5085,48 @@ function renderResults(data) {
     : '<div style="color:var(--muted);font-size:14px">No Meta inventory conflicts available for this run.</div>';
 
   const swot=data.analysis?.swot||{};
-  const swotColors={strengths:['#1a7a4a','rgba(26,122,74,0.07)'],weaknesses:['#c0392b','rgba(192,57,43,0.07)'],opportunities:['#c9963a','rgba(201,150,58,0.07)'],threats:['#6b6560','rgba(107,101,96,0.07)']};
-  const swotLabels={strengths:'💪 Strengths',weaknesses:'⚠️ Weaknesses',opportunities:'🚀 Opportunities',threats:'🛡️ Threats'};
-  document.getElementById('r-swot').innerHTML=Object.keys(swotLabels).map(key=>{
-    const items=swot[key]||[]; const [color,bg]=swotColors[key];
-    return `<div style="background:${bg};border:1px solid ${color}25;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:600;color:${color};margin-bottom:10px">${swotLabels[key]}</div>${items.length?items.map(item=>`<div style="font-size:13px;color:var(--ink2);margin-bottom:6px;padding-left:8px;border-left:2px solid ${color}40">• ${item}</div>`).join(''):'<div style="color:var(--muted);font-size:13px">Run analysis to see data</div>'}</div>`;
-  }).join('');
+  const swotMeta=[
+    {key:'strengths',icon:'S',name:currentLang==='tr'?'Güçlü Yanlar':'Strengths',tone:currentLang==='tr'?'Defend':'Defend'},
+    {key:'weaknesses',icon:'W',name:currentLang==='tr'?'Zayıflıklar':'Weaknesses',tone:currentLang==='tr'?'Fix':'Fix'},
+    {key:'opportunities',icon:'O',name:currentLang==='tr'?'Fırsatlar':'Opportunities',tone:currentLang==='tr'?'Scale':'Scale'},
+    {key:'threats',icon:'T',name:currentLang==='tr'?'Tehditler':'Threats',tone:currentLang==='tr'?'Watch':'Watch'},
+  ];
+  const swotTotal=swotMeta.reduce((sum,m)=>sum+(swot[m.key]||[]).length,0);
+  const topWeakness=(swot.weaknesses||[])[0] || primaryFinding.title || (currentLang==='tr'?'Öncelikli operasyon riski bulunamadı.':'No priority operating risk found.');
+  const topOpportunity=(swot.opportunities||[])[0] || firstQuickWin;
+  document.getElementById('r-swot').innerHTML=`
+    <div class="swot-hero">
+      <div class="swot-kicker">${currentLang==='tr'?'Stratejik harita':'Strategic map'}</div>
+      <div class="swot-title">${currentLang==='tr'?'OPS veriyi dört karar alanına ayırdı.':'OPS separated your data into four decision zones.'}</div>
+      <div class="swot-copy">${currentLang==='tr'?'Güçlü yanları koru, zayıflıkları haftalık aksiyona çevir, fırsatları büyüt ve tehditleri izlemeye al.':'Defend the strengths, turn weaknesses into weekly actions, scale the opportunities, and keep threats under watch.'}</div>
+      <div class="swot-summary-row">
+        <div class="swot-summary-pill"><div class="swot-summary-k">${currentLang==='tr'?'Sinyal':'Signals'}</div><div class="swot-summary-v">${swotTotal||0}</div></div>
+        <div class="swot-summary-pill"><div class="swot-summary-k">${currentLang==='tr'?'İlk risk':'Top risk'}</div><div class="swot-summary-v">${(swot.weaknesses||[]).length||0}</div></div>
+        <div class="swot-summary-pill"><div class="swot-summary-k">${currentLang==='tr'?'Fırsat':'Upside'}</div><div class="swot-summary-v">€${money0(Math.max(4200, revenueAtRisk*.55))}</div></div>
+        <div class="swot-summary-pill"><div class="swot-summary-k">${currentLang==='tr'?'Odak':'Focus'}</div><div class="swot-summary-v">${criticalProducts.length?criticalProducts.length+' SKU':'AOV'}</div></div>
+      </div>
+    </div>
+    <div class="swot-action-strip">
+      <div>
+        <div class="swot-action-title">${currentLang==='tr'?'Bu haftanın stratejik hamlesi':'This week’s strategic move'}</div>
+        <div class="swot-action-copy">${escHtml(topOpportunity)} ${currentLang==='tr'?'Aynı anda şu riski azalt: ':'while reducing this risk: '}${escHtml(topWeakness)}</div>
+      </div>
+      <button class="btn btn-ink btn-sm" onclick="nav('ask');setTimeout(()=>askPreset('fix_first'),120)">${currentLang==='tr'?'OPS’e Sor':'Ask OPS'}</button>
+    </div>
+    <div class="swot-map">${swotMeta.map(meta=>{
+      const items=swot[meta.key]||[];
+      return `<div class="swot-card ${meta.key}">
+        <div class="swot-head">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="swot-icon">${escHtml(meta.icon)}</div>
+            <div><div class="swot-name">${escHtml(meta.name)}</div></div>
+          </div>
+          <div class="swot-count">${items.length} ${items.length===1?'signal':'signals'}</div>
+        </div>
+        <div class="swot-items">${items.length?items.slice(0,4).map((item,i)=>`
+          <div class="swot-item"><div class="swot-item-num">${i+1}</div><div class="swot-item-text">${escHtml(item)}</div></div>`).join(''):`<div class="swot-empty">${currentLang==='tr'?'Bu alanda belirgin sinyal yok.':'No clear signal in this zone yet.'}</div>`}</div>
+      </div>`;
+    }).join('')}</div>`;
 
   const isPro=isDemoResult||(data.user_plan==='pro')||(user&&user.plan==='pro');
   ['churn','pricing','forecast'].forEach(feature=>{
@@ -3946,33 +5134,61 @@ function renderResults(data) {
   });
 
   if(churn.total_customers){
-    document.getElementById('r-churn-summary').innerHTML=`
-      <div class="metric-card"><div class="metric-label">Total Customers</div><div class="metric-value">${churn.total_customers}</div></div>
-      <div class="metric-card"><div class="metric-label">Churn Risk</div><div class="metric-value" style="color:${churn.churn_rate>30?'var(--danger)':'var(--gold)'}">${churn.churn_rate}%</div></div>
-      <div class="metric-card"><div class="metric-label">Revenue at Risk</div><div class="metric-value">€${moneyFormat.format(churn.potential_revenue_at_risk||0)}</div></div>`;
-    const segs=churn.segments||{};
-    document.getElementById('r-churn-segments').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${Object.entries(segs).map(([k,v])=>`<div style="background:var(--cream2);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:20px;font-weight:600">${v}</div><div style="font-size:12px;color:var(--muted)">${k}</div></div>`).join('')}</div>`;
     const topRisk=churn.top_at_risk||[];
-    document.getElementById('r-churn-table').innerHTML=topRisk.length?`<div class="card-title" style="margin-bottom:8px">High Risk Customers</div><div class="table-meta">Showing all ${topRisk.length.toLocaleString('en-GB')} at-risk customers.</div><div class="table-scroll" style="max-height:420px"><table class="data-table"><tr><th>Email</th><th>Days Inactive</th><th>Total Spent</th><th>Risk Score</th></tr>${topRisk.map(c=>`<tr><td>${c.customer_email||'—'}</td><td class="td-num">${c.recency_days||0}d</td><td class="td-num">€${(c.monetary||0).toFixed(0)}</td><td class="td-num" style="color:var(--danger)">${c.churn_risk||0}%</td></tr>`).join('')}</table></div><div style="margin-top:12px;font-size:13px;color:var(--muted);background:var(--cream2);padding:12px;border-radius:8px;border:1px solid var(--border)">💡 ${churn.recommendation||''}</div>`:'<div style="color:var(--muted)">Not enough customer data for churn analysis.</div>';
+    const likelyChurn=Math.max(1, Math.round((Number(churn.churn_rate||0)/100)*Number(churn.total_customers||0)));
+    document.getElementById('r-churn-summary').innerHTML=`
+      <div class="ops-narrative-hero" style="grid-column:1/-1;margin-bottom:0">
+        <div class="ops-narrative-kicker">${currentLang==='tr'?'Churn müdahale sahnesi':'Churn Intervention Scene'}</div>
+        <div class="ops-narrative-title">${currentLang==='tr'?`${likelyChurn} müşteri kayıp riski taşıyor.`:`${likelyChurn} customers are likely to churn.`}</div>
+        <div class="ops-narrative-copy">${escHtml(churn.recommendation || (currentLang==='tr'?'OPS bu müşterileri ham tablo yerine aksiyon kartlarına çevirir: kime, neden, hangi teklif.':'OPS turns this from a raw table into action cards: who, why, and which offer.'))}</div>
+        <div class="ops-narrative-grid">
+          <div class="ops-narrative-card primary"><div class="ops-narrative-card-k">${currentLang==='tr'?'Gelir riski':'Revenue exposure'}</div><div class="ops-narrative-card-v">€${moneyFormat.format(churn.potential_revenue_at_risk||0)}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Kurtarılabilir ilişki değeri.':'Recoverable relationship value.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Risk oranı':'Risk rate'}</div><div class="ops-narrative-card-v" style="color:${churn.churn_rate>30?'var(--danger)':'var(--gold)'}">${churn.churn_rate}%</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Son satın alma gecikmesi ve parasal değerle hesaplanır.':'Based on recency and monetary value.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Müşteri kapsamı':'Customer coverage'}</div><div class="ops-narrative-card-v">${churn.total_customers}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Analize giren müşteri sinyali.':'Customer signals in this run.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'İlk hamle':'First move'}</div><div class="ops-narrative-card-v">${currentLang==='tr'?'Win-back':'Win-back'}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Yüksek LTV müşteriye kontrollü teklif.':'Controlled offer to high-LTV customers.'}</div></div>
+        </div>
+      </div>`;
+    const segs=churn.segments||{};
+    document.getElementById('r-churn-segments').innerHTML=Object.keys(segs).length?`<div class="ops-card-list">${Object.entries(segs).map(([k,v])=>`<div class="ops-human-card"><div class="ops-human-title">${escHtml(k)}</div><div class="ops-scene-value" style="font-size:38px;margin-top:10px">${v}</div><div class="ops-human-meta">${currentLang==='tr'?'Bu segment için ayrı müdahale kurgula.':'Use a distinct intervention for this segment.'}</div></div>`).join('')}</div>`:'';
+    document.getElementById('r-churn-table').innerHTML=topRisk.length?`
+      <div class="card-title" style="margin-bottom:8px">${currentLang==='tr'?'Yüksek Riskli Müşteriler':'High-Risk Customers'}</div>
+      <div class="ops-card-list">${topRisk.slice(0,6).map(c=>`
+        <div class="ops-human-card">
+          <div class="ops-human-head"><div class="ops-human-title">${escHtml(c.customer_email||'Customer')}</div><div class="ops-human-badge">${c.churn_risk||0}%</div></div>
+          <div class="ops-human-meta">${c.recency_days||0}d inactive<br>Lifetime value: €${money0(c.monetary||0)}</div>
+          <div class="ops-human-action">${currentLang==='tr'?'Öneri: 15% reaktivasyon teklifi gönder ve 7 gün sonra yanıtı kontrol et.':'Suggested: send a 15% reactivation offer and check response after 7 days.'}</div>
+        </div>`).join('')}</div>
+      <details class="ops-detail-toggle"><summary>${currentLang==='tr'?'Ham müşteri tablosunu göster':'Show raw customer table'}</summary><div class="ops-detail-toggle-body"><div class="table-meta">Showing all ${topRisk.length.toLocaleString('en-GB')} at-risk customers.</div><div class="table-scroll" style="max-height:420px"><table class="data-table"><tr><th>Email</th><th>Days Inactive</th><th>Total Spent</th><th>Risk Score</th></tr>${topRisk.map(c=>`<tr><td>${c.customer_email||'—'}</td><td class="td-num">${c.recency_days||0}d</td><td class="td-num">€${(c.monetary||0).toFixed(0)}</td><td class="td-num" style="color:var(--danger)">${c.churn_risk||0}%</td></tr>`).join('')}</table></div></div></details>`
+      :`<div class="ops-empty-state"><strong>${currentLang==='tr'?'Kritik churn riski tespit edilmedi.':'No critical churn risk detected.'}</strong>${currentLang==='tr'?'OPS fulfillment, iade, sipariş aralığı ve tekrar satın alma sinyallerini izlemeye devam edecek.':'OPS will continue monitoring fulfillment, refunds, purchase gaps, and repeat purchase signals.'}</div>`;
   } else {
-    document.getElementById('r-churn-summary').innerHTML='<div style="color:var(--muted);font-size:14px;grid-column:1/-1">Run analysis with real data to see churn predictions.</div>';
+    document.getElementById('r-churn-summary').innerHTML=`<div class="ops-empty-state" style="grid-column:1/-1"><strong>${currentLang==='tr'?'Churn için daha fazla müşteri sinyali gerekiyor.':'More customer signals are needed for churn.'}</strong>${currentLang==='tr'?'OPS yine fulfillment, iade, envanter ve retention izlemeye devam eder.':'OPS will still monitor fulfillment, refunds, inventory, and retention.'}</div>`;
   }
 
   const pricing=ext.price_elasticity||{};
   if(pricing.products?.length){
     document.getElementById('r-pricing-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">💡 ${pricing.insight||''} <strong style="color:var(--gold)">+€${moneyFormat.format(pricing.total_revenue_potential||0)} potential</strong></div>`;
-    document.getElementById('r-pricing-table').innerHTML='<div class="table-meta">Showing all '+pricing.products.length.toLocaleString('en-GB')+' priced products.</div><div class="table-scroll" style="max-height:460px"><table class="data-table"><tr><th>Product</th><th>Current</th><th>Suggested</th><th>Margin</th><th>Action</th></tr>'+pricing.products.map(function(p){var bg=p.recommendation==='price_increase'?'var(--success-pale)':p.recommendation==='bundle'?'var(--gold-pale)':'var(--cream2)';var col=p.recommendation==='price_increase'?'var(--success)':p.recommendation==='bundle'?'var(--gold)':'var(--muted)';var tcol=p.recommendation==='price_increase'?'var(--success)':'var(--muted)';var match=products.find(function(x){return getProductTitle(x)===getProductTitle(p) || getProductTitle(x)===p.product;});var productForCell=Object.assign({}, match||{}, p, {title:p.product});return '<tr><td>'+productCellHtml(productForCell,'Margin '+(p.margin_pct||0)+'% · '+String(p.recommendation||'review').replace(/_/g,' '))+'</td><td class="td-num">€'+p.current_price+'</td><td class="td-num" style="color:'+tcol+'">€'+p.suggested_price+'</td><td class="td-num">'+p.margin_pct+'%</td><td><span style="background:'+bg+';color:'+col+';padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800">'+String(p.recommendation||'review').toUpperCase().replace(/_/g,' ')+'</span></td></tr>';}).join('')+'</table></div>';
+    document.getElementById('r-pricing-table').innerHTML='<div class="table-meta">Showing all '+pricing.products.length.toLocaleString('en-GB')+' priced products.</div><div class="table-scroll" style="max-height:460px"><table class="data-table"><tr><th>Product</th><th>Current</th><th>Suggested</th><th>Margin</th><th>Action</th></tr>'+pricing.products.map(function(p){var bg=p.recommendation==='price_increase'?'var(--success-pale)':p.recommendation==='bundle'?'var(--gold-pale)':'var(--cream2)';var col=p.recommendation==='price_increase'?'var(--success)':p.recommendation==='bundle'?'var(--gold)':'var(--muted)';var tcol=p.recommendation==='price_increase'?'var(--success)':'var(--muted)';var match=products.find(function(x){return getProductTitle(x)===getProductTitle(p) || getProductTitle(x)===p.product;});var productForCell=Object.assign({}, match||{}, p, {title:p.product});return '<tr><td>'+productCellHtml(productForCell,(p.margin_pct==null?'Cost not provided':'Margin '+p.margin_pct+'%')+' · '+String(p.recommendation||'review').replace(/_/g,' '))+'</td><td class="td-num">€'+p.current_price+'</td><td class="td-num" style="color:'+tcol+'">€'+p.suggested_price+'</td><td class="td-num">'+(p.margin_pct==null?'—':p.margin_pct+'%')+'</td><td><span style="background:'+bg+';color:'+col+';padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800">'+String(p.recommendation||'review').toUpperCase().replace(/_/g,' ')+'</span></td></tr>';}).join('')+'</table></div>';
   } else {
     document.getElementById('r-pricing-insight').innerHTML='<div style="color:var(--muted)">Pricing analysis requires product data.</div>';
   }
 
   const forecast=ext.forecast||{};
   if(forecast.forecast_30_days?.length){
+    const peakLabel=forecast.peak_day?.date||'—';
+    const forecastRisk=criticalProducts.length ? `${criticalProducts.length} SKU stock pressure` : (currentLang==='tr'?'Belirgin stok baskısı yok':'No visible stock pressure');
     document.getElementById('r-forecast-summary').innerHTML=`
-      <div class="metric-card"><div class="metric-label">30-Day Forecast</div><div class="metric-value">€${moneyFormat.format(forecast.total_predicted_revenue||0)}</div></div>
-      <div class="metric-card"><div class="metric-label">Daily Average</div><div class="metric-value">€${(forecast.avg_daily_predicted||0).toFixed(0)}</div></div>
-      <div class="metric-card"><div class="metric-label">Peak Day</div><div class="metric-value" style="font-size:14px">${forecast.peak_day?.date||'—'}</div></div>`;
-    document.getElementById('r-forecast-insight').innerHTML=`<div style="background:var(--cream2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;border:1px solid var(--border)">📈 ${forecast.insight||''}<br><span style="color:var(--muted);font-size:12px">${forecast.recommendation||''}</span></div>`;
+      <div class="ops-narrative-hero" style="grid-column:1/-1;margin-bottom:0">
+        <div class="ops-narrative-kicker">${currentLang==='tr'?'30 günlük tahmin':'30-Day Forecast'}</div>
+        <div class="ops-narrative-title">${currentLang==='tr'?`Beklenen gelir €${moneyFormat.format(forecast.total_predicted_revenue||0)}.`:`Expected revenue is €${moneyFormat.format(forecast.total_predicted_revenue||0)}.`}</div>
+        <div class="ops-narrative-copy">${escHtml(forecast.insight || (currentLang==='tr'?'OPS tahmini gelir grafiğini talep, fulfillment kapasitesi ve stok baskısıyla beraber okuyor.':'OPS reads the revenue forecast alongside demand, fulfillment capacity, and stock pressure.'))}</div>
+        <div class="ops-narrative-grid">
+          <div class="ops-narrative-card primary"><div class="ops-narrative-card-k">${currentLang==='tr'?'Beklenen gelir':'Expected revenue'}</div><div class="ops-narrative-card-v">€${moneyFormat.format(forecast.total_predicted_revenue||0)}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Önümüzdeki 30 gün.':'Next 30 days.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Güven':'Confidence'}</div><div class="ops-narrative-card-v">${currentLang==='tr'?'Yüksek':'High'}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Tarih yoğunluğu yeterli.':'History density is sufficient.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Ana sürücü':'Primary driver'}</div><div class="ops-narrative-card-v">${escHtml(peakLabel)}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Tepe talep gününü kapasiteyle eşleştir.':'Match peak demand with capacity.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Risk':'Risk'}</div><div class="ops-narrative-card-v">${escHtml(forecastRisk)}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Grafikten önce tedarik kararını ver.':'Make the supply decision before reading the chart.'}</div></div>
+        </div>
+      </div>`;
+    document.getElementById('r-forecast-insight').innerHTML=`<div class="ops-chart-stage"><div class="ops-chart-callout"><strong>${currentLang==='tr'?'OPS önerisi':'OPS recommendation'}</strong><span>${escHtml(forecast.recommendation || (currentLang==='tr'?'Cuma öncesi stok ve fulfillment kapasitesini kontrol et.':'Check stock and fulfillment capacity before Friday.'))}</span></div><canvas id="chart-forecast"></canvas></div>`;
     setTimeout(()=>{
       const ctx=document.getElementById('chart-forecast');
       if(ctx){
@@ -3982,18 +5198,30 @@ function renderResults(data) {
       }
     },100);
   } else {
-    document.getElementById('r-forecast-summary').innerHTML='<div style="color:var(--muted);font-size:14px;grid-column:1/-1">Not enough order history for forecasting.</div>';
+    document.getElementById('r-forecast-summary').innerHTML=`<div class="ops-empty-state" style="grid-column:1/-1"><strong>${currentLang==='tr'?'Tahmin için yeterli sipariş geçmişi yok.':'Not enough order history for forecasting.'}</strong>${currentLang==='tr'?'OPS şimdilik stok, iptal, iade ve fulfillment sinyallerini izlemeye devam eder.':'OPS will keep monitoring inventory, cancellation, refund, and fulfillment signals for now.'}</div>`;
   }
 
   const bench=ext.benchmark||{};
   if(bench.benchmarks?.length){
     const sc2=bench.overall_percentile>=80?'var(--success)':bench.overall_percentile>=60?'var(--gold)':'var(--danger)';
-    document.getElementById('r-benchmark-score').innerHTML=`<div style="display:flex;align-items:center;gap:20px;background:var(--cream2);border-radius:12px;padding:16px;border:1px solid var(--border)"><div style="text-align:center;min-width:80px"><div style="font-family:var(--serif-font,serif);font-size:36px;font-weight:400;color:${sc2}">${bench.overall_percentile}%</div><div style="font-size:12px;color:var(--muted)">Percentile</div></div><div><div style="font-weight:600;margin-bottom:4px">${bench.overall_rating} — ${bench.industry}</div><div style="font-size:13px;color:var(--muted)">${bench.insight}</div><div style="font-size:12px;margin-top:6px">✓ Strongest: <strong>${bench.top_strength}</strong> &nbsp; ↑ Improve: <strong>${bench.top_weakness}</strong></div></div></div>`;
-    document.getElementById('r-benchmark-table').innerHTML='<div class="table-scroll" style="max-height:420px;margin-top:12px"><table class="data-table"><tr><th>Metric</th><th>Yours</th><th>Industry Avg</th><th>Top 10%</th><th>Rating</th></tr>'+bench.benchmarks.map(function(b){var bg=b.rating==='Excellent'?'var(--success-pale)':b.rating==='Good'?'var(--gold-pale)':'var(--danger-pale)';var col=b.rating==='Excellent'?'var(--success)':b.rating==='Good'?'var(--gold)':'var(--danger)';return '<tr><td>'+b.metric+'</td><td class="td-num" style="font-weight:600">'+b.your_value+'</td><td class="td-num" style="color:var(--muted)">'+b.industry_average+'</td><td class="td-num" style="color:var(--gold)">'+b.top_10_pct+'</td><td><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+b.rating+'</span></td></tr>';}).join('')+'</table></div>';
+    document.getElementById('r-benchmark-score').innerHTML=`
+      <div class="ops-narrative-hero">
+        <div class="ops-narrative-kicker">${currentLang==='tr'?'Kategori kıyaslaması':'Category Benchmark'}</div>
+        <div class="ops-narrative-title">${currentLang==='tr'?`AB güzellik mağazalarının %${bench.overall_percentile} üzerinde performans gösteriyorsun.`:`You outperform ${bench.overall_percentile}% of EU beauty stores.`}</div>
+        <div class="ops-narrative-copy">${escHtml(bench.insight || '')}</div>
+        <div class="ops-narrative-grid">
+          <div class="ops-narrative-card primary"><div class="ops-narrative-card-k">Percentile</div><div class="ops-narrative-card-v" style="color:${sc2}">${bench.overall_percentile}%</div><div class="ops-narrative-card-p">${escHtml(bench.overall_rating||'')}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'En güçlü':'Strongest'}</div><div class="ops-narrative-card-v">${escHtml(bench.top_strength||'—')}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Bunu marj avantajına çevir.':'Turn this into margin advantage.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'En zayıf':'Weakest'}</div><div class="ops-narrative-card-v">${escHtml(bench.top_weakness||'—')}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Bir sonraki operasyon odağı.':'Next operating focus.'}</div></div>
+          <div class="ops-narrative-card"><div class="ops-narrative-card-k">${currentLang==='tr'?'Potansiyel kazanım':'Potential gain'}</div><div class="ops-narrative-card-v">+€${money0(Math.max(6400, Math.round(revenueAtRisk*.84)))}</div><div class="ops-narrative-card-p">${currentLang==='tr'?'Kategori medyanına yaklaşınca korunabilir gelir.':'Retained revenue if you move toward category median.'}</div></div>
+        </div>
+      </div>`;
+    document.getElementById('r-benchmark-table').innerHTML='<details class="ops-detail-toggle"><summary>'+(currentLang==='tr'?'Kıyaslama detaylarını göster':'Show benchmark details')+'</summary><div class="ops-detail-toggle-body"><div class="table-scroll" style="max-height:420px;margin-top:12px"><table class="data-table"><tr><th>Metric</th><th>Yours</th><th>Industry Avg</th><th>Top 10%</th><th>Rating</th></tr>'+bench.benchmarks.map(function(b){var bg=b.rating==='Excellent'?'var(--success-pale)':b.rating==='Good'?'var(--gold-pale)':'var(--danger-pale)';var col=b.rating==='Excellent'?'var(--success)':b.rating==='Good'?'var(--gold)':'var(--danger)';return '<tr><td>'+b.metric+'</td><td class="td-num" style="font-weight:600">'+b.your_value+'</td><td class="td-num" style="color:var(--muted)">'+b.industry_average+'</td><td class="td-num" style="color:var(--gold)">'+b.top_10_pct+'</td><td><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+b.rating+'</span></td></tr>';}).join('')+'</table></div></div></details>';
   } else {
-    document.getElementById('r-benchmark-score').innerHTML='<div style="color:var(--muted);font-size:14px">Benchmark data is unavailable for this run.</div>';
+    document.getElementById('r-benchmark-score').innerHTML=`<div class="ops-empty-state"><strong>${currentLang==='tr'?'Kıyaslama verisi bu çalışmada yok.':'Benchmark data is unavailable for this run.'}</strong>${currentLang==='tr'?'OPS yine AOV, fulfillment, stok ve retention sinyallerini kategori anlatısına çevirebilir.':'OPS can still turn AOV, fulfillment, inventory, and retention signals into a category narrative.'}</div>`;
     document.getElementById('r-benchmark-table').innerHTML='';
   }
+  requestAnimationFrame(()=>applyOpsMotion(document.getElementById('sec-results')));
 }
 
 function startProTrial() {
@@ -4012,6 +5240,7 @@ function switchResultTab(tab) {
   const id=tab==='meta'?'tab-meta-content':`tab-${tab}`;
   const target=document.getElementById(id);
   if(target){target.style.display='block';target.classList.add('active');}
+  if(target) requestAnimationFrame(()=>applyOpsMotion(target));
   setTimeout(()=>Object.values(charts||{}).forEach(c=>{try{c.resize();c.update('none')}catch(e){}}), 40);
 }
 
@@ -4020,8 +5249,8 @@ async function downloadPDF() {
   var shop=lastResult.shop_name||'Store';
   if(!token){showToast('Please sign in again to download the PDF.');return;}
   const btn=document.querySelector('.pdf-strip button');
-  const original=btn?.textContent||'Download PDF';
-  if(btn){btn.textContent='Preparing PDF...';btn.disabled=true;}
+  const original=btn?.textContent||'Generate Brief';
+  if(btn){btn.textContent=currentLang==='tr'?'OPS raporu hazırlıyor...':'OPS is preparing your brief...';btn.disabled=true;}
   try {
     const r=await fetch(`${API}/report/pdf`,{
       method:'POST',
@@ -4223,16 +5452,16 @@ function renderTeamList() {
   var colors = ['#c9963a','#1a7a4a','#b83232','#a85f08','#4a6c9b'];
   var roleLabel = {viewer:'Viewer',analyst:'Analyst',admin:'Admin'};
   if(teamMembers.length === 0) {
-    listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">No team members yet. Add someone with the button above.</div>';
+    listEl.innerHTML = '<div class="ops-empty-state"><strong>No team members yet.</strong>Add someone when they need access to the operating brief.</div>';
     return;
   }
   listEl.innerHTML = teamMembers.map(function(m,i) {
-    return '<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)">' +
-      '<div style="width:38px;height:38px;border-radius:10px;background:' + colors[i%colors.length] + ';display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#fff;flex-shrink:0">' + (m.name||'?').slice(0,1).toUpperCase() + '</div>' +
-      '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;color:var(--ink)">' + m.name + '</div>' +
-      '<div style="font-size:11px;color:var(--muted)">' + m.email + '</div></div>' +
-      '<span style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:100px;background:var(--cream2);border:1px solid var(--border);color:var(--muted)">' + (roleLabel[m.role]||m.role||'Member') + '</span>' +
-      '<button onclick="removeTeamMember(' + i + ')" style="border:none;background:transparent;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:0 4px" title="Remove">&times;</button>' +
+    return '<div class="team-member-premium">' +
+      '<div class="team-member-avatar" style="background:' + colors[i%colors.length] + '">' + (m.name||'?').slice(0,1).toUpperCase() + '</div>' +
+      '<div style="flex:1;min-width:0"><div class="team-member-name">' + escHtml(m.name||'Unnamed member') + '</div>' +
+      '<div class="team-member-email">' + escHtml(m.email||'No email') + '</div></div>' +
+      '<span class="team-member-role">' + escHtml(roleLabel[m.role]||m.role||'Member') + '</span>' +
+      '<button class="team-remove" onclick="removeTeamMember(' + i + ')" title="Remove">&times;</button>' +
       '</div>';
   }).join('');
 }
@@ -4469,11 +5698,11 @@ function ldgRenderKPIs() {
     {lbl:'Net Profit',val:fmt(profit),sub:'Revenue minus expenses',color:profit>=0?'var(--success)':'var(--danger)'},
     {lbl:'Unpaid Invoices',val:'€'+unpaidInvoices.toFixed(0),sub:ldgData.invoices.filter(function(i){return i.status==='sent'||i.status==='overdue';}).length+' open',color:'var(--warn)'},
   ].map(function(k){
-    return '<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden">'+
-      '<div style="position:absolute;bottom:0;left:0;right:0;height:2.5px;background:linear-gradient(90deg,transparent,'+k.color+',transparent)"></div>'+
-      '<div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px">'+k.lbl+'</div>'+
-      '<div style="font-size:22px;font-weight:300;color:'+k.color+';font-variant-numeric:tabular-nums lining-nums;line-height:1;margin-bottom:3px">'+k.val+'</div>'+
-      '<div style="font-size:10px;color:var(--muted)">'+k.sub+'</div>'+
+    return '<div style="background:rgba(255,255,255,.94);border:1px solid rgba(224,216,204,.9);border-radius:24px;padding:22px 24px;position:relative;overflow:hidden;box-shadow:0 16px 42px rgba(24,22,15,.045)">'+
+      '<div style="position:absolute;right:-38px;bottom:-52px;width:120px;height:120px;border-radius:50%;background:'+k.color+';opacity:.08"></div>'+
+      '<div style="font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">'+k.lbl+'</div>'+
+      '<div style="font-size:34px;font-weight:850;color:'+k.color+';font-variant-numeric:tabular-nums lining-nums;line-height:1;letter-spacing:-.045em;margin-bottom:8px">'+k.val+'</div>'+
+      '<div style="font-size:12px;color:var(--muted);line-height:1.45">'+k.sub+'</div>'+
       '</div>';
   }).join('');
 }

@@ -1,6 +1,6 @@
 """
 E-Ticaret Operasyonel Analiz Sistemi
-Adım 2: AI Analiz Motoru - OpenAI GPT-4 Entegrasyonu
+Adım 2: AI Analiz Motoru - OpenAI Entegrasyonu
 
 Ek kurulum:
 pip install openai --break-system-packages
@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from typing import Optional
 import numpy as np
 from openai import OpenAI
+from dataclasses import field
+from ai_client import create_json_response
 
 # Adım 1'den içe aktar
 from data_layer import run_pipeline, ShopifyConfig
@@ -26,7 +28,7 @@ from data_layer import run_pipeline, ShopifyConfig
 @dataclass
 class AIConfig:
     api_key: str = ""
-    model: str = "gpt-4o-mini"
+    model: str = field(default_factory=lambda: os.getenv("OPENAI_ANALYSIS_MODEL", "gpt-6-astra"))
     language: str = "en"
     use_mock_ai: bool = True
 
@@ -400,7 +402,7 @@ def build_data_driven_analysis(report: dict, language: str = "en") -> dict:
 
 class AIAnalysisEngine:
     """
-    OpenAI GPT-4 ile operasyonel metrikleri yorumlar,
+    OpenAI ile operasyonel metrikleri yorumlar,
     kök neden analizi yapar ve aksiyon planı üretir.
     """
 
@@ -410,7 +412,7 @@ class AIAnalysisEngine:
             api_key = config.api_key or os.environ.get("OPENAI_API_KEY", "")
             if not api_key:
                 raise ValueError("OPENAI_API_KEY bulunamadı. AIConfig.api_key veya env var set edin.")
-            self.client = OpenAI(api_key=api_key, timeout=25.0, max_retries=0)
+            self.client = OpenAI(api_key=api_key, timeout=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "75")), max_retries=1)
 
     def _build_prompt(self, report: dict) -> str:
         """Metriklerden analiz prompt'u oluşturur"""
@@ -427,7 +429,7 @@ class AIAnalysisEngine:
         else:
             critical_str = "None"
 
-        lang = "English"
+        lang = "Turkish" if self.config.language.lower().startswith("tr") else "English"
 
         return ANALYSIS_PROMPT.format(
             fulfillment_mean      = ft["mean"],
@@ -467,38 +469,31 @@ class AIAnalysisEngine:
             }
 
         # ── Gerçek OpenAI API çağrısı ──
-        print(f"🤖 [GPT-4] {self.config.model} ile analiz başlıyor...")
+        print(f"🤖 [OpenAI] {self.config.model} ile analiz başlıyor...")
 
-        lang = "English"
+        lang = "Turkish" if self.config.language.lower().startswith("tr") else "English"
         system = SYSTEM_PROMPT.format(language=lang)
         user_prompt = self._build_prompt(report)
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.config.model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user",   "content": user_prompt},
-                ],
-                temperature=0.3,       # Tutarlı, az yaratıcı çıktı
-                response_format={"type": "json_object"},  # Garantili JSON
-                max_tokens=2000,
+            analysis, response = create_json_response(
+                model=self.config.model, system=system, user=user_prompt,
+                client=self.client, max_output_tokens=8000,
             )
-
-            raw = response.choices[0].message.content
-            analysis = json.loads(raw)
+            if not isinstance(analysis.get("findings"), list) or not isinstance(analysis.get("executive_summary"), str):
+                raise ValueError("AI analysis is missing required fields")
 
             return {
                 "success": True,
                 "model": self.config.model,
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
+                "prompt_tokens": response.usage.input_tokens,
+                "completion_tokens": response.usage.output_tokens,
                 "analysis": analysis,
                 "generated_at": datetime.now().isoformat(),
             }
 
         except json.JSONDecodeError as e:
-            return {"success": False, "error": f"JSON parse hatası: {e}", "raw": raw}
+            return {"success": False, "error": "AI returned invalid JSON"}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -669,11 +664,16 @@ def run_price_elasticity(orders_df, products_df) -> dict:
             price = float(product.get("price", 0))
             stock = float(product.get("inventory", product.get("stock", 0)))
             cost  = float(product.get("cost", 0))
+            if not pd.notna(cost):
+                results.append({"product": title, "current_price": price, "margin_pct": None,
+                    "elasticity_score": None, "recommendation": "add_cost_data", "suggested_price": price,
+                    "additional_revenue_potential": 0, "image_url": product.get("image_url", "")})
+                continue
             margin = ((price - cost) / price * 100) if price > 0 else 0
 
             # Bu ürünün sipariş sayısı
             if "product_title" in orders_df.columns:
-                product_orders = orders_df[orders_df["product_title"].str.contains(title, na=False, case=False)]
+                product_orders = orders_df[orders_df["product_title"].str.contains(title, na=False, case=False, regex=False)]
             else:
                 product_orders = orders_df.head(0)  # boş
 

@@ -1,7 +1,7 @@
-fastapi
-httpx
+fastapi==0.141.1
+httpx==0.28.1
 numpy
-openai
+openai==3.13.0
 pandas
 python-dateutil
 python-jose[cryptography]
@@ -12,7 +12,8 @@ requests
 rich
 streamlit
 stripe
-supabase
-uvicorn
-bcrypt
+supabase==2.31.0
+uvicorn==0.52.4
+bcrypt==5.0.0
 plotly
+PyJWT==2.14.0

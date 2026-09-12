@@ -28,6 +28,10 @@ import secrets
 import re
 import io
 import logging
+import time
+import threading
+from functools import lru_cache
+from postgrest.exceptions import APIError as DatabaseAPIError
 import pandas as pd
 import numpy as np
 from urllib.parse import urlencode, quote
@@ -40,6 +44,8 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from data_layer import ShopifyConfig, WooCommerceConfig, MetricsEngine, run_pipeline, run_shopify_live_pipeline, run_woocommerce_pipeline
 from ai_engine import AIConfig, AIAnalysisEngine, run_extended_analysis
+from ai_client import create_json_response
+from starlette.concurrency import run_in_threadpool
 from meta_ads import MetaConfig, run_meta_analysis
 from pdf_report import generate_pdf_report
 
@@ -211,6 +217,7 @@ SHOPIFY_APP_PRICING_HANDLE = os.environ.get("SHOPIFY_APP_PRICING_HANDLE", SHOPIF
 BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "https://ops-intelligence-production.up.railway.app").rstrip("/")
 FRONTEND_PUBLIC_URL = os.environ.get("FRONTEND_PUBLIC_URL", "https://opsintelligence.org").rstrip("/")
 SHOPIFY_STATE_EXPIRE_MINUTES = 10
+SHOPIFY_TOKEN_LOCK = threading.RLock()
 
 security = HTTPBearer()
 
@@ -284,15 +291,35 @@ def make_analysis_context(report: dict, shop_name: str, data_source: str, model:
 # VERİTABANI (Supabase)
 # ─────────────────────────────────────────────
 
+@lru_cache(maxsize=1)
 def get_supabase():
     from supabase import create_client
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    from supabase.client import ClientOptions
+    key = os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or SUPABASE_KEY
+    if not SUPABASE_URL or not key:
+        raise HTTPException(status_code=503, detail="Account service is temporarily unavailable. Please try again shortly.")
+    return create_client(SUPABASE_URL.strip(), key.strip(), options=ClientOptions(
+        postgrest_client_timeout=15, auto_refresh_token=False, persist_session=False,
+    ))
+
+
+@app.exception_handler(DatabaseAPIError)
+async def database_error_handler(request: Request, exc: DatabaseAPIError):
+    # Never return database diagnostics, credentials, or query data to browsers.
+    logger.error("Database request failed path=%s code=%s", request.url.path, getattr(exc, "code", "unknown"))
+    return JSONResponse(status_code=503, content={
+        "detail": "Account service is temporarily unavailable. Please try again shortly.",
+        "code": "account_service_unavailable",
+    }, headers={"Retry-After": "30"})
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+    try:
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    except (ValueError, TypeError, AttributeError):
+        return False
 
 def make_json_safe(value):
     """Convert pandas/numpy analysis output into strict JSON-safe primitives."""
@@ -342,6 +369,8 @@ def create_token(email: str, plan: str) -> str:
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if not payload.get("sub") or payload.get("purpose") or "nonce" in payload:
+            raise HTTPException(status_code=401, detail="Invalid account session.")
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Session expired.")
@@ -371,6 +400,7 @@ def verify_shopify_session_token(credentials: HTTPAuthorizationCredentials = Dep
             algorithms=["HS256"],
             audience=SHOPIFY_API_KEY,
             leeway=10,
+            options={"require": ["exp", "nbf", "aud", "iss", "dest"]},
         )
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Shopify session token expired. Retry the request.")
@@ -392,6 +422,9 @@ def verify_shopify_session_token(credentials: HTTPAuthorizationCredentials = Dep
 
 def normalize_shop_domain(shop: str) -> str:
     shop = (shop or "").strip().lower()
+    admin_match = re.fullmatch(r"(?:https?://)?admin\.shopify\.com/store/([a-z0-9][a-z0-9-]*)(?:/[^?#]*)?(?:[?#].*)?", shop)
+    if admin_match:
+        return f"{admin_match.group(1)}.myshopify.com"
     shop = shop.replace("https://", "").replace("http://", "").split("/")[0]
     if shop and "." not in shop:
         shop = f"{shop}.myshopify.com"
@@ -592,6 +625,9 @@ def get_user_billing_state(email: str) -> dict:
 def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
     if not SHOPIFY_API_KEY or not SHOPIFY_API_SECRET:
         raise HTTPException(status_code=500, detail="Shopify app credentials are missing.")
+    claims = verify_shopify_session_token(HTTPAuthorizationCredentials(scheme="Bearer", credentials=id_token))
+    if claims["shop"] != shop:
+        raise HTTPException(status_code=401, detail="Shopify session token shop mismatch.")
     response = requests.post(
         f"https://{shop}/admin/oauth/access_token",
         data={
@@ -601,7 +637,7 @@ def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
             "subject_token": id_token,
             "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
             "requested_token_type": "urn:shopify:params:oauth:token-type:offline-access-token",
-            "expiring": "0",
+            "expiring": "1",
         },
         headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"},
         timeout=30,
@@ -611,7 +647,37 @@ def exchange_shopify_id_token(shop: str, id_token: str) -> dict:
     access_token = token_data.get("access_token")
     if not access_token:
         raise HTTPException(status_code=502, detail="Shopify token exchange did not return an access token.")
-    return ensure_shopify_user(shop, access_token, token_data.get("scope", SHOPIFY_SCOPES))
+    return ensure_shopify_user(shop, access_token, token_data.get("scope", SHOPIFY_SCOPES), token_data)
+
+
+def render_shopify_session_bootstrap(shop: str) -> HTMLResponse:
+    """Public shell: never disclose account data or mint a login from a shop name."""
+    response = HTMLResponse(f'''<!doctype html><html><head>
+    <meta name="shopify-api-key" content="{SHOPIFY_API_KEY}">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+    <title>Opening OPS</title><style>body{{font:16px system-ui;background:#f6f5f0;color:#18251f;display:grid;place-items:center;min-height:90vh}}main{{max-width:520px;padding:32px}}button,a{{padding:12px 18px;display:inline-block}}</style></head>
+    <body><main><h1>Opening your operations workspace</h1><p id="status" role="status">Verifying your Shopify session…</p>
+    <button onclick="connect()">Retry connection</button><a href="{FRONTEND_PUBLIC_URL}/app.html" target="_top">Open OPS and connect your store</a></main>
+    <script>async function connect(){{try{{
+      if(!window.shopify?.idToken) throw new Error('Open this app from Shopify Admin to continue.');
+      const token=await shopify.idToken();
+      const r=await fetch('/shopify/app/bootstrap',{{method:'POST',headers:{{'Authorization':'Bearer '+token,'Content-Type':'application/json'}},body:JSON.stringify({{shop:{json.dumps(shop)}}})}});
+      const d=await r.json();if(!r.ok) throw new Error(d.detail||'Connection unavailable. Please retry.');
+      window.location.replace(d.url);
+    }}catch(e){{document.getElementById('status').textContent=e.message;}}}}connect();</script></body></html>''')
+    response.headers["Content-Security-Policy"] = f"frame-ancestors https://{shop} https://admin.shopify.com;"
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+@app.post("/shopify/app/bootstrap")
+async def shopify_bootstrap(req: ShopifyConnectStartRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    shop = normalize_shop_domain(req.shop)
+    account = await run_in_threadpool(exchange_shopify_id_token, shop, credentials.credentials)
+    session = create_shopify_embedded_token(account["email"], shop)
+    return {"url": "/shopify/app?" + urlencode({"shop": shop, "session": session})}
 
 
 def render_shopify_install_required(shop: str) -> HTMLResponse:
@@ -748,14 +814,16 @@ def find_shopify_store_by_domain(shop: str) -> Optional[dict]:
     return None
 
 
-def ensure_shopify_user(shop: str, access_token: str, scope: str) -> dict:
+def ensure_shopify_user(shop: str, access_token: str, scope: str, token_data: Optional[dict] = None) -> dict:
     db = get_supabase()
     try:
         profile = fetch_shop_profile(shop, access_token)
     except requests.exceptions.RequestException:
         profile = {}
 
-    email = (profile.get("email") or profile.get("customer_email") or f"shopify-{shop}@ops.local").lower().strip()
+    connected = find_shopify_store_by_domain(shop)
+    # A merchant-editable shop email is not proof of ownership of an OPS account.
+    email = connected["user"]["email"] if connected else f"shopify-{shop}@ops.local"
     name = profile.get("name") or profile.get("shop_owner") or shop
     existing = db.table("users").select("email,name,plan,stores").eq("email", email).execute()
     if not existing.data:
@@ -769,11 +837,11 @@ def ensure_shopify_user(shop: str, access_token: str, scope: str) -> dict:
             "is_active": True,
         }).execute()
 
-    safe_store = save_shopify_store(email, shop, access_token, scope)
+    safe_store = save_shopify_store(email, shop, access_token, scope, token_data)
     return {"email": email, "name": name, "store": safe_store}
 
 
-def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> dict:
+def save_shopify_store(email: str, shop: str, access_token: str, scope: str, token_data: Optional[dict] = None) -> dict:
     db = get_supabase()
     user_result = db.table("users").select("plan,stores").eq("email", email).execute()
     if not user_result.data:
@@ -795,6 +863,12 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
         "updated_at": now,
         "status": "connected",
     }
+    if token_data:
+        if token_data.get("refresh_token"):
+            store_record["refresh_token"] = token_data["refresh_token"]
+        for lifetime, expiry in (("expires_in", "token_expires_at"), ("refresh_token_expires_in", "refresh_token_expires_at")):
+            if token_data.get(lifetime) is not None:
+                store_record[expiry] = time.time() + float(token_data[lifetime])
 
     replaced = False
     for idx, store in enumerate(stores):
@@ -810,8 +884,38 @@ def save_shopify_store(email: str, shop: str, access_token: str, scope: str) -> 
         stores.append(store_record)
 
     db.table("users").update({"stores": stores}).eq("email", email).execute()
-    safe_record = {k: v for k, v in store_record.items() if k != "access_token"}
-    return safe_record
+    return public_store(store_record)
+
+
+def refresh_shopify_store(email: str, store: dict) -> dict:
+    """Cycle legacy tokens once; refresh expiring tokens before use."""
+    with SHOPIFY_TOKEN_LOCK:
+        rows = get_supabase().table("users").select("stores").eq("email", email).execute().data
+        current = next((s for u in rows or [] for s in u.get("stores") or []
+                        if s.get("platform") == "shopify" and s.get("domain") == store["domain"]), store)
+        if current.get("token_expires_at", 0) > time.time() + 120:
+            return current
+        data = {"client_id": SHOPIFY_API_KEY, "client_secret": SHOPIFY_API_SECRET}
+        if current.get("refresh_token"):
+            data.update({"grant_type": "refresh_token", "refresh_token": current["refresh_token"]})
+        else:
+            data.update({"grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+                "subject_token": current["access_token"],
+                "subject_token_type": "urn:shopify:params:oauth:token-type:offline-access-token",
+                "requested_token_type": "urn:shopify:params:oauth:token-type:offline-access-token", "expiring": "1"})
+        try:
+            response = requests.post(f"https://{store['domain']}/admin/oauth/access_token", data=data, timeout=20)
+            if response.status_code in (400, 401, 403):
+                raise HTTPException(status_code=409, detail="Shopify authorization expired. Reconnect this store from Connections.")
+            response.raise_for_status()
+            tokens = response.json()
+            if not tokens.get("access_token") or not tokens.get("refresh_token"):
+                raise HTTPException(status_code=502, detail="Shopify did not return a renewable token. Reconnect the store.")
+            save_shopify_store(email, store["domain"], tokens["access_token"], tokens.get("scope", current.get("scope", "")), tokens)
+            return {**current, "access_token": tokens["access_token"], "refresh_token": tokens["refresh_token"],
+                    "token_expires_at": time.time() + float(tokens.get("expires_in", 3600))}
+        except requests.RequestException:
+            raise HTTPException(status_code=502, detail="Shopify connection is temporarily unavailable. Please retry.")
 
 
 def mark_shopify_billing(email: str, shop: str, plan: str, status: str = "active") -> None:
@@ -1040,7 +1144,7 @@ def get_connected_shop(email: str, requested_shop: Optional[str] = None) -> Opti
         if requested and store.get("domain") != requested:
             continue
         if store.get("access_token"):
-            return store
+            return refresh_shopify_store(email, store)
     return None
 
 
@@ -1265,6 +1369,8 @@ async def register(req: RegisterRequest):
 
     if len(req.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    if len(req.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="Password must be at most 72 UTF-8 bytes.")
 
     # Kullanıcı oluştur
     user = {
@@ -1373,16 +1479,13 @@ async def shopify_app_home(request: Request):
         shop = normalize_shop_domain(raw_shop)
     except HTTPException:
         return render_shopify_missing_shop()
-    id_token = params.get("id_token", "")
-    if id_token and verify_shopify_hmac(params):
-        try:
-            exchange_shopify_id_token(shop, id_token)
-        except requests.exceptions.HTTPError as e:
-            print(f"Shopify token exchange HTTP error for {shop}: {e}")
-        except requests.exceptions.RequestException as e:
-            print(f"Shopify token exchange failed for {shop}: {e}")
-        except HTTPException as e:
-            print(f"Shopify token exchange rejected for {shop}: {e.detail}")
+    session = params.get("session", "")
+    if not session:
+        return render_shopify_session_bootstrap(shop)
+    try:
+        session_claims = verify_shopify_embedded_token(session, shop)
+    except HTTPException:
+        return render_shopify_session_bootstrap(shop)
 
     try:
         connected = find_shopify_store_by_domain(shop)
@@ -1390,7 +1493,9 @@ async def shopify_app_home(request: Request):
         logger.warning("Shopify app store lookup failed for %s: %s", shop, e)
         connected = None
     if not connected:
-        return render_shopify_install_required(shop)
+        return render_shopify_session_bootstrap(shop)
+    if connected["user"]["email"] != session_claims.get("sub"):
+        raise HTTPException(status_code=403, detail="Store does not belong to this session.")
 
     user = connected["user"]
     store = connected["store"]
@@ -1708,6 +1813,8 @@ async def shopify_app_home(request: Request):
 </html>
 """)
     response.headers["Content-Security-Policy"] = f"frame-ancestors https://{shop} https://admin.shopify.com;"
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 
@@ -1798,7 +1905,7 @@ async def shopify_embedded_analyze(
 
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     ai_cfg = AIConfig(api_key=openai_key, use_mock_ai=not (openai_key and plan["ai"]), language="en")
-    ai_result = AIAnalysisEngine(ai_cfg).analyze(report)
+    ai_result = await run_in_threadpool(AIAnalysisEngine(ai_cfg).analyze, report)
     if not ai_result.get("success") or "analysis" not in ai_result:
         ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language="en")).analyze(report)
 
@@ -2000,6 +2107,7 @@ async def shopify_callback(request: Request):
                 "client_id": SHOPIFY_API_KEY,
                 "client_secret": SHOPIFY_API_SECRET,
                 "code": code,
+                "expiring": "1",
             },
             headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"},
             timeout=30,
@@ -2016,14 +2124,16 @@ async def shopify_callback(request: Request):
 
     if state_payload.get("mode") == "embedded":
         try:
-            ensure_shopify_user(
+            account = ensure_shopify_user(
                 shop,
                 access_token,
                 token_data.get("scope", SHOPIFY_SCOPES),
+                token_data,
             )
         except HTTPException as e:
             return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error={quote(str(e.detail))}")
-        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?shop={quote(shop)}&shopify_connected=1")
+        session = create_shopify_embedded_token(account["email"], shop)
+        return RedirectResponse(f"{BACKEND_PUBLIC_URL}/shopify/app?" + urlencode({"shop": shop, "session": session}))
 
     user_email = state_payload["sub"]
     try:
@@ -2032,6 +2142,7 @@ async def shopify_callback(request: Request):
             shop,
             access_token,
             token_data.get("scope", SHOPIFY_SCOPES),
+            token_data,
         )
     except HTTPException as e:
         return RedirectResponse(f"{FRONTEND_PUBLIC_URL}/app.html?shopify_error={quote(str(e.detail))}")
@@ -2248,7 +2359,7 @@ async def run_analysis(req: AnalysisRequest, payload: dict = Depends(verify_toke
         ai_cfg = AIConfig(use_mock_ai=True, language=req.language)
 
     engine = AIAnalysisEngine(ai_cfg)
-    ai_result = engine.analyze(report)
+    ai_result = await run_in_threadpool(engine.analyze, report)
 
     # Fallback
     if not ai_result.get("success") or "analysis" not in ai_result:
@@ -2526,20 +2637,14 @@ async def ask_ops(req: AIAskRequest, payload: dict = Depends(verify_token)):
         },
     }
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=openai_key, timeout=20.0, max_retries=0)
-        response = client.chat.completions.create(
-            model=os.environ.get("OPENAI_ASK_MODEL", "gpt-4o-mini"),
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
-            ],
-            temperature=0.25,
-            response_format={"type": "json_object"},
-            max_tokens=650,
+        parsed, response = await run_in_threadpool(
+            create_json_response,
+            model=os.environ.get("OPENAI_ASK_MODEL", "gpt-6-astra"),
+            system=system, user=json.dumps(user_prompt, ensure_ascii=False),
+            max_output_tokens=4000,
         )
-        raw = response.choices[0].message.content or "{}"
-        parsed = json.loads(raw)
+        if not isinstance(parsed.get("answer"), str) or not parsed["answer"].strip():
+            raise ValueError("AI answer is empty")
         return make_json_safe({
             "success": True,
             "mode": req.mode,
@@ -2600,7 +2705,7 @@ async def upload_analysis(
         ai_cfg = AIConfig(use_mock_ai=True, language=language)
 
     engine = AIAnalysisEngine(ai_cfg)
-    ai_result = engine.analyze(report)
+    ai_result = await run_in_threadpool(engine.analyze, report)
     if not ai_result.get("success") or "analysis" not in ai_result:
         ai_result = AIAnalysisEngine(AIConfig(use_mock_ai=True, language=language)).analyze(report)
 

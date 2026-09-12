@@ -1,9 +1,9 @@
-fastapi
-uvicorn
+fastapi==0.141.1
+uvicorn==0.52.4
 python-jose[cryptography]
-bcrypt
-supabase
-openai
+bcrypt==5.0.0
+supabase==2.31.0
+openai==3.13.0
 pandas
 numpy
 faker
@@ -12,5 +12,6 @@ stripe
 reportlab
 requests
 pyyaml
-httpx
+httpx==0.28.1
 python-multipart
+PyJWT==2.14.0
