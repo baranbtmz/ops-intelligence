@@ -21,3 +21,11 @@ GitHub: baranbtmz/ops-intelligence. Railway: ops-intelligence production. Netlif
 After deployment check /health, invalid /auth/login returns 401 with CORS, and unauthenticated /shopify/app shows only the App Bridge bootstrap. A real merchant login and the remaining Shopify consent must be verified using the merchant's existing authenticated session; do not synthesize a customer login token for a smoke test.
 
 The bilingual guide is served at /guide.html and linked from the homepage and dashboard. It includes an address-format checker, a five-step checklist, plan distinctions and troubleshooting. Short entrance animations honor prefers-reduced-motion.
+
+## Shopify public-launch status
+
+The authenticated Partners dashboard reports App Store review as Paused. Automated common-error checks were rerun and passed. Do not declare public merchant installation available or attest that all review requirements are met until the reviewer’s requirement issues have been resolved. The public guide and connection screen disclose that general installation is not open yet.
+
+A full live pipeline read 26 products and 0 orders from the authorized test store. A real GPT-6 Astra analysis using synthetic sample data completed with five findings and an executive summary. Free currently permits one basic analysis per month; its OpenAI report is disabled.
+
+The authenticated Shopify admin for ed915z-qu.myshopify.com reports that its Shopify plan was cancelled. Its store must be reactivated by the merchant before attempting reconnection; no subscription or purchase was made. The reviewer’s requirement email was not found in the connected mailboxes and is still needed to resolve the paused review.
