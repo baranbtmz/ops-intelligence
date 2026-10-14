@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import jwt
+import httpx
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
@@ -54,6 +55,30 @@ def test_login_success_and_wrong_password(client, monkeypatch):
 def test_long_or_invalid_password_hash_is_not_a_500():
     assert not main.verify_password('a' * 100, main.hash_password('normal'))
     assert not main.verify_password('password', 'malformed')
+
+
+def test_interrupted_connection_is_safe_and_read_retry_is_bounded(client, monkeypatch):
+    db = database_with([])
+    db.execute.side_effect = httpx.RemoteProtocolError('private upstream diagnostic')
+    monkeypatch.setattr(main, 'get_supabase', lambda: db)
+    response = client.post('/auth/login', json={'email': 'test@example.invalid', 'password': 'invalid'}, headers={'Origin': 'https://opsintelligence.org'})
+    assert response.status_code == 503
+    assert response.headers['access-control-allow-origin'] == '*'
+    assert 'private' not in response.text
+    handler = Mock(side_effect=[httpx.RemoteProtocolError('disconnected'), httpx.Response(200)])
+    monkeypatch.setattr(httpx.HTTPTransport, 'handle_request', handler)
+    with main.AccountTransport() as transport:
+        assert transport.handle_request(httpx.Request('GET', 'https://db.invalid/users')).status_code == 200
+        assert handler.call_count == 2
+        handler.reset_mock(side_effect=True)
+        handler.side_effect = httpx.RemoteProtocolError('disconnected')
+        with pytest.raises(httpx.RemoteProtocolError):
+            transport.handle_request(httpx.Request('POST', 'https://db.invalid/users'))
+        assert handler.call_count == 1
+        handler.reset_mock()
+        with pytest.raises(httpx.RemoteProtocolError):
+            transport.handle_request(httpx.Request('GET', 'https://db.invalid/users'))
+        assert handler.call_count == 2
 
 
 def test_public_shop_page_never_mints_account_token(client, monkeypatch):

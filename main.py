@@ -21,6 +21,7 @@ import jwt
 import bcrypt
 import json
 import requests
+import httpx
 import hmac
 import hashlib
 import base64
@@ -291,6 +292,26 @@ def make_analysis_context(report: dict, shop_name: str, data_source: str, model:
 # VERİTABANI (Supabase)
 # ─────────────────────────────────────────────
 
+class AccountTransport(httpx.HTTPTransport):
+    """Recover one interrupted read; never replay a possibly committed write."""
+    def handle_request(self, request):
+        try:
+            return super().handle_request(request)
+        except (httpx.RemoteProtocolError, httpx.ReadError):
+            if request.method not in {"GET", "HEAD"}:
+                raise
+            return super().handle_request(request)
+
+
+@app.exception_handler(httpx.TransportError)
+async def upstream_transport_error(request: Request, exc: httpx.TransportError):
+    logger.error("Upstream connection failed path=%s type=%s", request.url.path, type(exc).__name__)
+    return JSONResponse(status_code=503, content={
+        "detail": "The service connection was interrupted. Please try again shortly.",
+        "code": "service_connection_interrupted",
+    }, headers={"Retry-After": "5"})
+
+
 @lru_cache(maxsize=1)
 def get_supabase():
     from supabase import create_client
@@ -300,6 +321,10 @@ def get_supabase():
         raise HTTPException(status_code=503, detail="Account service is temporarily unavailable. Please try again shortly.")
     return create_client(SUPABASE_URL.strip(), key.strip(), options=ClientOptions(
         postgrest_client_timeout=15, auto_refresh_token=False, persist_session=False,
+        # Avoid retaining sockets across the database gateway's idle disconnects.
+        httpx_client=httpx.Client(timeout=15, transport=AccountTransport(
+            http2=False, limits=httpx.Limits(max_connections=30, max_keepalive_connections=0),
+        )),
     ))
 
 
@@ -1393,7 +1418,7 @@ async def register(req: RegisterRequest):
 
 
 @app.post("/auth/login")
-async def login(req: LoginRequest):
+def login(req: LoginRequest):
     db = get_supabase()
     email = req.email.lower().strip()
 

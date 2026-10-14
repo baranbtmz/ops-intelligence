@@ -1991,7 +1991,11 @@ button:focus-visible,a:focus-visible,.nav-item:focus-visible{outline:3px solid #
 @media(prefers-reduced-motion:reduce){.workspace-intro,.workspace-steps button{animation:none!important}}
 
 </style>
-</head>
+
+
+<style id="ops-gold-restored">
+.auth-home{display:flex;align-items:center;gap:5px;color:#16140e;text-decoration:none;font-size:32px;font-weight:800;letter-spacing:-2px}.auth-home span{color:#c9963a}.auth-home small{font-size:10px;letter-spacing:2px;margin-left:12px}.auth-route{display:grid;gap:0;margin:24px 0}.auth-route>div{display:grid;grid-template-columns:32px 1fr;gap:5px 14px;padding:15px 0;border-bottom:1px solid #c9963a30}.auth-route span{grid-row:span 2;color:#9f7a15;align-self:center;font-size:12px}.auth-route strong{font-size:14px}.auth-route small{color:#8a8070;font-size:12px}.auth-guide{display:grid;gap:8px;color:#715423;text-decoration:none;font-size:13px}.auth-tab{border:0;background:transparent;font-family:inherit}.workspace-start{border-color:#e0d8cc;background:linear-gradient(120deg,#f5ecd9,#fffdf7)}.workspace-eyebrow,.workspace-steps button>span,.workspace-steps b{color:#9c742d}.workspace-intro h2,.workspace-steps button{color:#2c2a25}.workspace-intro p,.workspace-intro .workspace-source,.workspace-steps small{color:#8a8070}.workspace-steps button{border-color:#e0d8cc}.workspace-steps button:hover{border-color:#c9963a}button:focus-visible,a:focus-visible,.nav-item:focus-visible{outline-color:#c9963a}
+</style></head>
 <body>
 <div class="login-loader" id="login-loader" aria-hidden="true">
   <div class="login-loader-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></div>
@@ -2009,59 +2013,31 @@ button:focus-visible,a:focus-visible,.nav-item:focus-visible{outline:3px solid #
     <div class="auth-shell">
       <section class="auth-trust-panel" aria-label="OPS trust panel">
         <div>
-          <div class="auth-trust-logo">
+          <a href="/" class="auth-home" aria-label="OPS Intelligence home">OPS<span>.</span> <small>INTELLIGENCE</small></a>
+          <div class="auth-trust-logo" style="display:none">
             <span class="auth-brand-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></span>
             Intelligence Platform
           </div>
-          <h1 class="auth-trust-title">Find where your store <span>leaks profit</span></h1>
+          <h1 class="auth-trust-title">Mağazana daha net bir bakış.</h1>
           <p class="auth-trust-copy">OPS acts like an AI operations analyst for Shopify founders: it catches margin, inventory, fulfillment, and cancellation risk before it quietly compounds.</p>
           <div class="auth-trust-badges">
             <div class="auth-trust-badge">Shopify OAuth ready</div>
             <div class="auth-trust-badge">WooCommerce REST</div>
             <div class="auth-trust-badge">Live data labeling</div>
           </div>
-          <div class="auth-ops-preview">
-            <div class="auth-ops-preview-card dark">
-              <div class="auth-ops-k">OPS command</div>
-              <div class="auth-ops-v">€7.6k</div>
-              <div class="auth-ops-p">Potential monthly leakage detected across cancellation, fulfillment, inventory, and churn signals.</div>
-            </div>
-            <div class="auth-ops-preview-card">
-              <div class="auth-ops-k">Highest action</div>
-              <div class="auth-ops-v">24h</div>
-              <div class="auth-ops-p">Reduce processing time before scaling spend or promising faster delivery.</div>
-            </div>
+          <div class="auth-route" aria-label="How OPS works">
+            <div><span>01</span><strong data-workspace-en="Connect your store" data-workspace-tr="Mağazanı bağla">Mağazanı bağla</strong><small>Shopify · WooCommerce</small></div>
+            <div><span>02</span><strong data-workspace-en="Understand the signals" data-workspace-tr="Veriyi anlamlandır">Veriyi anlamlandır</strong><small data-workspace-en="Revenue · Stock · Costs" data-workspace-tr="Gelir · Stok · Maliyet">Gelir · Stok · Maliyet</small></div>
+            <div><span>03</span><strong data-workspace-en="Choose your next action" data-workspace-tr="Sonraki adımını belirle">Sonraki adımını belirle</strong><small data-workspace-en="An operating brief, powered by AI" data-workspace-tr="Yapay zekâ destekli operasyon özeti">Yapay zekâ destekli operasyon özeti</small></div>
           </div>
         </div>
-        <div>
-          <div class="auth-testimonials">
-            <div class="auth-testimonial">
-              <div class="auth-testimonial-label">AI COO Layer</div>
-              <div class="auth-testimonial-copy">See stock pressure, fulfillment drag, cancellation risk, and revenue leakage as operating decisions.</div>
-              <div class="auth-testimonial-name">Built for lean Shopify teams</div>
-            </div>
-            <div class="auth-testimonial">
-              <div class="auth-testimonial-label">For founders</div>
-              <div class="auth-testimonial-copy">Know what to fix before ad spend, supplier decisions, or customer promises start costing margin.</div>
-              <div class="auth-testimonial-name">Decision-ready analysis briefs</div>
-            </div>
-          </div>
-          <div class="auth-rating">
-            <div class="auth-rating-steps">
-              <span class="auth-rating-step">1</span>
-              <span class="auth-rating-step">2</span>
-              <span class="auth-rating-step">3</span>
-              <span class="auth-rating-step">4</span>
-            </div>
-            <div>Secure install, clear source coverage, and reports that separate live results from demo mode.</div>
-          </div>
-        </div>
+        <a class="auth-guide" href="/guide.html"><span data-workspace-en="First time connecting a store?" data-workspace-tr="İlk kez mağaza mı bağlayacaksın?">İlk kez mağaza mı bağlayacaksın?</span><strong data-workspace-en="Explore the connection guide ↗" data-workspace-tr="Bağlantı rehberini incele ↗">Bağlantı rehberini incele ↗</strong></a>
       </section>
       <div class="auth-box">
         <div class="auth-logo">
           <div class="auth-logotype"><span class="auth-brand-mark"><img src="assets/ops-logo-transparent.png" alt="OPS"></span></div>
           <div class="auth-rule"></div>
-          <div class="auth-tagline">Founder-ready commerce operations intelligence</div>
+          <div class="auth-tagline" data-workspace-en="Your commerce operations workspace" data-workspace-tr="E-ticaret operasyon çalışma alanın">E-ticaret operasyon çalışma alanın</div>
         </div>
         <div class="auth-card">
           <div class="language-switch auth-lang" aria-label="Language">
@@ -2069,21 +2045,21 @@ button:focus-visible,a:focus-visible,.nav-item:focus-visible{outline:3px solid #
             <button type="button" data-lang-button="tr" onclick="setLanguage('tr')">TR</button>
           </div>
           <div class="auth-tabs">
-            <div class="auth-tab active" onclick="switchTab('login')">Log In</div>
-            <div class="auth-tab" onclick="switchTab('register')">Sign Up</div>
+            <button type="button" class="auth-tab active" onclick="switchTab('login')">Log In</button>
+            <button type="button" class="auth-tab" onclick="switchTab('register')">Sign Up</button>
           </div>
           <div class="auth-form active" id="form-login">
             <form id="login-form" onsubmit="event.preventDefault();login()" style="display:contents">
-            <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="hello@yourstore.com" autocomplete="email" onchange="onLoginInput()" oninput="onLoginInput()"></div>
-            <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onchange="onLoginInput()" oninput="onLoginInput()"></div>
+            <div class="field"><label for="login-email">Email</label><input type="email" id="login-email" placeholder="hello@yourstore.com" autocomplete="email" onchange="onLoginInput()" oninput="onLoginInput()"></div>
+            <div class="field"><label for="login-password">Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onchange="onLoginInput()" oninput="onLoginInput()"></div>
             <button class="auth-btn" id="login-btn" type="submit">Log In →</button>
             </form>
             <div class="auth-error" id="login-error"></div>
           </div>
           <div class="auth-form" id="form-register">
-            <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your name"></div>
-            <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="hello@yourstore.com"></div>
-            <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters"></div>
+            <div class="field"><label for="reg-name">Full Name</label><input type="text" id="reg-name" placeholder="Your name"></div>
+            <div class="field"><label for="reg-email">Email</label><input type="email" id="reg-email" placeholder="hello@yourstore.com"></div>
+            <div class="field"><label for="reg-password">Password</label><input type="password" id="reg-password" placeholder="At least 6 characters"></div>
             <button class="auth-btn" onclick="register()">Create Account →</button>
             <div class="auth-error" id="reg-error"></div>
           </div>
@@ -3171,12 +3147,12 @@ let lastAnalysisRequest = null;
 let charts = {};
 let connectedShops = [];
 let storeLimit = {plan:'free', max:1, used:0, canAdd:true};
-let currentLang = localStorage.getItem('ops_lang') || 'en';
+let currentLang = localStorage.getItem('ops_lang') || (navigator.language.startsWith('tr') ? 'tr' : 'en');
 
 const I18N = {
   en: {
     loginLoader:'Preparing your workspace',
-    authTitle:'Find where your store leaks profit',
+    authTitle:'Your store. A clearer perspective.',
     authCopy:'OPS acts like an AI operations analyst for Shopify founders: it catches margin, inventory, fulfillment, and cancellation risk before it quietly compounds.',
     authBadges:['Shopify OAuth ready','WooCommerce REST','Live data labeling'],
     login:'Log In', signup:'Sign Up', password:'Password', fullName:'Full Name', yourName:'Your name', createAccount:'Create Account →',
@@ -3201,7 +3177,7 @@ const I18N = {
   },
   tr: {
     loginLoader:'Çalışma alanın hazırlanıyor',
-    authTitle:'Mağazanın nerede kâr kaçırdığını bul',
+    authTitle:'Mağazana daha net bir bakış.',
     authCopy:'OPS, Shopify kurucuları için bir yapay zeka operasyon analisti gibi çalışır: marj, stok, teslimat ve iptal risklerini büyümeden yakalar.',
     authBadges:['Shopify OAuth hazır','WooCommerce REST','Canlı veri etiketleme'],
     login:'Giriş Yap', signup:'Kayıt Ol', password:'Şifre', fullName:'Ad Soyad', yourName:'Adınız', createAccount:'Hesap Oluştur →',
